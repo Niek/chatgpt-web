@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --base=/chatgpt-web/",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
@@ -18,7 +18,7 @@
     "marked": "^4.2.12",
     "sass": "^1.58.3",
     "svelte": "^3.55.1",
-    "svelte-check": "^2.10.3",
+    "svelte-check": "^3.0.4",
     "svelte-local-storage-store": "^0.4.0",
     "tslib": "^2.5.0",
     "typescript": "^4.9.3",
