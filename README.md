@@ -8,5 +8,5 @@ To run the development server, run
 
 ```bash
 npm ci
-npm run dev # or: npm run publish
+npm run dev # or: npm run build
 ```

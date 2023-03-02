@@ -23,7 +23,7 @@ jobs:
           node-version: '18'
 
       - name: Build
-        run: npm ci && npm run publish
+        run: npm ci && npm run build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
