@@ -16,3 +16,7 @@ a.is-disabled {
   cursor: default;
   opacity: 0.5;
 }
+
+$footer-padding: 3rem 1.5rem;
+
+@import "/node_modules/bulma/bulma.sass";
