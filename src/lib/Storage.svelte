@@ -1,0 +1,49 @@
+<script context="module" lang="ts">
+  import { persisted } from "svelte-local-storage-store";
+  import { get } from "svelte/store";
+  import type { Chat, Message } from "./Types.svelte";
+
+  export const chatsStorage = persisted("chats", [] as Chat[]);
+  export const apiKeyStorage = persisted("apiKey", null as string);
+
+  export const addChat = (): number => {
+    const chats = get(chatsStorage);
+
+    // Find the max chatId
+    const chatId =
+      chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1;
+
+    // Add a new chat
+    chats.push({
+      id: chatId,
+      messages: [],
+    });
+    chatsStorage.set(chats);
+    return chatId;
+  };
+
+  export const clearChats = () => {
+    chatsStorage.set([]);
+  };
+
+  export const addMessage = (chatId: number, message: Message) => {
+    const chats = get(chatsStorage);
+    const chat = chats.find((chat) => chat.id === chatId);
+    chat.messages.push(message);
+    chatsStorage.set(chats);
+  };
+
+  export const clearMessages = (chatId: number) => {
+    const chats = get(chatsStorage);
+    const chat = chats.find((chat) => chat.id === chatId);
+    chat.messages = [];
+    chatsStorage.set(chats);
+  };
+
+  export const deleteChat = (chatId: number) => {
+    const chats = get(chatsStorage);
+    const chatIndex = chats.findIndex((chat) => chat.id === chatId);
+    chats.splice(chatIndex, 1);
+    chatsStorage.set(chats);
+  };
+</script>
