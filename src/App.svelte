@@ -67,6 +67,24 @@
         {#if activeChatId}
           <Chat chatId={activeChatId} />
         {:else}
+          <article class="message">
+            <div class="message-body">
+              <strong
+                ><a href="https://github.com/Niek/chatgpt-web">ChatGPT-web</a
+                ></strong
+              >
+              is a simple one-page web interface to the OpenAI ChatGPT API. To
+              use it, you need to register for
+              <a
+                href="https://platform.openai.com/account/api-key"
+                target="_blank"
+                rel="noreferrer">an OpenAI API key</a
+              >
+              first. All messages are stored in your browser's local storage, so
+              everything is <strong>private</strong>. You can also close the
+              browser tab and come back later to continue the conversation.
+            </div>
+          </article>
           <article class="message {!apiKey ? 'is-danger' : 'is-warning'}">
             <div class="message-body">
               Set your OpenAI API key below:
