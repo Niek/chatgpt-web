@@ -18,9 +18,16 @@
       target="_blank"
       rel="noreferrer">an OpenAI API key</a
     >
-    first. All messages are stored in your browser's local storage, so everything
-    is <strong>private</strong>. You can also close the browser tab and come
-    back later to continue the conversation.
+    first. OpenAI bills per token (usage-based), which means it is a lot cheaper
+    than
+    <a
+      href="https://openai.com/blog/chatgpt-plus"
+      target="_blank"
+      rel="noreferrer">ChatGPT Plus</a
+    >, unless you use more than 10 million tokens per month. All messages are
+    stored in your browser's local storage, so everything is
+    <strong>private</strong>. You can also close the browser tab and come back
+    later to continue the conversation.
   </div>
 </article>
 <article class="message {!apiKey ? 'is-danger' : 'is-warning'}">
