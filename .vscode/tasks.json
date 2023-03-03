@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "npm: build",
+			"detail": "Run a build (production)"
+		},
+		{
+			"type": "npm",
+			"script": "dev",
+			"group": "none",
+			"problemMatcher": [],
+			"label": "npm: dev",
+			"detail": "Run dev server (auto-run on folder open)",
+			"presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+			"runOptions": {
+                "runOn": "folderOpen",
+            }
+		}
+	]
+}
