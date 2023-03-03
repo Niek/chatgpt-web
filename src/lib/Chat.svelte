@@ -129,7 +129,16 @@
   {#if message.role === "user"}
     <article class="message is-info has-text-right usermessage">
       <div class="message-body">
-        <div class="greyscale is-pulled-right ml-2 is-hidden editbutton">✏️</div>
+        <a
+          href={"#"}
+          class="greyscale is-pulled-right ml-2 is-hidden editbutton"
+          on:click={() => {
+            input.value = message.content;
+            input.focus();
+          }}
+        >
+          ✏️
+        </a>
         {@html marked(message.content)}
       </div>
     </article>

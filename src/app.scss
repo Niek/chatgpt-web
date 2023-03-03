@@ -21,11 +21,11 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
-/*
-.usermessage:hover .editbutton {
-  display: block !important;
+/* Show the edit button on hover of the user message */
+.usermessage:hover > .message-body > .editbutton {
+  /* TODO: add when ready: display: block !important; */
+  text-decoration: none !important;
 }
-*/
 
 $footer-padding: 3rem 1.5rem;
 
