@@ -5,9 +5,13 @@
   };
 
   export type Message = {
+    id: number;
     role: "user" | "assistant" | "system";
     content: string;
     usage?: Usage;
+    parentId?: number;
+    children?: Message[];
+    timestamp: number;
   };
 
   export type Usage = {

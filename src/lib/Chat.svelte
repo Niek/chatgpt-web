@@ -12,6 +12,48 @@
 
   let input: HTMLInputElement;
   $: chat = $chatsStorage.find((chat) => chat.id === chatId);
+
+  let showingMessagesIds: number[] = [];
+  $: messages = getShowingMessages(showingMessagesIds);
+
+  function getShowingMessages(showingMessagesIds: number[]): Message[] {
+    let chat = $chatsStorage.find((chat) => chat.id === chatId);
+    let showingMessages: Message[] = [];
+    if (chat.messages.length > 0) {
+      showingMessages.push(chat.messages[0])
+      let lastMessage = chat.messages[0];
+
+      while (lastMessage.children.length > 0) {
+        // get child with the highest timestamp and add to messagesToSend
+        let child = lastMessage.children[0];
+
+        for (let i = 0; i < lastMessage.children.length; i++) {
+          if (showingMessagesIds.includes(lastMessage.children[i].id)) {
+            child = lastMessage.children[i];
+            break;
+          }
+
+          if (lastMessage.children[i].timestamp > child.timestamp) {
+            child = lastMessage.children[i];
+          }
+
+        }
+        showingMessages.push(child);
+        lastMessage = child;
+      }
+
+      if (!lastMessage.children && lastMessage.id !== chat.messages[0].id) {
+        showingMessages.push(lastMessage);
+      }
+
+    }
+
+    return showingMessages;
+  }
+
+  let showingMessages = getShowingMessages([]);  // initialise the messages to show using the latest edit for every message
+  showingMessagesIds = showingMessages.map((message) => message.id);  // get the ids of the messages to show
+
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
   // Focus the input on mount
@@ -24,10 +66,42 @@
     input.focus();
   });
 
+  const editMessage = (messageId: number, newContent: string) => {
+    // editing a message now means
+    // 1. removing the message from showingMessagesIds
+    // 2. submit the new message to the chat
+    // 3. add the new message to showingMessagesIds
+    // 4. get the new showingMessages
+
+    let chat = $chatsStorage.find((chat) => chat.id === chatId);
+
+    // remove message from showingMessagesId
+    showingMessagesIds = showingMessagesIds.filter((id) => id !== messageId);
+
+    // get the message
+    let message = chat.messages.find((message) => message.id === messageId);
+
+    // make a new message with the new content
+    addMessage(chatId, {
+      role: "user",
+      content: newContent,
+      parentId: message.parentId,
+    });
+
+    showingMessages = getShowingMessages(showingMessagesIds);
+  }
+
   const send = async () => {
     // Compose the input message
-    const inputMessage: Message = { role: "user", content: input.value };
+    const inputMessage: Message = {
+      role: "user",
+      content: input.value
+    };
     addMessage(chatId, inputMessage);
+
+    // after sending a new message we want to show all the messages and update the showingMessagesIds
+    showingMessages = getShowingMessages(showingMessagesIds);
+    showingMessagesIds.push(inputMessage.id);
 
     // Clear the input value
     input.value = "";
@@ -62,6 +136,7 @@
       },
     });
     */
+
     const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -71,8 +146,8 @@
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
-          // Submit only the role and content of the messages, provide the previous messages as well for context
-          messages: chat.messages.map((message): Message => {
+          // Remove the usage property from all messages
+          messages: showingMessages.map((message): Message => {
             const { role, content } = message;
             return { role, content };
           }),
@@ -102,6 +177,10 @@
         addMessage(chatId, choice.message);
       });
     }
+
+    // after receiving a new message we want to show all the messages and update the showingMessagesIds
+    showingMessages = getShowingMessages(showingMessagesIds);
+    showingMessagesIds.push(inputMessage.id);
   };
 </script>
 
@@ -124,7 +203,7 @@
   </div>
 </nav>
 
-{#each chat.messages as message}
+{#each getShowingMessages(showingMessagesIds) as message}
   {#if message.role === "user"}
     <article class="message is-info has-text-right usermessage">
       <div class="message-body">

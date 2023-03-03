@@ -26,11 +26,74 @@
   };
 
   export const addMessage = (chatId: number, message: Message) => {
-    const chats = get(chatsStorage);
-    const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages.push(message);
-    chatsStorage.set(chats);
+      const chats = get(chatsStorage);
+      const chat = chats.find((chat) => chat.id === chatId);
+
+      // Check if the message has a parentId, indicating that it's an edited message
+      if (message.parentId !== undefined) {
+          // Find the parent message
+          const parentMessage = findMessageById(chat.messages, message.parentId);
+
+          // Create a new message with the same text and user as the original message,
+          // but with a new id and a parentId of the original message's parentId
+          const newMessage: Message = {
+              id: generateNewMessageId(),
+              role: message.role,
+              content: message.content,
+              usage: message.usage,
+              parentId: parentMessage?.id,
+              children: [],
+              // new date, right now
+              timestamp: new Date().getTime(),
+          };
+
+          // Add the new message as a child of the original message
+          if (parentMessage) {
+              parentMessage.children = [...parentMessage.children, newMessage];
+          } else {
+              chat.messages.push(newMessage);
+          }
+      } else {
+          // If the message doesn't have a parentId, it's a new message
+          chat.messages.push({
+              ...message,
+              id: generateNewMessageId(),
+              children: [],
+              timestamp: new Date().getTime(),
+              parentId: getLastIDInChat(chat),
+          });
+      }
+
+      chatsStorage.set(chats);
   };
+
+
+  function getLastIDInChat(chat: Chat): number {
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      if (lastMessage) {
+          return lastMessage.id;
+      }
+      return 0;
+  }
+
+  export function generateNewMessageId(): number {
+      const chats = get(chatsStorage);
+      const allMessages = chats.flatMap((chat) => chat.messages);
+      return allMessages.reduce((maxId, message) => Math.max(maxId, message.id), 0) + 1;
+  }
+
+  function findMessageById(messages: Message[], id: number): Message | undefined {
+      for (const m of messages) {
+          if (m.id === id) {
+              return m;
+          }
+          const childMessage = findMessageById(m.children || [], id);
+          if (childMessage) {
+              return childMessage;
+          }
+      }
+      return undefined;
+  }
 
   export const editMessage = (chatId: number, index: number, newMessage: Message) => {
     const chats = get(chatsStorage);
