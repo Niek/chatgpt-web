@@ -4,8 +4,7 @@ import adapter from '@sveltejs/adapter-netlify';
 export default {
   // Consult https://svelte.dev/docs#compile-time-svelte-preprocess
   // for more information about preprocessors
-  preprocess: vitePreprocess(),
-
+  
   kit: {
     // default options are shown
     adapter: adapter({
@@ -18,5 +17,7 @@ export default {
       // if `edge` is true, this option cannot be used
       split: false
     })
-  }
+  },
+
+  preprocess: vitePreprocess(),
 }
