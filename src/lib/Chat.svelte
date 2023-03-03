@@ -112,10 +112,10 @@
 </script>
 
 <button
-  class="button is-danger is-pulled-right"
+  class="button is-warning is-pulled-right"
   on:click={() => {
     clearMessages(chatId);
-  }}>Clear messages</button
+  }}>🗑️ Clear messages</button
 >
 
 <p class="subtitle">Chat {chatId}</p>
