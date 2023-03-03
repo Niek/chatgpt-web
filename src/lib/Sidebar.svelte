@@ -11,7 +11,7 @@
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
-      <a class="panel-block">No chats yet...</a>
+      <li><a class="panel-block" href={"#"}>No chats yet...</a></li>
     {:else}
       <li>
         <ul>
