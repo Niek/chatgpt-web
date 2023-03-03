@@ -19,13 +19,10 @@
             <li>
               <a
                 href={"#"}
-                class="panel-block {!apiKey
-                  ? 'is-disabled'
-                  : ''} {activeChatId === chat.id
+                class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId === chat.id
                   ? 'has-background-light'
                   : ''}"
-                on:click|preventDefault={() => (activeChatId = chat.id)}
-                >Chat {chat.id}</a
+                on:click|preventDefault={() => (activeChatId = chat.id)}>Chat {chat.id}</a
               >
             </li>
           {/each}
@@ -38,9 +35,7 @@
     <li>
       <a
         href={"#"}
-        class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId
-          ? ''
-          : 'has-background-light'}"
+        class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId ? '' : 'has-background-light'}"
         on:click|preventDefault={() => {
           activeChatId = null;
         }}><span class="greyscale mr-2">🔑</span> API key</a

@@ -10,8 +10,7 @@
     const chats = get(chatsStorage);
 
     // Find the max chatId
-    const chatId =
-      chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1;
+    const chatId = chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1;
 
     // Add a new chat
     chats.push({

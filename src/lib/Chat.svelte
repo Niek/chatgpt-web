@@ -1,12 +1,7 @@
 <script lang="ts">
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-  import {
-    apiKeyStorage,
-    chatsStorage,
-    addMessage,
-    clearMessages,
-  } from "./Storage.svelte";
+  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
   import type { Message } from "./Types.svelte";
 
   import { marked } from "marked";
@@ -135,13 +130,9 @@
         {@html marked(message.content)}
         {#if message.usage}
           <p class="is-size-7">
-            This message was generated using <span class="has-text-weight-bold"
-              >{message.usage.total_tokens}</span
-            >
+            This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
             tokens ~=
-            <span class="has-text-weight-bold"
-              >${(message.usage.total_tokens * token_price).toFixed(6)}</span
-            >
+            <span class="has-text-weight-bold">${(message.usage.total_tokens * token_price).toFixed(6)}</span>
           </p>
         {/if}
       </div>
