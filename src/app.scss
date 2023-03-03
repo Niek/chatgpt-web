@@ -17,6 +17,10 @@ a.is-disabled {
   opacity: 0.5;
 }
 
+.greyscale {
+  filter: grayscale(100%);
+}
+
 $footer-padding: 3rem 1.5rem;
 
 @import "/node_modules/bulma/bulma.sass";

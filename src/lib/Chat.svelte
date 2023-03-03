@@ -115,7 +115,7 @@
   class="button is-warning is-pulled-right"
   on:click={() => {
     clearMessages(chatId);
-  }}>🗑️ Clear messages</button
+  }}><span class="greyscale mr-2">🗑️</span> Clear messages</button
 >
 
 <p class="subtitle">Chat {chatId}</p>

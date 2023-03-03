@@ -12,7 +12,7 @@
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
-      <a class="panel-block">No chats...</a>
+      <a class="panel-block">No chats yet...</a>
     {:else}
       <li>
         <ul>
@@ -36,10 +36,20 @@
   <ul class="menu-list">
     <li>
       <a
+        class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId
+          ? ''
+          : 'has-background-light'}"
+        on:click={() => {
+          activeChatId = null;
+        }}><span class="greyscale mr-2">🔑</span> API key</a
+      >
+    </li>
+    <li>
+      <a
         class="panel-block {!apiKey ? 'is-disabled' : ''}"
         on:click={() => {
           activeChatId = addChat();
-        }}>➕ New chat</a
+        }}><span class="greyscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
@@ -48,15 +58,7 @@
         on:click={() => {
           clearChats();
           activeChatId = null;
-        }}>🗑️ Clear chats</a
-      >
-    </li>
-    <li>
-      <a
-        class="panel-block {!apiKey ? 'is-disabled' : ''}"
-        on:click={() => {
-          activeChatId = null;
-        }}>🔙 Back to home</a
+        }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
   </ul>
