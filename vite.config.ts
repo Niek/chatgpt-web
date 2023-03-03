@@ -4,15 +4,24 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import purgecss from "@fullhuman/postcss-purgecss";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [svelte()],
-  css: {
-    postcss: {
-      plugins: [
-        purgecss({
-          content: ["./**/*.html", "./**/*.svelte"],
-        }),
-      ],
-    },
-  },
+export default defineConfig(({ command, mode, ssrBuild }) => {
+  // Only run PurgeCSS in production builds
+  if (command === "build") {
+    return {
+      plugins: [svelte()],
+      css: {
+        postcss: {
+          plugins: [
+            purgecss({
+              content: ["./**/*.html", "./**/*.svelte"],
+            }),
+          ],
+        },
+      },
+    };
+  } else {
+    return {
+      plugins: [svelte()],
+    };
+  }
 });
