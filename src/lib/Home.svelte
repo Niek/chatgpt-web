@@ -42,6 +42,7 @@
     >
       <p class="control is-expanded">
         <input
+          aria-label="OpenAI API key"
           type="text"
           class="input {!apiKey ? 'is-danger' : ''}"
           value={apiKey}
