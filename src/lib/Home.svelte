@@ -62,10 +62,10 @@
 {#if apiKey}
   <article class="message is-info">
     <div class="message-body">
-      <!-- svelte-ignore a11y-missing-attribute a11y-click-events-have-key-events -->
       Select an existing chat on the sidebar, or
       <a
-        on:click={() => {
+        href={"#"}
+        on:click|preventDefault={() => {
           activeChatId = addChat();
         }}>create a new chat</a
       >
