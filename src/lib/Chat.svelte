@@ -106,14 +106,24 @@
   };
 </script>
 
-<button
-  class="button is-warning is-pulled-right"
-  on:click={() => {
-    clearMessages(chatId);
-  }}><span class="greyscale mr-2">🗑️</span> Clear messages</button
->
+<nav class="level is-mobile">
+  <div class="level-left">
+    <div class="level-item">
+      <p class="subtitle is-5">Chat {chatId}</p>
+    </div>
+  </div>
 
-<p class="subtitle">Chat {chatId}</p>
+  <div class="level-right">
+    <p class="level-item">
+      <button
+        class="button is-warning"
+        on:click={() => {
+          clearMessages(chatId);
+        }}><span class="greyscale mr-2">🗑️</span> Clear messages</button
+      >
+    </p>
+  </div>
+</nav>
 
 {#each chat.messages as message}
   {#if message.role === "user"}
