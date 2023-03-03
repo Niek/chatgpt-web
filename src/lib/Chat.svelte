@@ -2,7 +2,7 @@
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
-  import type { Message } from "./Types.svelte";
+  import type { Response, Message } from "./Types.svelte";
 
   import { marked } from "marked";
   import { afterUpdate, onMount } from "svelte";
@@ -62,7 +62,7 @@
       },
     });
     */
-    const response = await (
+    const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -71,12 +71,11 @@
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
-          // Remove the usage property from all messages
+          // Submit only the role and content of the messages, provide the previous messages as well for context
           messages: chat.messages.map((message): Message => {
-            const { usage, ...rest } = message;
-            return rest;
+            const { role, content } = message;
+            return { role, content };
           }),
-          // Provide the previous messages as well for context
           // temperature: 1
           // top_p: 1
           // n: 1

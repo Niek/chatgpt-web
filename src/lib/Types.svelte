@@ -15,4 +15,7 @@
     prompt_tokens: number;
     total_tokens: number;
   };
+
+  // TODO: add better type here, for now a generic JSON type
+  export type Response = Record<string, any>;
 </script>
