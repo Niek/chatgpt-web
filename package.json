@@ -11,12 +11,14 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^5.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
     "@tsconfig/svelte": "^3.0.0",
     "@types/marked": "^4.0.8",
     "bulma": "^0.9.4",
     "marked": "^4.2.12",
+    "postcss": "^8.4.21",
     "sass": "^1.58.3",
     "svelte": "^3.55.1",
     "svelte-check": "^3.0.4",
