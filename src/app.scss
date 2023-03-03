@@ -21,6 +21,12 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
+/*
+.usermessage:hover .editbutton {
+  display: block !important;
+}
+*/
+
 $footer-padding: 3rem 1.5rem;
 
 @import "/node_modules/bulma/bulma.sass";

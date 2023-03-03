@@ -127,8 +127,11 @@
 
 {#each chat.messages as message}
   {#if message.role === "user"}
-    <article class="message is-info has-text-right">
-      <div class="message-body">{@html marked(message.content)}</div>
+    <article class="message is-info has-text-right usermessage">
+      <div class="message-body">
+        <div class="greyscale is-pulled-right ml-2 is-hidden editbutton">✏️</div>
+        {@html marked(message.content)}
+      </div>
     </article>
   {:else if message.role === "system"}
     <article class="message is-danger">
