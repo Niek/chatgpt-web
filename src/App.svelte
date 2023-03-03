@@ -30,12 +30,13 @@
       <div class="column is-one-fifth">
         <article class="panel is-link">
           <p class="panel-heading">Chats</p>
-          {#if sortedChats.length === 0 || !apiKey}
+          {#if sortedChats.length === 0}
             <a class="panel-block">No chats...</a>
           {:else}
             {#each sortedChats as chat}
-              <a class="panel-block" on:click={() => (activeChatId = chat.id)}
-                >Chat {chat.id}</a
+              <a
+                class="panel-block {!apiKey ? 'is-disabled' : ''}"
+                on:click={() => (activeChatId = chat.id)}>Chat {chat.id}</a
               >
             {/each}
           {/if}
@@ -73,8 +74,8 @@
                 ><a href="https://github.com/Niek/chatgpt-web">ChatGPT-web</a
                 ></strong
               >
-              is a simple one-page web interface to the OpenAI ChatGPT API. To
-              use it, you need to register for
+              is a simple one-page web interface to the OpenAI ChatGPT API. To use
+              it, you need to register for
               <a
                 href="https://platform.openai.com/account/api-key"
                 target="_blank"
@@ -88,15 +89,25 @@
           <article class="message {!apiKey ? 'is-danger' : 'is-warning'}">
             <div class="message-body">
               Set your OpenAI API key below:
-              <input
-                type="text"
-                class="input {!apiKey ? 'is-danger' : ''}"
-                value={apiKey}
-                on:change={(event) => {
-                  // @ts-ignore
-                  apiKeyStorage.set(event.target.value);
+
+              <form
+                class="field has-addons has-addons-right"
+                on:submit|preventDefault={(event) => {
+                  apiKeyStorage.set(event.target[0].value);
                 }}
-              />
+              >
+                <p class="control is-expanded">
+                  <input
+                    type="text"
+                    class="input {!apiKey ? 'is-danger' : ''}"
+                    value={apiKey}
+                  />
+                </p>
+                <p class="control">
+                  <button class="button is-info" type="submit">Save</button>
+                </p>
+              </form>
+
               {#if !apiKey}
                 <p class="help is-danger">
                   Please enter your OpenAI API key above to use ChatGPT-web
@@ -107,6 +118,7 @@
           <article class="message is-info">
             <div class="message-body">
               Select an existing chat on the sidebar, or <a
+                class={!apiKey ? "is-disabled" : ""}
                 on:click={() => {
                   activeChatId = addChat();
                 }}>create a new chat</a
