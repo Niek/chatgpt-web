@@ -62,6 +62,7 @@
       },
     });
     */
+
     const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -105,7 +106,7 @@
   };
 </script>
 
-<nav class="level is-mobile">
+<nav class="level is-mobile chat-header">
   <div class="level-left chatname">
     <div class="level-item">
       <p class="subtitle is-5">
@@ -114,8 +115,11 @@
           href={"#"}
           class="greyscale ml-2 is-hidden editbutton"
           on:click|preventDefault={() => {
-            chat.name = prompt("Enter a new name for this chat", chat.name);
-            chatsStorage.set($chatsStorage);
+            let newChatName = prompt("Enter a new name for this chat", chat.name);
+            if (newChatName) {
+              chat.name = newChatName;
+              chatsStorage.set($chatsStorage);
+            }
           }}
         >
           ✏️

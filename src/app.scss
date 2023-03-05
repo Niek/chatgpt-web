@@ -28,7 +28,7 @@ a.is-disabled {
 }
 
 /* Show the edit button on hover of the chat name */
-.chatname:hover .editbutton {
+.chat-header:hover .editbutton {
   display: inline !important;
   text-decoration: none !important;
 }
