@@ -33,7 +33,6 @@
       if (message.parentId !== undefined) {
           // Find the parent message
           const parentMessage = findMessageById(chat.messages, message.parentId);
-
           // Create a new message with the same text and user as the original message,
           // but with a new id and a parentId of the original message's parentId
           const newMessage: Message = {
@@ -55,13 +54,21 @@
           }
       } else {
           // If the message doesn't have a parentId, it's a new message
-          chat.messages.push({
+          let newMessage: Message = {
               ...message,
               id: generateNewMessageId(),
+              parentId: getLastIDInChat(chat),
               children: [],
               timestamp: new Date().getTime(),
-              parentId: getLastIDInChat(chat),
-          });
+          };
+          chat.messages.push(newMessage);
+
+          if (newMessage.parentId === undefined) {
+              return;
+          }
+
+          const parentMessage = findMessageById(chat.messages, newMessage.parentId);
+          parentMessage.children = [...parentMessage.children, newMessage];
       }
 
       chatsStorage.set(chats);
@@ -73,7 +80,7 @@
       if (lastMessage) {
           return lastMessage.id;
       }
-      return 0;
+      return undefined;
   }
 
   export function generateNewMessageId(): number {
@@ -83,6 +90,10 @@
   }
 
   function findMessageById(messages: Message[], id: number): Message | undefined {
+      if (id === undefined || messages === undefined) {
+          return undefined;
+      }
+
       for (const m of messages) {
           if (m.id === id) {
               return m;

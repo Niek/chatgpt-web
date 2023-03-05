@@ -13,11 +13,9 @@
   let input: HTMLInputElement;
   $: chat = $chatsStorage.find((chat) => chat.id === chatId);
 
-  let showingMessagesIds: number[] = [];
-  $: messages = getShowingMessages(showingMessagesIds);
-
   function getShowingMessages(showingMessagesIds: number[]): Message[] {
     let chat = $chatsStorage.find((chat) => chat.id === chatId);
+    console.log(chat)
     let showingMessages: Message[] = [];
     if (chat.messages.length > 0) {
       showingMessages.push(chat.messages[0])
@@ -51,8 +49,11 @@
     return showingMessages;
   }
 
+  let showingMessagesIds: number[] = [];
   let showingMessages = getShowingMessages([]);  // initialise the messages to show using the latest edit for every message
   showingMessagesIds = showingMessages.map((message) => message.id);  // get the ids of the messages to show
+
+  $: messages = showingMessages;
 
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
@@ -110,33 +111,6 @@
     updating = true;
 
     // Send API request
-    /*
-    await fetchEventSource("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization:
-          `Bearer ${$apiKeyStorage}`,
-        "Content-Type": "text/event-stream",
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages, // Provide the previous messages as well for context
-        // temperature: 1
-        // top_p: 1
-        // n: 1
-        stream: false,
-        // stop: null
-        max_tokens: 4096,
-      }),
-      onmessage(ev) {
-        console.log(ev);
-      },
-      onerror(err) {
-        throw err;
-      },
-    });
-    */
-
     const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -180,7 +154,7 @@
 
     // after receiving a new message we want to show all the messages and update the showingMessagesIds
     showingMessages = getShowingMessages(showingMessagesIds);
-    showingMessagesIds.push(inputMessage.id);
+    showingMessagesIds = [...showingMessagesIds, inputMessage.id];
   };
 </script>
 
@@ -203,7 +177,7 @@
   </div>
 </nav>
 
-{#each getShowingMessages(showingMessagesIds) as message}
+{#each messages as message}
   {#if message.role === "user"}
     <article class="message is-info has-text-right usermessage">
       <div class="message-body">
@@ -213,8 +187,7 @@
           on:click={() => {
             input.value = message.content;
             input.focus();
-          }}
-        >
+          }}>
           ✏️
         </a>
         {@html marked(message.content)}
