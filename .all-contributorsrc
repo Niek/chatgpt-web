@@ -3,5 +3,21 @@
   "projectOwner": "Niek",
   "repoType": "github",
   "commit": false,
-  "contributors": []
+  "contributors": [
+    {
+      "login": "Michael-Tanzer",
+      "name": "Michael Tanzer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23483071?v=4",
+      "profile": "https://github.com/Michael-Tanzer",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    }
+  ],
+  "files": [
+    "README.md"
+  ],
+  "commitConvention": "angular",
+  "contributorsPerLine": 7
 }
