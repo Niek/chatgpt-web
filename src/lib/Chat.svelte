@@ -111,6 +111,33 @@
     updating = true;
 
     // Send API request
+    /*
+    await fetchEventSource("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization:
+          `Bearer ${$apiKeyStorage}`,
+        "Content-Type": "text/event-stream",
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages, // Provide the previous messages as well for context
+        // temperature: 1
+        // top_p: 1
+        // n: 1
+        stream: false,
+        // stop: null
+        max_tokens: 4096,
+      }),
+      onmessage(ev) {
+        console.log(ev);
+      },
+      onerror(err) {
+        throw err;
+      },
+    });
+    */
+
     const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -158,7 +185,7 @@
   };
 </script>
 
-<nav class="level is-mobile">
+<nav class="level is-mobile chat-header">
   <div class="level-left chatname">
     <div class="level-item">
       <p class="subtitle is-5">
@@ -167,8 +194,11 @@
           href={"#"}
           class="greyscale ml-2 is-hidden editbutton"
           on:click|preventDefault={() => {
-            chat.name = prompt("Enter a new name for this chat", chat.name);
-            chatsStorage.set($chatsStorage);
+            let newChatName = prompt("Enter a new name for this chat", chat.name);
+            if (newChatName) {
+              chat.name = newChatName;
+              chatsStorage.set($chatsStorage);
+            }
           }}
         >
           ✏️
