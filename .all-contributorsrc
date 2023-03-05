@@ -5,6 +5,16 @@
   "commit": false,
   "contributors": [
     {
+      "login": "Michael-Tanzer",
+      "name": "Michael Tanzer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23483071?v=4",
+      "profile": "https://github.com/Michael-Tanzer",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    },
+    {
       "login": "petergeneric",
       "name": "Peter",
       "avatar_url": "https://avatars.githubusercontent.com/u/870655?v=4",
