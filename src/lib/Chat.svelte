@@ -159,9 +159,21 @@
 </script>
 
 <nav class="level is-mobile">
-  <div class="level-left">
+  <div class="level-left chatname">
     <div class="level-item">
-      <p class="subtitle is-5">Chat {chatId}</p>
+      <p class="subtitle is-5">
+        {chat.name}
+        <a
+          href={"#"}
+          class="greyscale ml-2 is-hidden editbutton"
+          on:click|preventDefault={() => {
+            chat.name = prompt("Enter a new name for this chat", chat.name);
+            chatsStorage.set($chatsStorage);
+          }}
+        >
+          ✏️
+        </a>
+      </p>
     </div>
   </div>
 

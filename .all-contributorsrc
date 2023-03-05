@@ -1,0 +1,22 @@
+{
+  "projectName": "chatgpt-web",
+  "projectOwner": "Niek",
+  "repoType": "github",
+  "commit": false,
+  "contributors": [
+    {
+      "login": "petergeneric",
+      "name": "Peter",
+      "avatar_url": "https://avatars.githubusercontent.com/u/870655?v=4",
+      "profile": "https://github.com/petergeneric",
+      "contributions": [
+        "ideas"
+      ]
+    }
+  ],
+  "files": [
+    "README.md"
+  ],
+  "commitConvention": "angular",
+  "contributorsPerLine": 7
+}

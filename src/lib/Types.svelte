@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
   export type Chat = {
     id: number;
+    name: string;
     messages: Message[];
   };
 
