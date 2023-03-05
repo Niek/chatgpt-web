@@ -110,7 +110,7 @@
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
-        {chat.name}
+        {chat.name || `Chat ${chat.id}`}
         <a
           href={"#"}
           class="greyscale ml-2 is-hidden editbutton"

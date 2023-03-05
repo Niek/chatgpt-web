@@ -22,7 +22,7 @@
                 class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId === chat.id
                   ? 'has-background-light'
                   : ''}"
-                on:click|preventDefault={() => (activeChatId = chat.id)}>{chat.name}</a
+                on:click|preventDefault={() => (activeChatId = chat.id)}>{chat.name || `Chat ${chat.id}`}</a
               >
             </li>
           {/each}
