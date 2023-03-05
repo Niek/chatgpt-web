@@ -10,7 +10,7 @@
   export let chatId: number;
   let updating: boolean = false;
 
-  let input: HTMLInputElement;
+  let input: HTMLTextAreaElement;
   $: chat = $chatsStorage.find((chat) => chat.id === chatId);
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
@@ -154,17 +154,17 @@
         >
           ✏️
         </a>
-        {@html marked(message.content)}
+        {@html marked(message.content, { breaks: true, gfm: true })}
       </div>
     </article>
   {:else if message.role === "system"}
     <article class="message is-danger">
-      <div class="message-body">{@html marked(message.content)}</div>
+      <div class="message-body">{@html marked(message.content, { breaks: true, gfm: true })}</div>
     </article>
   {:else}
     <article class="message is-success">
       <div class="message-body">
-        {@html marked(message.content)}
+        {@html marked(message.content, { breaks: true, gfm: true })}
         {#if message.usage}
           <p class="is-size-7">
             This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
@@ -183,10 +183,17 @@
 
 <form class="field has-addons has-addons-right" on:submit|preventDefault={send}>
   <p class="control is-expanded">
-    <input
+    <textarea
       class="input is-info is-medium is-focused"
-      type="text"
       placeholder="Type your message here..."
+      rows="1"
+      on:keydown={(e) => {
+        // Only send if Enter is pressed, not Shift+Enter
+        if (e.key === "Enter" && !e.shiftKey) {
+          send();
+          e.preventDefault();
+        }
+      }}
       bind:this={input}
     />
   </p>
