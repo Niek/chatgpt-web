@@ -15,6 +15,7 @@
     // Add a new chat
     chats.push({
       id: chatId,
+      name: `Chat ${chatId}`,
       messages: [],
     });
     chatsStorage.set(chats);
