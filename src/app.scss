@@ -33,6 +33,11 @@ a.is-disabled {
   text-decoration: none !important;
 }
 
+/* Style the chat input */
+.chat-input {
+  overflow-y:hidden;
+}
+
 $footer-padding: 3rem 1.5rem;
 
 @import "/node_modules/bulma/bulma.sass";

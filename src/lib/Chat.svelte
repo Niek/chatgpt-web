@@ -107,7 +107,7 @@
 </script>
 
 <nav class="level is-mobile chat-header">
-  <div class="level-left chatname">
+  <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
         {chat.name}
@@ -184,15 +184,23 @@
 <form class="field has-addons has-addons-right" on:submit|preventDefault={send}>
   <p class="control is-expanded">
     <textarea
-      class="input is-info is-medium is-focused"
+      class="input is-info is-medium is-focused chat-input"
       placeholder="Type your message here..."
       rows="1"
       on:keydown={(e) => {
         // Only send if Enter is pressed, not Shift+Enter
         if (e.key === "Enter" && !e.shiftKey) {
           send();
+          // Resize back to auto
+          // @ts-ignore
+          e.target.style.height = "auto";
           e.preventDefault();
         }
+      }}
+      on:input={(e) => {
+        // Resize the textarea to fit the content
+        // @ts-ignore
+        e.target.style.height = e.target.scrollHeight + "px";
       }}
       bind:this={input}
     />
