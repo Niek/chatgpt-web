@@ -62,29 +62,34 @@
     // Show updating bar
     updating = true;
 
-    const response: Response = await (
-      await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          // Submit only the role and content of the messages, provide the previous messages as well for context
-          messages: messages.map((message): Message => {
-            const { role, content } = message;
-            return { role, content };
+    let response: Response;
+    try {
+      response = await (
+        await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${$apiKeyStorage}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            // Submit only the role and content of the messages, provide the previous messages as well for context
+            messages: messages.map((message): Message => {
+              const { role, content } = message;
+              return { role, content };
+            }),
+            // temperature: 1
+            // top_p: 1
+            // n: 1
+            //stream: false,
+            // stop: null
+            //max_tokens: 4096,
           }),
-          // temperature: 1
-          // top_p: 1
-          // n: 1
-          //stream: false,
-          // stop: null
-          //max_tokens: 4096,
-        }),
-      })
-    ).json();
+        })
+      ).json();
+    } catch (e) {
+      response = { error: { message: e.message } };
+    }
 
     // Hide updating bar
     updating = false;
@@ -214,13 +219,15 @@
     </article>
   {:else if message.role === "system"}
     <article class="message is-danger">
-      <SvelteMarkdown
-        source={message.content}
-        options={markedownOptions}
-        renderers={{
-          /*code: Code*/
-        }}
-      />
+      <div class="message-body">
+        <SvelteMarkdown
+          source={message.content}
+          options={markedownOptions}
+          renderers={{
+            /*code: Code*/
+          }}
+        />
+      </div>
     </article>
   {:else}
     <article class="message is-success">
