@@ -30,22 +30,10 @@
     breaks: true,
   };
 
-  const send = async () => {
-    // Compose the input message
-    const inputMessage: Message = { role: "user", content: input.value };
-    addMessage(chatId, inputMessage);
-
-    // Clear the input value
-    input.value = "";
-
-    // Resize back to auto
-    input.style.height = "auto";
-
-    // Show updating bar
-    updating = true;
-
+  const sendRequest = async (messages: Message[]): Promise<Response> => {
     // Send API request
     /*
+    // Not working yet: a way to get the response as a stream
     await fetchEventSource("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -71,6 +59,8 @@
       },
     });
     */
+    // Show updating bar
+    updating = true;
 
     const response: Response = await (
       await fetch("https://api.openai.com/v1/chat/completions", {
@@ -82,7 +72,7 @@
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
           // Submit only the role and content of the messages, provide the previous messages as well for context
-          messages: chat.messages.map((message): Message => {
+          messages: messages.map((message): Message => {
             const { role, content } = message;
             return { role, content };
           }),
@@ -96,10 +86,24 @@
       })
     ).json();
 
-    console.log(response);
-
     // Hide updating bar
     updating = false;
+
+    return response;
+  };
+
+  const submitForm = async (): Promise<void> => {
+    // Compose the input message
+    const inputMessage: Message = { role: "user", content: input.value };
+    addMessage(chatId, inputMessage);
+
+    // Clear the input value
+    input.value = "";
+
+    // Resize back to single line height
+    input.style.height = "auto";
+
+    const response = await sendRequest(chat.messages);
 
     if (response.error) {
       addMessage(chatId, {
@@ -113,6 +117,29 @@
       });
     }
   };
+
+  const suggestName = async (): Promise<void> => {
+    const suggestMessage: Message = {
+      role: "user",
+      content: "Can you give me a 5 word summary of this conversation's topic?",
+    };
+    addMessage(chatId, suggestMessage);
+
+    const response = await sendRequest(chat.messages);
+
+    if (response.error) {
+      addMessage(chatId, {
+        role: "system",
+        content: `Error: ${response.error.message}`,
+      });
+    } else {
+      response.choices.map((choice) => {
+        choice.message.usage = response.usage;
+        addMessage(chatId, choice.message);
+        chat.name = choice.message.content;
+      });
+    }
+  };
 </script>
 
 <nav class="level is-mobile chat-header">
@@ -123,6 +150,7 @@
         <a
           href={"#"}
           class="greyscale ml-2 is-hidden editbutton"
+          title="Rename chat"
           on:click|preventDefault={() => {
             let newChatName = prompt("Enter a new name for this chat", chat.name);
             if (newChatName) {
@@ -132,6 +160,14 @@
           }}
         >
           ✏️
+        </a>
+        <a
+          href={"#"}
+          class="greyscale ml-2 is-hidden editbutton"
+          title="Suggest a chat name"
+          on:click|preventDefault={suggestName}
+        >
+          💡
         </a>
       </p>
     </div>
@@ -211,7 +247,7 @@
   <progress class="progress is-small is-dark" max="100" />
 {/if}
 
-<form class="field has-addons has-addons-right" on:submit|preventDefault={send}>
+<form class="field has-addons has-addons-right" on:submit|preventDefault={submitForm}>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-medium is-focused chat-input"
@@ -220,7 +256,7 @@
       on:keydown={(e) => {
         // Only send if Enter is pressed, not Shift+Enter
         if (e.key === "Enter" && !e.shiftKey) {
-          send();
+          submitForm();
           e.preventDefault();
         }
       }}
