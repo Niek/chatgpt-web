@@ -21,15 +21,15 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
-.user-message {
-  max-width: 70%;
+.user-message { 
+  max-width: 90%;
   margin-right: 0;
   margin-left: auto;
   width: fit-content;
 }
 
 .assistant-message {
-  max-width: 70%;
+  max-width: 90%;
   width: fit-content;
 }
 
