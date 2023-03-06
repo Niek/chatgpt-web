@@ -149,6 +149,13 @@
       });
     }
   };
+
+  const deleteChat = () => {
+    if (confirm("Are you sure you want to delete this chat?")) {
+      chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
+      chatId = null;
+    }
+  };
 </script>
 
 <nav class="level chat-header">
@@ -177,6 +184,14 @@
           on:click|preventDefault={suggestName}
         >
           💡
+        </a>
+        <a
+                href={"#"}
+                class="greyscale ml-2 is-hidden editbutton"
+                title="Delete this chat"
+                on:click|preventDefault={deleteChat}
+        >
+          🗑️
         </a>
       </p>
     </div>
