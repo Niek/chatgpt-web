@@ -2,7 +2,7 @@
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
-  import type { Response, Message } from "./Types.svelte";
+  import type { Request, Response, Message } from "./Types.svelte";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -64,6 +64,23 @@
 
     let response: Response;
     try {
+      const request: Request = {
+        model: "gpt-3.5-turbo",
+        // Submit only the role and content of the messages, provide the previous messages as well for context
+        messages: messages
+          .map((message): Message => {
+            const { role, content } = message;
+            return { role, content };
+          })
+          // Skip system messages
+          .filter((message) => message.role !== "system"),
+        // temperature: 1
+        // top_p: 1
+        // n: 1
+        //stream: false,
+        // stop: null
+        //max_tokens: 4096,
+      };
       response = await (
         await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -71,23 +88,7 @@
             Authorization: `Bearer ${$apiKeyStorage}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            // Submit only the role and content of the messages, provide the previous messages as well for context
-            messages: messages
-              .map((message): Message => {
-                const { role, content } = message;
-                return { role, content };
-              })
-              // Skip system messages
-              .filter((message) => message.role !== "system"),
-            // temperature: 1
-            // top_p: 1
-            // n: 1
-            //stream: false,
-            // stop: null
-            //max_tokens: 4096,
-          }),
+          body: JSON.stringify(request),
         })
       ).json();
     } catch (e) {
