@@ -192,15 +192,13 @@
         if (e.key === "Enter" && !e.shiftKey) {
           send();
           // Resize back to auto
-          // @ts-ignore
-          e.target.style.height = "auto";
+          input.style.height = "auto";
           e.preventDefault();
         }
       }}
       on:input={(e) => {
         // Resize the textarea to fit the content
-        // @ts-ignore
-        e.target.style.height = e.target.scrollHeight + "px";
+        input.style.height = input.scrollHeight + "px";
       }}
       bind:this={input}
     />
