@@ -28,7 +28,7 @@
       }}
     >
       <p class="control is-expanded">
-        <input aria-label="OpenAI API key" type="text" class="input {!apiKey ? 'is-danger' : ''}" value={apiKey} />
+        <input aria-label="OpenAI API key" type="password" class="input {!apiKey ? 'is-danger' : ''}" value={apiKey} />
       </p>
       <p class="control">
         <button class="button is-info" type="submit">Save</button>
@@ -36,7 +36,10 @@
     </form>
 
     {#if !apiKey}
-      <p class="help is-danger">Please enter your OpenAI API key above to use ChatGPT-web</p>
+      <p class="help is-danger">
+        Please enter your <a href="https://platform.openai.com/account/api-key">OpenAI API key</a> above to use ChatGPT-web.
+        It is required to use ChatGPT-web.
+      </p>
     {/if}
   </div>
 </article>
