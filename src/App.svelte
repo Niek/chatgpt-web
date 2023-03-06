@@ -10,6 +10,12 @@
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id);
   $: apiKey = $apiKeyStorage;
 
+  // Check if the API key is passed in as a "key" query parameter - if so, save it
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("key")) {
+    apiKeyStorage.set(urlParams.get("key")!);
+  }
+
   let activeChatId: number;
 </script>
 
