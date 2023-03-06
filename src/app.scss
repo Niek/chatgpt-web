@@ -21,6 +21,18 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
+.user-message { 
+  max-width: 90%;
+  margin-right: 0;
+  margin-left: auto;
+  width: fit-content;
+}
+
+.assistant-message {
+  max-width: 90%;
+  width: fit-content;
+}
+
 /* Show the edit button on hover of the user message */
 .user-message:hover .editbutton {
   /* TODO: add when ready: display: block !important; */

@@ -148,10 +148,7 @@
 
 {#each chat.messages as message}
   {#if message.role === "user"}
-    <article
-      class="message is-info user-message"
-      class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
-    >
+    <article class="message is-info user-message">
       <div class="message-body">
         <a
           href={"#"}
@@ -173,7 +170,7 @@
       </div>
     </article>
   {:else if message.role === "system"}
-    <article class="message is-danger">
+    <article class="message is-danger assistant-message">
       <SvelteMarkdown
         source={message.content}
         options={markedownOptions}
@@ -183,7 +180,7 @@
       />
     </article>
   {:else}
-    <article class="message is-success">
+    <article class="message is-success assistant-message">
       <div class="message-body">
         <SvelteMarkdown
           source={message.content}
