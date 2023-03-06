@@ -38,6 +38,9 @@
     // Clear the input value
     input.value = "";
 
+    // Resize back to auto
+    input.style.height = "auto";
+
     // Show updating bar
     updating = true;
 
@@ -148,7 +151,10 @@
 
 {#each chat.messages as message}
   {#if message.role === "user"}
-    <article class="message is-info user-message">
+    <article
+      class="message is-info user-message"
+      class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
+    >
       <div class="message-body">
         <a
           href={"#"}
@@ -170,7 +176,7 @@
       </div>
     </article>
   {:else if message.role === "system"}
-    <article class="message is-danger assistant-message">
+    <article class="message is-danger">
       <SvelteMarkdown
         source={message.content}
         options={markedownOptions}
@@ -180,7 +186,7 @@
       />
     </article>
   {:else}
-    <article class="message is-success assistant-message">
+    <article class="message is-success">
       <div class="message-body">
         <SvelteMarkdown
           source={message.content}
@@ -215,8 +221,6 @@
         // Only send if Enter is pressed, not Shift+Enter
         if (e.key === "Enter" && !e.shiftKey) {
           send();
-          // Resize back to auto
-          input.style.height = "auto";
           e.preventDefault();
         }
       }}
