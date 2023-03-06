@@ -22,13 +22,13 @@ a.is-disabled {
 }
 
 /* Show the edit button on hover of the user message */
-.usermessage:hover .editbutton {
+.user-message:hover .editbutton {
   /* TODO: add when ready: display: block !important; */
   text-decoration: none !important;
 }
 
 /* Swap the border on user messages to the other side */
-.usermessage > .message-body {
+.user-message > .message-body {
   border-width: 0 4px 0 0 !important;
 }
 
@@ -41,11 +41,6 @@ a.is-disabled {
 /* Style the chat input */
 .chat-input {
   overflow-y:hidden;
-}
-
-/* Left-align code blocks in messages */
-.message-body > pre {
-  text-align: left !important;
 }
 
 $footer-padding: 3rem 1.5rem;
