@@ -137,6 +137,7 @@
         choice.message.usage = response.usage;
         addMessage(chatId, choice.message);
         chat.name = choice.message.content;
+        chatsStorage.set($chatsStorage);
       });
     }
   };
