@@ -27,6 +27,11 @@ a.is-disabled {
   text-decoration: none !important;
 }
 
+/* Swap the border on user messages to the other side */
+.usermessage > .message-body {
+  border-width: 0 4px 0 0 !important;
+}
+
 /* Show the edit button on hover of the chat name */
 .chat-header:hover .editbutton {
   display: inline !important;
