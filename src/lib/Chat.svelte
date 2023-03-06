@@ -74,10 +74,13 @@
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
             // Submit only the role and content of the messages, provide the previous messages as well for context
-            messages: messages.map((message): Message => {
-              const { role, content } = message;
-              return { role, content };
-            }),
+            messages: messages
+              .map((message): Message => {
+                const { role, content } = message;
+                return { role, content };
+              })
+              // Skip system messages
+              .filter((message) => message.role !== "system"),
             // temperature: 1
             // top_p: 1
             // n: 1
