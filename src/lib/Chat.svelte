@@ -199,6 +199,13 @@
   const closeSettings = () => {
     settings.classList.remove("is-active");
   };
+
+  const clearSettings = () => {
+    settingsMap.forEach((setting) => {
+      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement;
+      input.value = "";
+    });
+  };
 </script>
 
 <nav class="level chat-header">
@@ -383,6 +390,7 @@
 
     <footer class="modal-card-foot">
       <button class="button is-info" on:click={closeSettings}>Close settings</button>
+      <button class="button" on:click={clearSettings}>Clear settings</button>
     </footer>
   </div>
 </div>
