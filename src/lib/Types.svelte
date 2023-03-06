@@ -32,6 +32,13 @@
     user?: string;
   };
 
+  export type Settings = {
+    key: string;
+    name: string;
+    default: number;
+    type: "number";
+  };
+
   type ResponseOK = {
     status: "ok";
     id: string;

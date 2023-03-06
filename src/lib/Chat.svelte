@@ -2,7 +2,7 @@
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
-  import type { Request, Response, Message } from "./Types.svelte";
+  import type { Request, Response, Message, Settings } from "./Types.svelte";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -11,6 +11,46 @@
   let updating: boolean = false;
 
   let input: HTMLTextAreaElement;
+  let settings: HTMLDivElement;
+  const settingsMap: Settings[] = [
+    {
+      key: "temperature",
+      name: "Sampling Temperature",
+      default: 1,
+      type: "number",
+    },
+    {
+      key: "top_p",
+      name: "Nucleus Sampling",
+      default: 1,
+      type: "number",
+    },
+    {
+      key: "n",
+      name: "Number of Messages",
+      default: 1,
+      type: "number",
+    },
+    {
+      key: "max_tokens",
+      name: "Max Tokens",
+      default: 0,
+      type: "number",
+    },
+    {
+      key: "presence_penalty",
+      name: "Presence Penalty",
+      default: 0,
+      type: "number",
+    },
+    {
+      key: "frequency_penalty",
+      name: "Frequency Penalty",
+      default: 0,
+      type: "number",
+    },
+  ];
+
   $: chat = $chatsStorage.find((chat) => chat.id === chatId);
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
@@ -74,12 +114,15 @@
           })
           // Skip error messages
           .filter((message) => message.role !== "error"),
-        // temperature: 1
-        // top_p: 1
-        // n: 1
-        //stream: false,
-        // stop: null
-        //max_tokens: 4096,
+
+        // Provide the settings by mapping the settingsMap to key/value pairs
+        ...settingsMap.reduce((acc, setting) => {
+          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value;
+          if (value) {
+            acc[setting.key] = parseFloat(value);
+          }
+          return acc;
+        }, {}),
       };
       response = await (
         await fetch("https://api.openai.com/v1/chat/completions", {
@@ -156,6 +199,14 @@
       chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
       chatId = null;
     }
+  };
+
+  const showSettings = () => {
+    settings.classList.add("is-active");
+  };
+
+  const closeSettings = () => {
+    settings.classList.remove("is-active");
   };
 </script>
 
@@ -295,6 +346,52 @@
     />
   </p>
   <p class="control">
+    <button class="button is-link is-light is-medium" on:click|preventDefault={showSettings}
+      ><span class="greyscale">⚙️</span></button
+    >
+  </p>
+  <p class="control">
     <button class="button is-info is-medium" type="submit">Send</button>
   </p>
 </form>
+
+<svelte:window
+  on:keydown={(event) => {
+    if (event.key === "Escape") {
+      closeSettings();
+    }
+  }}
+/>
+
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="modal" bind:this={settings}>
+  <div class="modal-background" on:click={closeSettings} />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Settings</p>
+    </header>
+    <section class="modal-card-body">
+      {#each settingsMap as setting}
+        <div class="field is-horizontal">
+          <div class="field-label is-normal">
+            <label class="label" for="settings-temperature">{setting.name}</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <input
+                class="input"
+                type={setting.type}
+                id="settings-{setting.key}"
+                placeholder={String(setting.default)}
+              />
+            </div>
+          </div>
+        </div>
+      {/each}
+    </section>
+
+    <footer class="modal-card-foot">
+      <button class="button is-info" on:click={closeSettings}>Close settings</button>
+    </footer>
+  </div>
+</div>
