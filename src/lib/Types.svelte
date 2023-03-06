@@ -6,7 +6,7 @@
   };
 
   export type Message = {
-    role: "user" | "assistant" | "system";
+    role: "user" | "assistant" | "system" | "error";
     content: string;
     usage?: Usage;
   };

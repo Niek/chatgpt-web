@@ -72,8 +72,8 @@
             const { role, content } = message;
             return { role, content };
           })
-          // Skip system messages
-          .filter((message) => message.role !== "system"),
+          // Skip error messages
+          .filter((message) => message.role !== "error"),
         // temperature: 1
         // top_p: 1
         // n: 1
@@ -116,7 +116,7 @@
 
     if (response.status === "error") {
       addMessage(chatId, {
-        role: "system",
+        role: "error",
         content: `Error: ${response.error.message}`,
       });
     } else {
@@ -138,7 +138,7 @@
 
     if (response.status === "error") {
       addMessage(chatId, {
-        role: "system",
+        role: "error",
         content: `Error: ${response.error.message}`,
       });
     } else {
@@ -187,10 +187,10 @@
           💡
         </a>
         <a
-                href={"#"}
-                class="greyscale ml-2 is-hidden editbutton"
-                title="Delete this chat"
-                on:click|preventDefault={deleteChat}
+          href={"#"}
+          class="greyscale ml-2 is-hidden editbutton"
+          title="Delete this chat"
+          on:click|preventDefault={deleteChat}
         >
           🗑️
         </a>
@@ -236,7 +236,7 @@
         />
       </div>
     </article>
-  {:else if message.role === "system"}
+  {:else if message.role === "system" || message.role === "error"}
     <article class="message is-danger">
       <div class="message-body">
         <SvelteMarkdown
