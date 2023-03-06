@@ -4,8 +4,8 @@
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
   import type { Response, Message } from "./Types.svelte";
 
-  import { marked } from "marked";
   import { afterUpdate, onMount } from "svelte";
+  import SvelteMarkdown from "svelte-markdown";
 
   export let chatId: number;
   let updating: boolean = false;
@@ -24,10 +24,11 @@
     input.focus();
   });
 
-  marked.setOptions({
+  // Marked options
+  const markedownOptions = {
     gfm: true,
     breaks: true,
-  });
+  };
 
   const send = async () => {
     // Compose the input message
@@ -159,17 +160,35 @@
         >
           ✏️
         </a>
-        {@html marked(message.content)}
+        <SvelteMarkdown
+          source={message.content}
+          options={markedownOptions}
+          renderers={{
+            /*code: Code*/
+          }}
+        />
       </div>
     </article>
   {:else if message.role === "system"}
     <article class="message is-danger">
-      <div class="message-body">{@html marked(message.content)}</div>
+      <SvelteMarkdown
+        source={message.content}
+        options={markedownOptions}
+        renderers={{
+          /*code: Code*/
+        }}
+      />
     </article>
   {:else}
     <article class="message is-success">
       <div class="message-body">
-        {@html marked(message.content)}
+        <SvelteMarkdown
+          source={message.content}
+          options={markedownOptions}
+          renderers={{
+            /*code: Code*/
+          }}
+        />
         {#if message.usage}
           <p class="is-size-7">
             This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
