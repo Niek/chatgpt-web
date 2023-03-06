@@ -16,7 +16,7 @@
 <Navbar />
 
 <section class="section">
-  <div class="container is-fluid">
+  <div class="container is-fullhd">
     <div class="columns">
       <div class="column is-one-fifth">
         <Sidebar bind:apiKey bind:sortedChats bind:activeChatId />
