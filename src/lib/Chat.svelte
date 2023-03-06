@@ -24,6 +24,11 @@
     input.focus();
   });
 
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+  });
+
   const send = async () => {
     // Compose the input message
     const inputMessage: Message = { role: "user", content: input.value };
@@ -154,17 +159,17 @@
         >
           ✏️
         </a>
-        {@html marked(message.content, { breaks: true, gfm: true })}
+        {@html marked(message.content)}
       </div>
     </article>
   {:else if message.role === "system"}
     <article class="message is-danger">
-      <div class="message-body">{@html marked(message.content, { breaks: true, gfm: true })}</div>
+      <div class="message-body">{@html marked(message.content)}</div>
     </article>
   {:else}
     <article class="message is-success">
       <div class="message-body">
-        {@html marked(message.content, { breaks: true, gfm: true })}
+        {@html marked(message.content)}
         {#if message.usage}
           <p class="is-size-7">
             This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
