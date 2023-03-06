@@ -17,7 +17,7 @@
     <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
   </div>
 </article>
-<article class="message {!apiKey ? 'is-danger' : 'is-warning'}">
+<article class="message" class:is-danger={!apiKey} class:is-warning={apiKey}>
   <div class="message-body">
     Set your OpenAI API key below:
 
@@ -28,7 +28,7 @@
       }}
     >
       <p class="control is-expanded">
-        <input aria-label="OpenAI API key" type="password" class="input {!apiKey ? 'is-danger' : ''}" value={apiKey} />
+        <input aria-label="OpenAI API key" type="password" class="input" class:is-danger={!apiKey} value={apiKey} />
       </p>
       <p class="control">
         <button class="button is-info" type="submit">Save</button>

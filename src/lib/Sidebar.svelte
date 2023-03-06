@@ -19,9 +19,9 @@
             <li>
               <a
                 href={"#"}
-                class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId === chat.id
-                  ? 'has-background-light'
-                  : ''}"
+                class="panel-block"
+                class:is-disabled={!apiKey}
+                class:has-background-light={activeChatId === chat.id}
                 on:click|preventDefault={() => (activeChatId = chat.id)}>{chat.name || `Chat ${chat.id}`}</a
               >
             </li>
@@ -35,7 +35,9 @@
     <li>
       <a
         href={"#"}
-        class="panel-block {!apiKey ? 'is-disabled' : ''} {activeChatId ? '' : 'has-background-light'}"
+        class="panel-block"
+        class:is-disabled={!apiKey}
+        class:has-background-light={!activeChatId}
         on:click|preventDefault={() => {
           activeChatId = null;
         }}><span class="greyscale mr-2">🔑</span> API key</a
@@ -44,7 +46,8 @@
     <li>
       <a
         href={"#"}
-        class="panel-block {!apiKey ? 'is-disabled' : ''}"
+        class="panel-block"
+        class:is-disabled={!apiKey}
         on:click|preventDefault={() => {
           activeChatId = addChat();
         }}><span class="greyscale mr-2">➕</span> New chat</a
@@ -53,7 +56,8 @@
     <li>
       <a
         href={"#"}
-        class="panel-block {!apiKey ? 'is-disabled' : ''}"
+        class="panel-block"
+        class:is-disabled={!apiKey}
         on:click|preventDefault={() => {
           clearChats();
           activeChatId = null;
