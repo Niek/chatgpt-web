@@ -148,7 +148,10 @@
 
 {#each chat.messages as message}
   {#if message.role === "user"}
-    <article class="message is-info user-message" class:has-text-right={message.content.split("\n").length === 1}>
+    <article
+      class="message is-info user-message"
+      class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
+    >
       <div class="message-body">
         <a
           href={"#"}
