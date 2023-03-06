@@ -38,6 +38,11 @@ a.is-disabled {
   overflow-y:hidden;
 }
 
+/* Left-align code blocks in messages */
+.message-body > pre {
+  text-align: left !important;
+}
+
 $footer-padding: 3rem 1.5rem;
 
 @import "/node_modules/bulma/bulma.sass";

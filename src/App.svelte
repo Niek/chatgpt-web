@@ -21,7 +21,7 @@
       <div class="column is-one-fifth">
         <Sidebar bind:apiKey bind:sortedChats bind:activeChatId />
       </div>
-      <div class="column">
+      <div class="column is-four-fifths">
         {#if activeChatId}
           <Chat bind:chatId={activeChatId} />
         {:else}
