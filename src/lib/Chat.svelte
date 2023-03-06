@@ -142,14 +142,14 @@
   };
 </script>
 
-<nav class="level is-mobile chat-header">
+<nav class="level chat-header">
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
         {chat.name || `Chat ${chat.id}`}
         <a
           href={"#"}
-          class="greyscale ml-2 is-hidden editbutton"
+          class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Rename chat"
           on:click|preventDefault={() => {
             let newChatName = prompt("Enter a new name for this chat", chat.name);
@@ -163,7 +163,7 @@
         </a>
         <a
           href={"#"}
-          class="greyscale ml-2 is-hidden editbutton"
+          class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Suggest a chat name"
           on:click|preventDefault={suggestName}
         >
