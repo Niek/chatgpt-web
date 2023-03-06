@@ -28,7 +28,14 @@
       }}
     >
       <p class="control is-expanded">
-        <input aria-label="OpenAI API key" type="password" class="input" class:is-danger={!apiKey} value={apiKey} />
+        <input
+          aria-label="OpenAI API key"
+          type="password"
+          autocomplete="off"
+          class="input"
+          class:is-danger={!apiKey}
+          value={apiKey}
+        />
       </p>
       <p class="control">
         <button class="button is-info" type="submit">Save</button>
