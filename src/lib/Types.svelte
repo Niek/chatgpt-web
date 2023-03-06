@@ -17,6 +17,28 @@
     total_tokens: number;
   };
 
-  // TODO: add better type here, for now a generic JSON type
-  export type Response = Record<string, any>;
+  type ResponseOK = {
+    status: "ok";
+    id: string;
+    object: string;
+    created: number;
+    choices: {
+      index: number;
+      message: Message;
+      finish_reason: string;
+    }[];
+    usage: Usage;
+  };
+
+  type ResponseError = {
+    status: "error";
+    error: {
+      message: string;
+      type?: string;
+      param?: string | null;
+      code?: string | null;
+    };
+  };
+
+  export type Response = ResponseOK | ResponseError;
 </script>

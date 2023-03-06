@@ -91,7 +91,7 @@
         })
       ).json();
     } catch (e) {
-      response = { error: { message: e.message } };
+      response = { status: "error", error: { message: e.message } };
     }
 
     // Hide updating bar
@@ -113,7 +113,7 @@
 
     const response = await sendRequest(chat.messages);
 
-    if (response.error) {
+    if (response.status === "error") {
       addMessage(chatId, {
         role: "system",
         content: `Error: ${response.error.message}`,
@@ -135,7 +135,7 @@
 
     const response = await sendRequest(chat.messages);
 
-    if (response.error) {
+    if (response.status === "error") {
       addMessage(chatId, {
         role: "system",
         content: `Error: ${response.error.message}`,
