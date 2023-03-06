@@ -81,16 +81,7 @@
           `Bearer ${$apiKeyStorage}`,
         "Content-Type": "text/event-stream",
       },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages, // Provide the previous messages as well for context
-        // temperature: 1
-        // top_p: 1
-        // n: 1
-        stream: false,
-        // stop: null
-        max_tokens: 4096,
-      }),
+      body: JSON.stringify(request),
       onmessage(ev) {
         console.log(ev);
       },
@@ -119,7 +110,7 @@
         ...settingsMap.reduce((acc, setting) => {
           const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value;
           if (value) {
-            acc[setting.key] = parseFloat(value);
+            acc[setting.key] = setting.type === "number" ? parseFloat(value) : value;
           }
           return acc;
         }, {}),
@@ -135,7 +126,7 @@
         })
       ).json();
     } catch (e) {
-      response = { status: "error", error: { message: e.message } };
+      response = { error: { message: e.message } } as Response;
     }
 
     // Hide updating bar
@@ -157,7 +148,7 @@
 
     const response = await sendRequest(chat.messages);
 
-    if (response.status === "error") {
+    if (response.error) {
       addMessage(chatId, {
         role: "error",
         content: `Error: ${response.error.message}`,
@@ -179,7 +170,7 @@
 
     const response = await sendRequest(chat.messages);
 
-    if (response.status === "error") {
+    if (response.error) {
       addMessage(chatId, {
         role: "error",
         content: `Error: ${response.error.message}`,

@@ -40,7 +40,6 @@
   };
 
   type ResponseOK = {
-    status: "ok";
     id: string;
     object: string;
     created: number;
@@ -53,7 +52,6 @@
   };
 
   type ResponseError = {
-    status: "error";
     error: {
       message: string;
       type?: string;
@@ -62,5 +60,5 @@
     };
   };
 
-  export type Response = ResponseOK | ResponseError;
+  export type Response = ResponseOK & ResponseError;
 </script>
