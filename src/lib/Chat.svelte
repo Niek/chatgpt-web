@@ -311,7 +311,7 @@
       class="message is-info user-message"
       class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
     >
-      <div class="message-body">
+      <div class="message-body content">
         <a
           href={"#"}
           class="greyscale is-pulled-right ml-2 is-hidden editbutton"
@@ -333,7 +333,7 @@
     </article>
   {:else if message.role === "system" || message.role === "error"}
     <article class="message is-danger">
-      <div class="message-body">
+      <div class="message-body content">
         <SvelteMarkdown
           source={message.content}
           options={markedownOptions}
@@ -345,7 +345,7 @@
     </article>
   {:else}
     <article class="message is-success">
-      <div class="message-body">
+      <div class="message-body content">
         <SvelteMarkdown
           source={message.content}
           options={markedownOptions}
