@@ -12,6 +12,9 @@
 
   let input: HTMLTextAreaElement;
   let settings: HTMLDivElement;
+  let recognition: any = null;
+  let recording = false;
+
   const settingsMap: Settings[] = [
     {
       key: "temperature",
@@ -55,7 +58,21 @@
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
   // Focus the input on mount
-  onMount(() => input.focus());
+  onMount(() => {
+    input.focus();
+
+    // Try to detect speech recognition support
+    if ("SpeechRecognition" in window) {
+      recognition = new SpeechRecognition();
+    } else if ("webkitSpeechRecognition" in window) {
+      recognition = new webkitSpeechRecognition();
+    } else {
+      console.log("Speech recognition not supported");
+      recognition = null;
+    }
+
+    recognition!.interimResults = false;
+  });
 
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
@@ -135,13 +152,14 @@
     return response;
   };
 
-  const submitForm = async (): Promise<void> => {
+  const submitForm = async (recorded: boolean = false): Promise<void> => {
     // Compose the input message
     const inputMessage: Message = { role: "user", content: input.value };
     addMessage(chatId, inputMessage);
 
     // Clear the input value
     input.value = "";
+    input.blur();
 
     // Resize back to single line height
     input.style.height = "auto";
@@ -157,6 +175,11 @@
       response.choices.map((choice) => {
         choice.message.usage = response.usage;
         addMessage(chatId, choice.message);
+        // Use TTS to read the response, if query was recorded
+        if (recorded && "SpeechSynthesisUtterance" in window) {
+          const utterance = new SpeechSynthesisUtterance(choice.message.content);
+          speechSynthesis.speak(utterance);
+        }
       });
     }
   };
@@ -205,6 +228,29 @@
       const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement;
       input.value = "";
     });
+  };
+
+  const recordToggle = () => {
+    // Check if already recording - if so, stop
+    if (recording) {
+      recognition?.stop();
+      recording = false;
+    } else {
+      // Mark as recording
+      recording = true;
+
+      // Start speech recognition
+      recognition!.onresult = (event) => {
+        // Stop speech recognition, submit the form and remove the pulse
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript;
+        input.value = text;
+        recognition.stop();
+        recording = false;
+        submitForm(true);
+      };
+      recognition?.start();
+    }
   };
 </script>
 
@@ -326,7 +372,7 @@
 <form class="field has-addons has-addons-right" on:submit|preventDefault={submitForm}>
   <p class="control is-expanded">
     <textarea
-      class="input is-info is-medium is-focused chat-input"
+      class="input is-info is-focused chat-input"
       placeholder="Type your message here..."
       rows="1"
       on:keydown={(e) => {
@@ -337,19 +383,25 @@
         }
       }}
       on:input={(e) => {
-        // Resize the textarea to fit the content
+        // Resize the textarea to fit the content - auto is important to reset the height after deleting content
+        input.style.height = "auto";
         input.style.height = input.scrollHeight + "px";
       }}
       bind:this={input}
     />
   </p>
+  <p class="control" class:is-hidden={!recognition}>
+    <button class="button is-info is-light" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+      ><span class="greyscale">🎤</span></button
+    >
+  </p>
   <p class="control">
-    <button class="button is-link is-light is-medium" on:click|preventDefault={showSettings}
+    <button class="button is-link is-light" on:click|preventDefault={showSettings}
       ><span class="greyscale">⚙️</span></button
     >
   </p>
   <p class="control">
-    <button class="button is-info is-medium" type="submit">Send</button>
+    <button class="button is-info" type="submit">Send</button>
   </p>
 </form>
 

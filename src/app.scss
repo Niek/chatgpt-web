@@ -60,3 +60,20 @@ $fullhd: 2000px;
 $modal-content-width: 1000px;
 
 @import "/node_modules/bulma/bulma.sass";
+
+/* Pulsing effect - background goes to red color and back */
+.is-pulse {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: $info-light; /* Green */
+  }
+  50% {
+    background-color: $danger-light; /* Red */
+  }
+  100% {
+    background-color: $info-light /* Green */
+  }
+}
