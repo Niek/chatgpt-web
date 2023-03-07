@@ -63,15 +63,30 @@
 
     // Try to detect speech recognition support
     if ("SpeechRecognition" in window) {
+      // @ts-ignore
       recognition = new SpeechRecognition();
     } else if ("webkitSpeechRecognition" in window) {
+      // @ts-ignore
       recognition = new webkitSpeechRecognition();
-    } else {
-      console.log("Speech recognition not supported");
-      recognition = null;
     }
 
-    recognition!.interimResults = false;
+    if (recognition) {
+      recognition.interimResults = false;
+      recognition.onstart = () => {
+        recording = true;
+      };
+      recognition.onresult = (event) => {
+        // Stop speech recognition, submit the form and remove the pulse
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript;
+        input.value = text;
+        recognition.stop();
+        recording = false;
+        submitForm(true);
+      };
+    } else {
+      console.log("Speech recognition not supported");
+    }
   });
 
   // Scroll to the bottom of the chat on update
@@ -231,24 +246,11 @@
   };
 
   const recordToggle = () => {
-    // Check if already recording - if so, stop
+    // Check if already recording - if so, stop - else start
     if (recording) {
       recognition?.stop();
       recording = false;
     } else {
-      // Mark as recording
-      recording = true;
-
-      // Start speech recognition
-      recognition!.onresult = (event) => {
-        // Stop speech recognition, submit the form and remove the pulse
-        const last = event.results.length - 1;
-        const text = event.results[last][0].transcript;
-        input.value = text;
-        recognition.stop();
-        recording = false;
-        submitForm(true);
-      };
       recognition?.start();
     }
   };
