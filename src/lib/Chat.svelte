@@ -189,6 +189,8 @@
     } else {
       response.choices.map((choice) => {
         choice.message.usage = response.usage;
+        // Remove whitespace around the message that the OpenAI API sometimes returns
+        choice.message.content = choice.message.content.trim();
         addMessage(chatId, choice.message);
         // Use TTS to read the response, if query was recorded
         if (recorded && "SpeechSynthesisUtterance" in window) {
