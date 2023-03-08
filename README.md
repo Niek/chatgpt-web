@@ -31,6 +31,7 @@ npm run dev # or: npm run build
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Michael-Tanzer"><img src="https://avatars.githubusercontent.com/u/23483071?v=4?s=100" width="100px;" alt="Michael Tanzer"/><br /><sub><b>Michael Tanzer</b></sub></a><br /><a href="#ideas-Michael-Tanzer" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Niek/chatgpt-web/commits?author=Michael-Tanzer" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/petergeneric"><img src="https://avatars.githubusercontent.com/u/870655?v=4?s=100" width="100px;" alt="Peter"/><br /><sub><b>Peter</b></sub></a><br /><a href="#ideas-petergeneric" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://danb.me"><img src="https://avatars.githubusercontent.com/u/8343178?v=4?s=100" width="100px;" alt="Dan Brown"/><br /><sub><b>Dan Brown</b></sub></a><br /><a href="#ideas-ssddanbrown" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
