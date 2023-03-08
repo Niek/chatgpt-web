@@ -7,7 +7,7 @@
 
   export type Message = {
     id: number;
-    role: "user" | "assistant" | "system" | "error";
+    role: "user" | "assistant" | "system" | "error" | "root";
     content: string;
     usage?: Usage;
     parentId?: number;

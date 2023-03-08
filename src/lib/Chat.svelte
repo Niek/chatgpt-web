@@ -1,8 +1,8 @@
 <script lang="ts">
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
-  import type { Request, Response, Message, Settings } from "./Types.svelte";
+  import { apiKeyStorage, chatsStorage, addMessage, clearMessages, findMessageById } from "./Storage.svelte";
+  import type {Request, Response, Message, Settings, Chat} from "./Types.svelte";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -56,47 +56,49 @@
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId);
 
-  function getShowingMessages(showingMessagesIds: number[]): Message[] {
-    let chat = $chatsStorage.find((chat) => chat.id === chatId);
-    console.log(chat)
+  function getShowingMessages(showingMessagesIds: number[], chatMessages: Message[]): Message[] {
     let showingMessages: Message[] = [];
-    if (chat.messages.length > 0) {
-      showingMessages.push(chat.messages[0])
-      let lastMessage = chat.messages[0];
+    if (chatMessages.length <= 0) {
+        return showingMessages;
+    }
 
-      while (lastMessage.children.length > 0) {
-        // get child with the highest timestamp and add to messagesToSend
-        let child = lastMessage.children[0];
+    showingMessages.push(chatMessages[0])
+    let lastMessage = chatMessages[0];
 
-        for (let i = 0; i < lastMessage.children.length; i++) {
-          if (showingMessagesIds.includes(lastMessage.children[i].id)) {
-            child = lastMessage.children[i];
-            break;
-          }
+    // if the last message doesn't have the "children" property, just return the chat messages
+    if (!lastMessage.children) {
+      return chatMessages;
+    }
 
-          if (lastMessage.children[i].timestamp > child.timestamp) {
-            child = lastMessage.children[i];
-          }
+    while (lastMessage.children.length > 0) {
+      // get child with the highest timestamp and add to messagesToSend
+      let child = lastMessage.children[0];
 
+      for (let i = 0; i < lastMessage.children.length; i++) {
+        if (showingMessagesIds.includes(lastMessage.children[i].id)) {
+          child = lastMessage.children[i];
+          break;
         }
-        showingMessages.push(child);
-        lastMessage = child;
-      }
 
-      if (!lastMessage.children && lastMessage.id !== chat.messages[0].id) {
-        showingMessages.push(lastMessage);
-      }
+        if (lastMessage.children[i].timestamp > child.timestamp) {
+          child = lastMessage.children[i];
+        }
 
+      }
+      showingMessages.push(child);
+      lastMessage = child;
+    }
+
+    if (!lastMessage.children && lastMessage.id !== chat.messages[0].id) {
+      showingMessages.push(lastMessage);
     }
 
     return showingMessages;
   }
 
   let showingMessagesIds: number[] = [];
-  let showingMessages = getShowingMessages([]);  // initialise the messages to show using the latest edit for every message
-  showingMessagesIds = showingMessages.map((message) => message.id);  // get the ids of the messages to show
-
-  $: messages = showingMessages;
+  $: chatMessages = chat.messages;
+  $: messages = getShowingMessages(showingMessagesIds, chatMessages);
 
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
@@ -152,22 +154,20 @@
     // 3. add the new message to showingMessagesIds
     // 4. get the new showingMessages
 
-    let chat = $chatsStorage.find((chat) => chat.id === chatId);
-
     // remove message from showingMessagesId
     showingMessagesIds = showingMessagesIds.filter((id) => id !== messageId);
 
     // get the message
-    let message = chat.messages.find((message) => message.id === messageId);
-
-    // make a new message with the new content
-    addMessage(chatId, {
-      role: "user",
+    let message = chatMessages.find((message) => message.id === messageId);
+    let newMessage = {
+      ...message,
       content: newContent,
-      parentId: message.parentId,
-    });
+    };
+    // make a new message with the new content
+    let newId = addMessage(chatId, newMessage);
+    showingMessagesIds = [...showingMessagesIds, newId];
 
-    showingMessages = getShowingMessages(showingMessagesIds);
+    submitForm(false, true);
   }
 
   const sendRequest = async (messages: Message[]): Promise<Response> => {
@@ -235,10 +235,13 @@
     return response;
   };
 
-  const submitForm = async (recorded: boolean = false): Promise<void> => {
+  const submitForm = async (recorded: boolean = false, onEdit: boolean = false): Promise<void> => {
     // Compose the input message
-    const inputMessage: Message = { role: "user", content: input.value };
-    addMessage(chatId, inputMessage);
+    let inputMessage: Message;
+    if (!onEdit) {
+      inputMessage = { role: "user", content: input.value };
+      addMessage(chatId, inputMessage);
+    }
 
     // Clear the input value
     input.value = "";
@@ -247,7 +250,7 @@
     // Resize back to single line height
     input.style.height = "auto";
 
-    const response = await sendRequest(chat.messages);
+    const response = await sendRequest(getShowingMessages(showingMessagesIds, chatMessages));
 
     if (response.error) {
       addMessage(chatId, {
@@ -274,7 +277,7 @@
     };
     addMessage(chatId, suggestMessage);
 
-    const response = await sendRequest(chat.messages);
+    const response = await sendRequest(getShowingMessages(showingMessagesIds, chatMessages));
 
     if (response.error) {
       addMessage(chatId, {
@@ -289,10 +292,6 @@
         chatsStorage.set($chatsStorage);
       });
     }
-
-    // after receiving a new message we want to show all the messages and update the showingMessagesIds
-    showingMessages = getShowingMessages(showingMessagesIds);
-    showingMessagesIds = [...showingMessagesIds, inputMessage.id];
   };
 
   const deleteChat = () => {
@@ -386,15 +385,6 @@
       class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
     >
       <div class="message-body content">
-        <a
-          href={"#"}
-          class="greyscale is-pulled-right ml-2 is-hidden editbutton"
-          on:click={() => {
-            input.value = message.content;
-            input.focus();
-          }}>
-          ✏️
-        </a>
         <SvelteMarkdown
           source={message.content}
           options={markedownOptions}
@@ -402,6 +392,33 @@
             /*code: Code*/
           }}
         />
+        <a
+          href={"#"}
+          class="greyscale is-pulled-right ml-2 edit-button"
+          on:click|preventDefault={() => {
+            let newContent = prompt("Enter the new text for the selected message");
+            if (newContent) {
+                editMessage(message.id, newContent);
+            }
+          }}>
+          ✏️ <!-- TODO: this could open a modal, a prompt, make the message editable, etc. I think the prompt is too crude of a solution, but it's a start -->
+        </a>
+        {#if findMessageById(messages, message.parentId).children.length > 1}
+          <a
+            href={"#"}
+            class="greyscale is-pulled-right ml-2 next-message-button"
+            on:click|preventDefault={()=>{
+            let children = findMessageById(messages, message.parentId).children;
+            let childrenIds = children.map((child) => child.id);
+            let index = childrenIds.indexOf(message.id);
+            // get the next message, wrapping around if necessary
+            let nextIndex = (index + 1) % children.length;
+            let nextMessageId = children[nextIndex].id;
+
+            showingMessagesIds = showingMessagesIds.filter((id) => id !== message.id);
+            showingMessagesIds = [...showingMessagesIds, nextMessageId];
+          }}>🔁</a>
+        {/if}
       </div>
     </article>
   {:else if message.role === "system" || message.role === "error"}
@@ -416,7 +433,7 @@
         />
       </div>
     </article>
-  {:else}
+  {:else if message.role !== "root"}
     <article class="message is-success">
       <div class="message-body content">
         <SvelteMarkdown

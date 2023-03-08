@@ -16,7 +16,17 @@
     chats.push({
       id: chatId,
       name: `Chat ${chatId}`,
-      messages: [],
+      messages: [
+          {
+              id: 0,
+              role: "root",
+              content: "",
+              usage: 0,
+              parentId: undefined,
+              children: [],
+              timestamp: new Date().getTime(),
+          }
+      ],
     });
     chatsStorage.set(chats);
     return chatId;
@@ -26,38 +36,35 @@
     chatsStorage.set([]);
   };
 
-  export const addMessage = (chatId: number, message: Message) => {
+  export const addMessage = (chatId: number, message: Message): number => {
       const chats = get(chatsStorage);
       const chat = chats.find((chat) => chat.id === chatId);
 
       // Check if the message has a parentId, indicating that it's an edited message
+      let newMessage: Message;
       if (message.parentId !== undefined) {
           // Find the parent message
           const parentMessage = findMessageById(chat.messages, message.parentId);
           // Create a new message with the same text and user as the original message,
           // but with a new id and a parentId of the original message's parentId
-          const newMessage: Message = {
-              id: generateNewMessageId(),
-              role: message.role,
-              content: message.content,
-              usage: message.usage,
-              parentId: parentMessage?.id,
+          newMessage = {
+              ...message,
+              id: generateNewMessageId(chat),
               children: [],
-              // new date, right now
               timestamp: new Date().getTime(),
           };
 
           // Add the new message as a child of the original message
           if (parentMessage) {
               parentMessage.children = [...parentMessage.children, newMessage];
-          } else {
-              chat.messages.push(newMessage);
           }
+
+          chat.messages.push(newMessage);
       } else {
           // If the message doesn't have a parentId, it's a new message
-          let newMessage: Message = {
+          newMessage = {
               ...message,
-              id: generateNewMessageId(),
+              id: generateNewMessageId(chat),
               parentId: getLastIDInChat(chat),
               children: [],
               timestamp: new Date().getTime(),
@@ -69,10 +76,17 @@
           }
 
           const parentMessage = findMessageById(chat.messages, newMessage.parentId);
+
+          if (!parentMessage) {
+            return;
+          }
+
           parentMessage.children = [...parentMessage.children, newMessage];
       }
 
       chatsStorage.set(chats);
+
+      return newMessage.id;
   };
 
 
@@ -81,16 +95,15 @@
       if (lastMessage) {
           return lastMessage.id;
       }
-      return undefined;
+      return 0;
   }
 
-  export function generateNewMessageId(): number {
-      const chats = get(chatsStorage);
-      const allMessages = chats.flatMap((chat) => chat.messages);
+  export function generateNewMessageId(chat): number {
+      const allMessages = chat.messages
       return allMessages.reduce((maxId, message) => Math.max(maxId, message.id), 0) + 1;
   }
 
-  function findMessageById(messages: Message[], id: number): Message | undefined {
+  export function findMessageById(messages: Message[], id: number): Message | undefined {
       if (id === undefined || messages === undefined) {
           return undefined;
       }
@@ -99,26 +112,19 @@
           if (m.id === id) {
               return m;
           }
-          const childMessage = findMessageById(m.children || [], id);
-          if (childMessage) {
-              return childMessage;
-          }
       }
       return undefined;
   }
 
-  export const editMessage = (chatId: number, index: number, newMessage: Message) => {
-    const chats = get(chatsStorage);
-    const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages[index] = newMessage;
-    chat.messages.splice(index + 1); // remove the rest of the messages
-    chatsStorage.set(chats);
-  };
-
   export const clearMessages = (chatId: number) => {
     const chats = get(chatsStorage);
     const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages = [];
+    // remove all messages with role != system
+    chat.messages = chat.messages.filter((message) => message.role === "root");
+    // set all children to empty
+    chat.messages.forEach((message) => {
+      message.children = [];
+    });
     chatsStorage.set(chats);
   };
 
