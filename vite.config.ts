@@ -14,6 +14,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
           plugins: [
             purgecss({
               content: ["./**/*.html", "./**/*.svelte"],
+              safelist: ["pre", "code"],
             }),
           ],
         },

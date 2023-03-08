@@ -10,18 +10,24 @@
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id);
   $: apiKey = $apiKeyStorage;
 
+  // Check if the API key is passed in as a "key" query parameter - if so, save it
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("key")) {
+    apiKeyStorage.set(urlParams.get("key")!);
+  }
+
   let activeChatId: number;
 </script>
 
 <Navbar />
 
 <section class="section">
-  <div class="container is-fluid">
+  <div class="container is-fullhd">
     <div class="columns">
       <div class="column is-one-fifth">
         <Sidebar bind:apiKey bind:sortedChats bind:activeChatId />
       </div>
-      <div class="column">
+      <div class="column is-four-fifths">
         {#if activeChatId}
           <Chat bind:chatId={activeChatId} />
         {:else}

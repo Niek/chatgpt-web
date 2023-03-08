@@ -21,10 +21,27 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
+.user-message { 
+  max-width: 90%;
+  margin-right: 0;
+  margin-left: auto;
+  width: fit-content;
+}
+
+.assistant-message {
+  max-width: 90%;
+  width: fit-content;
+}
+
 /* Show the edit button on hover of the user message */
-.usermessage:hover .editbutton {
+.user-message:hover .editbutton {
   /* TODO: add when ready: display: block !important; */
   text-decoration: none !important;
+}
+
+/* Swap the border on user messages to the other side */
+.user-message > .message-body {
+  border-width: 0 4px 0 0 !important;
 }
 
 /* Show the edit button on hover of the chat name */
@@ -33,6 +50,30 @@ a.is-disabled {
   text-decoration: none !important;
 }
 
+/* Style the chat input */
+.chat-input {
+  overflow-y:hidden;
+}
+
 $footer-padding: 3rem 1.5rem;
+$fullhd: 2000px;
+$modal-content-width: 1000px;
 
 @import "/node_modules/bulma/bulma.sass";
+
+/* Pulsing effect - background goes to red color and back */
+.is-pulse {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: $info-light; /* Green */
+  }
+  50% {
+    background-color: $danger-light; /* Red */
+  }
+  100% {
+    background-color: $info-light /* Green */
+  }
+}
