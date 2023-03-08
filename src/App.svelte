@@ -5,7 +5,11 @@
   import Chat from "./lib/Chat.svelte";
   import Footer from "./lib/Footer.svelte";
 
-  import { apiKeyStorage, chatsStorage } from "./lib/Storage.svelte";
+  import {
+    apiKeyStorage,
+    apiHostStorage,
+    chatsStorage,
+  } from "./lib/Storage.svelte";
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id);
   $: apiKey = $apiKeyStorage;
@@ -14,6 +18,9 @@
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("key")) {
     apiKeyStorage.set(urlParams.get("key")!);
+  }
+  if (urlParams.has("host")) {
+    apiHostStorage.set(urlParams.get("host")!);
   }
 
   let activeChatId: number;

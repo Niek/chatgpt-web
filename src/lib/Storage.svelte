@@ -5,12 +5,14 @@
 
   export const chatsStorage = persisted("chats", [] as Chat[]);
   export const apiKeyStorage = persisted("apiKey", null as string);
+  export const apiHostStorage = persisted("apiHost", null as string);
 
   export const addChat = (): number => {
     const chats = get(chatsStorage);
 
     // Find the max chatId
-    const chatId = chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1;
+    const chatId =
+      chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1;
 
     // Add a new chat
     chats.push({
@@ -33,7 +35,11 @@
     chatsStorage.set(chats);
   };
 
-  export const editMessage = (chatId: number, index: number, newMessage: Message) => {
+  export const editMessage = (
+    chatId: number,
+    index: number,
+    newMessage: Message
+  ) => {
     const chats = get(chatsStorage);
     const chat = chats.find((chat) => chat.id === chatId);
     chat.messages[index] = newMessage;
