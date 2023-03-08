@@ -1,5 +1,6 @@
 <script lang="ts">
   import { addChat, clearChats } from "./Storage.svelte";
+  import { exportAsMarkdown } from "./Export.svelte";
   import type { Chat } from "./Types.svelte";
 
   export let activeChatId: number;
@@ -64,5 +65,17 @@
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
+    {#if activeChatId }
+    <li>
+      <a
+        href={"#"}
+        class="panel-block"
+        class:is-disabled={!apiKey}
+        on:click|preventDefault={() => {
+          exportAsMarkdown(activeChatId);
+        }}><span class="greyscale mr-2">📥</span> Export chat</a
+      >
+    </li>
+    {/if}
   </ul>
 </aside>
