@@ -395,14 +395,12 @@
     />
   </p>
   <p class="control" class:is-hidden={!recognition}>
-    <button class="button is-info is-light" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
       ><span class="greyscale">🎤</span></button
     >
   </p>
   <p class="control">
-    <button class="button is-link is-light" on:click|preventDefault={showSettings}
-      ><span class="greyscale">⚙️</span></button
-    >
+    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
   </p>
   <p class="control">
     <button class="button is-info" type="submit">Send</button>
