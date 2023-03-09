@@ -16,7 +16,17 @@
     chats.push({
       id: chatId,
       name: `Chat ${chatId}`,
-      messages: [],
+      messages: [
+          {
+              id: 0,
+              role: "root",
+              content: "",
+              usage: 0,
+              parentId: undefined,
+              children: [],
+              timestamp: new Date().getTime(),
+          }
+      ],
     });
     chatsStorage.set(chats);
     return chatId;
@@ -26,25 +36,95 @@
     chatsStorage.set([]);
   };
 
-  export const addMessage = (chatId: number, message: Message) => {
-    const chats = get(chatsStorage);
-    const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages.push(message);
-    chatsStorage.set(chats);
+  export const addMessage = (chatId: number, message: Message): number => {
+      const chats = get(chatsStorage);
+      const chat = chats.find((chat) => chat.id === chatId);
+
+      // Check if the message has a parentId, indicating that it's an edited message
+      let newMessage: Message;
+      if (message.parentId !== undefined) {
+          // Find the parent message
+          const parentMessage = findMessageById(chat.messages, message.parentId);
+          // Create a new message with the same text and user as the original message,
+          // but with a new id and a parentId of the original message's parentId
+          newMessage = {
+              ...message,
+              id: generateNewMessageId(chat),
+              children: [],
+              timestamp: new Date().getTime(),
+          };
+
+          // Add the new message as a child of the original message
+          if (parentMessage) {
+              parentMessage.children = [...parentMessage.children, newMessage];
+          }
+
+          chat.messages.push(newMessage);
+      } else {
+          // If the message doesn't have a parentId, it's a new message
+          newMessage = {
+              ...message,
+              id: generateNewMessageId(chat),
+              parentId: getLastIDInChat(chat),
+              children: [],
+              timestamp: new Date().getTime(),
+          };
+          chat.messages.push(newMessage);
+
+          if (newMessage.parentId === undefined) {
+              return;
+          }
+
+          const parentMessage = findMessageById(chat.messages, newMessage.parentId);
+
+          if (!parentMessage) {
+            return;
+          }
+
+          parentMessage.children = [...parentMessage.children, newMessage];
+      }
+
+      chatsStorage.set(chats);
+
+      return newMessage.id;
   };
 
-  export const editMessage = (chatId: number, index: number, newMessage: Message) => {
-    const chats = get(chatsStorage);
-    const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages[index] = newMessage;
-    chat.messages.splice(index + 1); // remove the rest of the messages
-    chatsStorage.set(chats);
-  };
+
+  function getLastIDInChat(chat: Chat): number {
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      if (lastMessage) {
+          return lastMessage.id;
+      }
+      return 0;
+  }
+
+  export function generateNewMessageId(chat): number {
+      const allMessages = chat.messages
+      return allMessages.reduce((maxId, message) => Math.max(maxId, message.id), 0) + 1;
+  }
+
+  export function findMessageById(messages: Message[], id: number): Message | undefined {
+      if (id === undefined || messages === undefined) {
+          return undefined;
+      }
+
+      for (const m of messages) {
+          if (m.id === id) {
+              return m;
+          }
+      }
+      return undefined;
+  }
 
   export const clearMessages = (chatId: number) => {
     const chats = get(chatsStorage);
     const chat = chats.find((chat) => chat.id === chatId);
-    chat.messages = [];
+    // remove all messages with role != system
+    chat.messages = chat.messages.filter((message) => message.role === "root");
+    // set all children to empty
+    chat.messages.forEach((message) => {
+      message.children = [];
+    });
     chatsStorage.set(chats);
   };
 

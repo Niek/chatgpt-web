@@ -6,9 +6,13 @@
   };
 
   export type Message = {
-    role: "user" | "assistant" | "system" | "error";
+    id: number;
+    role: "user" | "assistant" | "system" | "error" | "root";
     content: string;
     usage?: Usage;
+    parentId?: number;
+    children?: Message[];
+    timestamp: number;
   };
 
   export type Usage = {
