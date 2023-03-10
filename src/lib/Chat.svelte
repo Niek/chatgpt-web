@@ -3,6 +3,7 @@
 
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
   import type { Request, Response, Message, Settings } from "./Types.svelte";
+  import Code from "./Code.svelte";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -330,7 +331,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
       </div>
@@ -342,7 +343,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
       </div>
@@ -354,7 +355,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
         {#if message.usage}
