@@ -1,5 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 
+// Desktop App Reference: https://github.com/lencx/ChatGPT
+
 // 判断是否处于开发模式
 const isDevMode =
   process.env.NODE_ENV === "development" ||
