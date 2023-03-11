@@ -407,15 +407,12 @@
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"
-      placeholder="Type your message here..."
+      placeholder="Type your message here...Ctrl+Enter or Meta+Enter to Send"
       rows="1"
       on:keydown={(e) => {
         // Only send if Enter is pressed, not Shift+Enter
         const isMetaOrCtrl = e.metaKey || e.ctrlKey;
-        if (
-          e.key === "Enter" &&
-          ((!e.isComposing && !e.shiftKey) || isMetaOrCtrl) // Enter or Ctrl+Enter or Meta+Enter
-        ) {
+        if (e.key === "Enter" && isMetaOrCtrl) {
           submitForm();
           e.preventDefault();
         }
