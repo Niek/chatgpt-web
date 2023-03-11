@@ -3,12 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:github": "vite build --base=/chatgpt-web/",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "electron": "cd electron && npm start",
+    "electron:build": "cd electron && npm build"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^5.0.0",

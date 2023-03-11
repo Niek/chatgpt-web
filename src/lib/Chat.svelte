@@ -14,7 +14,7 @@
   import SvelteMarkdown from "svelte-markdown";
 
   export const OPENAI_API_HOST = "https://api.openai.com";
-  export const getApiHost = () => apiHostStorage || OPENAI_API_HOST;
+  export const getApiHost = () => $apiHostStorage || OPENAI_API_HOST;
 
   export let chatId: number;
   let updating: boolean = false;
@@ -411,7 +411,11 @@
       rows="1"
       on:keydown={(e) => {
         // Only send if Enter is pressed, not Shift+Enter
-        if (e.key === "Enter" && !e.shiftKey) {
+        const isMetaOrCtrl = e.metaKey || e.ctrlKey;
+        if (
+          e.key === "Enter" &&
+          ((!e.isComposing && !e.shiftKey) || isMetaOrCtrl) // Enter or Ctrl+Enter or Meta+Enter
+        ) {
           submitForm();
           e.preventDefault();
         }
