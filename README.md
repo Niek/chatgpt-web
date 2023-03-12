@@ -10,7 +10,7 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 
 ## Why?
 
-Why not use the [official ChatGPT interface](https://chat.openai.com/)? Becauce ChatGPT-web will allow more customization, and since it uses the commercial OpenAI API it should be more reliable. It's also *much* cheaper than ChatGPT Plus - at $20 per month, you would need to use *10 million* tokens on the OpenAI API for this to break even. Finally, since ChatGPT-web is open source, so you can host it yourself and make changes as you want.
+Why not use the [official ChatGPT interface](https://chat.openai.com/)? Becauce ChatGPT-web will allow more customization, and since it uses the commercial OpenAI API it should be more reliable. It's also _much_ cheaper than ChatGPT Plus - at $20 per month, you would need to use _10 million_ tokens on the OpenAI API for this to break even. Finally, since ChatGPT-web is open source, so you can host it yourself and make changes as you want.
 
 ## Development
 
@@ -39,3 +39,10 @@ npm run dev # or: npm run build
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+# Modifier Notes
+
+---
+
+- CSS framework: [Bulma CSS](https://bulma.io/documentation/)
+- Added electron framework(Maybe switch to [Tauri](https://tauri.app/))?
