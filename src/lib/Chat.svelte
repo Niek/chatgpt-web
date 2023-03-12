@@ -21,6 +21,9 @@
 
   let input: HTMLTextAreaElement;
   let settings: HTMLDivElement;
+  let shouldShowSettings = false;
+  let chatNameSettings: HTMLDivElement;
+  let shouldShowChatNameSettings = false;
   let recognition: any = null;
   let recording = false;
 
@@ -231,12 +234,35 @@
       });
     } else {
       response.choices.map((choice) => {
+        console.log(choice);
         choice.message.usage = response.usage;
         addMessage(chatId, choice.message);
         chat.name = choice.message.content;
         chatsStorage.set($chatsStorage);
       });
     }
+  };
+
+  const showChatNameSettings = () => {
+    shouldShowChatNameSettings = true;
+    chatNameSettings.classList.add("is-active");
+  };
+
+  const saveChatNameSettings = () => {
+    const newChatName = (
+      chatNameSettings.querySelector("#settings-chat-name") as HTMLInputElement
+    ).value;
+    // save if changed
+    if (newChatName && newChatName !== chat.name) {
+      chat.name = newChatName;
+      chatsStorage.set($chatsStorage);
+    }
+    closeChatNameSettings();
+  };
+
+  const closeChatNameSettings = () => {
+    chatNameSettings.classList.remove("is-active");
+    shouldShowChatNameSettings = false;
   };
 
   const deleteChat = () => {
@@ -249,11 +275,13 @@
   };
 
   const showSettings = () => {
+    shouldShowSettings = true;
     settings.classList.add("is-active");
   };
 
   const closeSettings = () => {
     settings.classList.remove("is-active");
+    shouldShowSettings = false;
   };
 
   const clearSettings = () => {
@@ -286,14 +314,15 @@
           class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Rename chat"
           on:click|preventDefault={() => {
-            let newChatName = prompt(
-              "Enter a new name for this chat",
-              chat.name
-            );
-            if (newChatName) {
-              chat.name = newChatName;
-              chatsStorage.set($chatsStorage);
-            }
+            showChatNameSettings();
+            // let newChatName = prompt(
+            //   "Enter a new name for this chat",
+            //   chat.name
+            // );
+            // if (newChatName) {
+            //   chat.name = newChatName;
+            //   chatsStorage.set($chatsStorage);
+            // }
           }}
         >
           ✏️
@@ -490,3 +519,40 @@
     </footer>
   </div>
 </div>
+
+<!-- rename modal -->
+<div class="modal" bind:this={chatNameSettings}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click={closeChatNameSettings} />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Enter a new name this chat</p>
+    </header>
+    <section class="modal-card-body">
+      <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label" for="settings-temperature">New name:</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <input
+              class="input"
+              type="text"
+              id="settings-chat-name"
+              value={chat.name}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="modal-card-foot">
+      <button class="button is-info" on:click={saveChatNameSettings}
+        >Save</button
+      >
+      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
+    </footer>
+  </div>
+</div>
+
+<!-- end -->

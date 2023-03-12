@@ -4,7 +4,7 @@
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../public"
+    "distDir": "../dist"
   },
   "package": {
     "productName": "chatgpt-web-desktop",
@@ -29,7 +29,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "cn.lucki.chatgpt",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
