@@ -23,6 +23,7 @@
     "@tsconfig/svelte": "^3.0.0",
     "@types/marked": "^4.0.8",
     "bulma": "^0.9.4",
+    "bulma-prefers-dark": "^0.1.0-beta.1",
     "postcss": "^8.4.21",
     "sass": "^1.58.3",
     "svelte": "^3.55.1",

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { addChat, clearChats } from "./Storage.svelte";
+  import { exportAsMarkdown } from "./Export.svelte";
   import type { Chat } from "./Types.svelte";
 
   export let activeChatId: number;
@@ -11,7 +12,7 @@
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
-      <li><a class="panel-block" href={"#"}>No chats yet...</a></li>
+      <li><a href={"#"}>No chats yet...</a></li>
     {:else}
       <li>
         <ul>
@@ -19,9 +20,8 @@
             <li>
               <a
                 href={"#"}
-                class="panel-block"
                 class:is-disabled={!apiKey}
-                class:has-background-light={activeChatId === chat.id}
+                class:is-active={activeChatId === chat.id}
                 on:click|preventDefault={() => (activeChatId = chat.id)}>{chat.name || `Chat ${chat.id}`}</a
               >
             </li>
@@ -37,7 +37,7 @@
         href={"#"}
         class="panel-block"
         class:is-disabled={!apiKey}
-        class:has-background-light={!activeChatId}
+        class:is-active={!activeChatId}
         on:click|preventDefault={() => {
           activeChatId = null;
         }}><span class="greyscale mr-2">🔑</span> API key</a
@@ -64,5 +64,17 @@
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
+    {#if activeChatId}
+      <li>
+        <a
+          href={"#"}
+          class="panel-block"
+          class:is-disabled={!apiKey}
+          on:click|preventDefault={() => {
+            exportAsMarkdown(activeChatId);
+          }}><span class="greyscale mr-2">📥</span> Export chat</a
+        >
+      </li>
+    {/if}
   </ul>
 </aside>

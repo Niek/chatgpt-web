@@ -9,6 +9,7 @@
     clearMessages,
   } from "./Storage.svelte";
   import type { Request, Response, Message, Settings } from "./Types.svelte";
+  import Code from "./Code.svelte";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -206,6 +207,8 @@
     } else {
       response.choices.map((choice) => {
         choice.message.usage = response.usage;
+        // Remove whitespace around the message that the OpenAI API sometimes returns
+        choice.message.content = choice.message.content.trim();
         addMessage(chatId, choice.message);
         // Use TTS to read the response, if query was recorded
         if (recorded && "SpeechSynthesisUtterance" in window) {
@@ -382,7 +385,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
       </div>
@@ -394,7 +397,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
       </div>
@@ -406,7 +409,7 @@
           source={message.content}
           options={markedownOptions}
           renderers={{
-            /*code: Code*/
+            code: Code,
           }}
         />
         {#if message.usage}
@@ -456,16 +459,14 @@
   </p>
   <p class="control" class:is-hidden={!recognition}>
     <button
-      class="button is-info is-light"
+      class="button"
       class:is-pulse={recording}
       on:click|preventDefault={recordToggle}
       ><span class="greyscale">🎤</span></button
     >
   </p>
   <p class="control">
-    <button
-      class="button is-link is-light"
-      on:click|preventDefault={showSettings}
+    <button class="button" on:click|preventDefault={showSettings}
       ><span class="greyscale">⚙️</span></button
     >
   </p>
