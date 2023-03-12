@@ -84,14 +84,3 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .modal-card-body { // remove this once https: //github.com/jloh/bulma-prefers-dark/pull/90 is merged and released
   background-color: $background-dark;
 }
-
-/* for copy button */
-pre[data-language] {
-  position: relative;
-}
-div.copy-prompt {
-  padding: .5rem;
-  position: absolute;
-  top: .5rem;
-  right: .5rem;
-}

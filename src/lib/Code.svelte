@@ -75,35 +75,50 @@
 
   // For copying code
   // reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
-  const copyFunction = () => {
-    const codeBlocks = document.querySelectorAll("pre");
-    const showCopyMessage = "Copy";
-    codeBlocks.forEach((block) => {
-      const copyPrompt = document.createElement("div");
-      copyPrompt.className = "copy-prompt";
-      const copyPromptText = document.createElement("button");
-      copyPromptText.classList.add("button", "is-light", "is-outlined", "is-small", "is-responsive");
-      copyPromptText.innerHTML = showCopyMessage;
-      copyPrompt.appendChild(copyPromptText);
-      block.appendChild(copyPrompt);
-      block.querySelector(".copy-prompt > button").addEventListener("click", (evt) => {
-        copy(block.querySelector("code").textContent);
-        block.querySelector(".copy-prompt > button").innerHTML = "Copied!";
-        setTimeout(() => {
-          block.querySelector(".copy-prompt > button").innerHTML = showCopyMessage;
-        }, 1000);
-      });
-    });
+  const copyFunction = (event) => {
+    // Get the button the user click
+    const clickedElement = event.target as HTMLElement;
+    
+    // Get the next element
+    const nextElement = clickedElement.nextElementSibling;
+    
+    // Modify the appearance of the button
+    const originalButtonContent = clickedElement.innerHTML
+    clickedElement.classList.add("is-success")
+    clickedElement.innerHTML = "Copied!"
+    
+    // Retrieve the code in the code block
+    let codeBlock = nextElement.querySelector("pre > code").innerHTML;
+    copy(codeBlock);
+    
+    // Restored the button after copying the text in 1 second.
+    setTimeout(() => {
+      clickedElement.innerHTML = originalButtonContent;
+      clickedElement.classList.remove("is-success")
+    }, 1000);
+
   };
-
-  afterUpdate(() => {
-    copyFunction();
-  })
-
 </script>
 
 <svelte:head>
   {@html style}
 </svelte:head>
 
-<Highlight code={text} {language} />
+<div class="code-block">
+  <button class="button is-light is-outlined is-small" on:click={copyFunction}>Copy</button>
+  <Highlight code={text} {language} />
+</div>
+
+<style>
+  /* for copy button */
+  .code-block{
+    position: relative;
+  }
+  .code-block > button{
+    padding: .5rem;
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    z-index: 10;
+  }
+</style>
