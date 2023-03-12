@@ -98,6 +98,7 @@
     window.scrollTo(0, document.body.scrollHeight);
     input.focus();
     copyFunction();
+    copyFunction();
   });
 
   // Marked options
