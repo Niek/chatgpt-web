@@ -95,3 +95,15 @@ div.copy-prompt {
   top: 5px;
   right: 5px;
 }
+
+.message-container{
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+}
+.message-list{
+  // max-height: 100%;
+  overflow-y: auto;
+  flex: 1;
+  margin-bottom: 10px;
+}

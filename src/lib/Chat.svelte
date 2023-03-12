@@ -102,7 +102,7 @@
     // Scroll to the bottom of the page after any updates to the messages array
     window.scrollTo(0, document.body.scrollHeight);
     input.focus();
-    copyFunction()
+    copyFunction();
   });
 
   // Marked options
@@ -286,7 +286,13 @@
       const copyPrompt = document.createElement("div");
       copyPrompt.className = "copy-prompt";
       const copyPromptText = document.createElement("button");
-      copyPromptText.classList.add("button", "is-light", "is-outlined", "is-small", "is-responsive");
+      copyPromptText.classList.add(
+        "button",
+        "is-light",
+        "is-outlined",
+        "is-small",
+        "is-responsive"
+      );
       copyPromptText.innerHTML = showCopyMessage;
       copyPrompt.appendChild(copyPromptText);
       block.appendChild(copyPrompt);
@@ -301,7 +307,7 @@
           }, 1000);
         });
     });
-  }
+  };
 </script>
 
 <nav class="level chat-header">
@@ -357,118 +363,125 @@
     </p>
   </div>
 </nav>
-
-{#each chat.messages as message}
-  {#if message.role === "user"}
-    <article
-      class="message is-info user-message"
-      class:has-text-right={message.content
-        .split("\n")
-        .filter((line) => line.trim()).length === 1}
-    >
-      <div class="message-body content">
-        <a
-          href={"#"}
-          class="greyscale is-pulled-right ml-2 is-hidden editbutton"
-          on:click={() => {
-            input.value = message.content;
-            input.focus();
-          }}
+<div class="is-fullhd message-container">
+  <div class="message-list">
+    {#each chat.messages as message}
+      {#if message.role === "user"}
+        <article
+          class="message is-info user-message"
+          class:has-text-right={message.content
+            .split("\n")
+            .filter((line) => line.trim()).length === 1}
         >
-          ✏️
-        </a>
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code,
-          }}
-        />
-      </div>
-    </article>
-  {:else if message.role === "system" || message.role === "error"}
-    <article class="message is-danger">
-      <div class="message-body content">
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code,
-          }}
-        />
-      </div>
-    </article>
-  {:else}
-    <article class="message is-success">
-      <div class="message-body content">
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code,
-          }}
-        />
-        {#if message.usage}
-          <p class="is-size-7">
-            This message was generated using <span class="has-text-weight-bold"
-              >{message.usage.total_tokens}</span
+          <div class="message-body content">
+            <a
+              href={"#"}
+              class="greyscale is-pulled-right ml-2 is-hidden editbutton"
+              on:click={() => {
+                input.value = message.content;
+                input.focus();
+              }}
             >
-            tokens ~=
-            <span class="has-text-weight-bold"
-              >${(message.usage.total_tokens * token_price).toFixed(6)}</span
-            >
-          </p>
-        {/if}
-      </div>
-    </article>
-  {/if}
-{/each}
+              ✏️
+            </a>
+            <SvelteMarkdown
+              source={message.content}
+              options={markedownOptions}
+              renderers={{
+                code: Code,
+              }}
+            />
+          </div>
+        </article>
+      {:else if message.role === "system" || message.role === "error"}
+        <article class="message is-danger">
+          <div class="message-body content">
+            <SvelteMarkdown
+              source={message.content}
+              options={markedownOptions}
+              renderers={{
+                code: Code,
+              }}
+            />
+          </div>
+        </article>
+      {:else}
+        <article class="message is-success">
+          <div class="message-body content">
+            <SvelteMarkdown
+              source={message.content}
+              options={markedownOptions}
+              renderers={{
+                code: Code,
+              }}
+            />
+            {#if message.usage}
+              <p class="is-size-7">
+                This message was generated using <span
+                  class="has-text-weight-bold"
+                  >{message.usage.total_tokens}</span
+                >
+                tokens ~=
+                <span class="has-text-weight-bold"
+                  >${(message.usage.total_tokens * token_price).toFixed(
+                    6
+                  )}</span
+                >
+              </p>
+            {/if}
+          </div>
+        </article>
+      {/if}
+    {/each}
+  </div>
+  <div class="message-send">
+    {#if updating}
+      <progress class="progress is-small is-dark" max="100" />
+    {/if}
 
-{#if updating}
-  <progress class="progress is-small is-dark" max="100" />
-{/if}
-
-<form
-  class="field has-addons has-addons-right"
-  on:submit|preventDefault={() => submitForm()}
->
-  <p class="control is-expanded">
-    <textarea
-      class="input is-info is-focused chat-input"
-      placeholder="Type your message here..."
-      rows="1"
-      on:keydown={(e) => {
-        // Only send if Enter is pressed, not Shift+Enter
-        if (e.key === "Enter" && !e.shiftKey) {
-          submitForm();
-          e.preventDefault();
-        }
-      }}
-      on:input={(e) => {
-        // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-        input.style.height = "auto";
-        input.style.height = input.scrollHeight + "px";
-      }}
-      bind:this={input}
-    />
-  </p>
-  <p class="control" class:is-hidden={!recognition}>
-    <button
-      class="button"
-      class:is-pulse={recording}
-      on:click|preventDefault={recordToggle}
-      ><span class="greyscale">🎤</span></button
+    <form
+      class="field has-addons has-addons-right"
+      on:submit|preventDefault={() => submitForm()}
     >
-  </p>
-  <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}
-      ><span class="greyscale">⚙️</span></button
-    >
-  </p>
-  <p class="control">
-    <button class="button is-info" type="submit">Send</button>
-  </p>
-</form>
+      <p class="control is-expanded">
+        <textarea
+          class="input is-info is-focused chat-input"
+          placeholder="Type your message here..."
+          rows="1"
+          on:keydown={(e) => {
+            // Only send if Enter is pressed, not Shift+Enter
+            if (e.key === "Enter" && !e.shiftKey) {
+              submitForm();
+              e.preventDefault();
+            }
+          }}
+          on:input={(e) => {
+            // Resize the textarea to fit the content - auto is important to reset the height after deleting content
+            input.style.height = "auto";
+            input.style.height = input.scrollHeight + "px";
+          }}
+          bind:this={input}
+        />
+      </p>
+      <p class="control" class:is-hidden={!recognition}>
+        <button
+          class="button"
+          class:is-pulse={recording}
+          on:click|preventDefault={recordToggle}
+          ><span class="greyscale">🎤</span></button
+        >
+      </p>
+      <p class="control">
+        <button class="button" on:click|preventDefault={showSettings}
+          ><span class="greyscale">⚙️</span></button
+        >
+      </p>
+      <p class="control">
+        <button class="button is-info" type="submit">Send</button>
+      </p>
+    </form>
+  </div>
+</div>
 
 <svelte:window
   on:keydown={(event) => {
