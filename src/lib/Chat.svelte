@@ -1,9 +1,16 @@
 <script lang="ts">
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
+  import {
+    apiKeyStorage,
+    chatsStorage,
+    addMessage,
+    clearMessages,
+  } from "./Storage.svelte";
   import type { Request, Response, Message, Settings } from "./Types.svelte";
   import Code from "./Code.svelte";
+
+  import copy from "copy-to-clipboard";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -95,6 +102,7 @@
     // Scroll to the bottom of the page after any updates to the messages array
     window.scrollTo(0, document.body.scrollHeight);
     input.focus();
+    copyFunction()
   });
 
   // Marked options
@@ -141,9 +149,14 @@
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value;
+          const value = (
+            settings.querySelector(
+              `#settings-${setting.key}`
+            ) as HTMLInputElement
+          ).value;
           if (value) {
-            acc[setting.key] = setting.type === "number" ? parseFloat(value) : value;
+            acc[setting.key] =
+              setting.type === "number" ? parseFloat(value) : value;
           }
           return acc;
         }, {}),
@@ -195,7 +208,9 @@
         addMessage(chatId, choice.message);
         // Use TTS to read the response, if query was recorded
         if (recorded && "SpeechSynthesisUtterance" in window) {
-          const utterance = new SpeechSynthesisUtterance(choice.message.content);
+          const utterance = new SpeechSynthesisUtterance(
+            choice.message.content
+          );
           speechSynthesis.speak(utterance);
         }
       });
@@ -228,7 +243,9 @@
 
   const deleteChat = () => {
     if (confirm("Are you sure you want to delete this chat?")) {
-      chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
+      chatsStorage.update((chats) =>
+        chats.filter((chat) => chat.id !== chatId)
+      );
       chatId = null;
     }
   };
@@ -243,7 +260,9 @@
 
   const clearSettings = () => {
     settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement;
+      const input = settings.querySelector(
+        `#settings-${setting.key}`
+      ) as HTMLInputElement;
       input.value = "";
     });
   };
@@ -257,6 +276,32 @@
       recognition?.start();
     }
   };
+
+  // copy code block
+  // reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
+  const copyFunction = () => {
+    const codeBlocks = document.querySelectorAll("pre");
+    const showCopyMessage = "Copy";
+    codeBlocks.forEach((block) => {
+      const copyPrompt = document.createElement("div");
+      copyPrompt.className = "copy-prompt";
+      const copyPromptText = document.createElement("button");
+      copyPromptText.classList.add("button", "is-light", "is-outlined", "is-small", "is-responsive");
+      copyPromptText.innerHTML = showCopyMessage;
+      copyPrompt.appendChild(copyPromptText);
+      block.appendChild(copyPrompt);
+      block
+        .querySelector(".copy-prompt > button")
+        .addEventListener("click", (evt) => {
+          copy(block.querySelector("code").textContent);
+          block.querySelector(".copy-prompt > button").innerHTML = "Copied!";
+          setTimeout(() => {
+            block.querySelector(".copy-prompt > button").innerHTML =
+              showCopyMessage;
+          }, 1000);
+        });
+    });
+  }
 </script>
 
 <nav class="level chat-header">
@@ -269,7 +314,10 @@
           class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Rename chat"
           on:click|preventDefault={() => {
-            let newChatName = prompt("Enter a new name for this chat", chat.name);
+            let newChatName = prompt(
+              "Enter a new name for this chat",
+              chat.name
+            );
             if (newChatName) {
               chat.name = newChatName;
               chatsStorage.set($chatsStorage);
@@ -314,7 +362,9 @@
   {#if message.role === "user"}
     <article
       class="message is-info user-message"
-      class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
+      class:has-text-right={message.content
+        .split("\n")
+        .filter((line) => line.trim()).length === 1}
     >
       <div class="message-body content">
         <a
@@ -360,9 +410,13 @@
         />
         {#if message.usage}
           <p class="is-size-7">
-            This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+            This message was generated using <span class="has-text-weight-bold"
+              >{message.usage.total_tokens}</span
+            >
             tokens ~=
-            <span class="has-text-weight-bold">${(message.usage.total_tokens * token_price).toFixed(6)}</span>
+            <span class="has-text-weight-bold"
+              >${(message.usage.total_tokens * token_price).toFixed(6)}</span
+            >
           </p>
         {/if}
       </div>
@@ -374,7 +428,10 @@
   <progress class="progress is-small is-dark" max="100" />
 {/if}
 
-<form class="field has-addons has-addons-right" on:submit|preventDefault={() => submitForm()}>
+<form
+  class="field has-addons has-addons-right"
+  on:submit|preventDefault={() => submitForm()}
+>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"
@@ -396,12 +453,17 @@
     />
   </p>
   <p class="control" class:is-hidden={!recognition}>
-    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+    <button
+      class="button"
+      class:is-pulse={recording}
+      on:click|preventDefault={recordToggle}
       ><span class="greyscale">🎤</span></button
     >
   </p>
   <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
+    <button class="button" on:click|preventDefault={showSettings}
+      ><span class="greyscale">⚙️</span></button
+    >
   </p>
   <p class="control">
     <button class="button is-info" type="submit">Send</button>
@@ -427,7 +489,9 @@
       {#each settingsMap as setting}
         <div class="field is-horizontal">
           <div class="field-label is-normal">
-            <label class="label" for="settings-temperature">{setting.name}</label>
+            <label class="label" for="settings-temperature"
+              >{setting.name}</label
+            >
           </div>
           <div class="field-body">
             <div class="field">
@@ -444,7 +508,9 @@
     </section>
 
     <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
+      <button class="button is-info" on:click={closeSettings}
+        >Close settings</button
+      >
       <button class="button" on:click={clearSettings}>Clear settings</button>
     </footer>
   </div>
