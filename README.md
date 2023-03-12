@@ -40,7 +40,7 @@ npm run dev # or: npm run build
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-# Modifier Notes
+# Modifier Notes（by @terryoy)
 
 ---
 
