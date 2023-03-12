@@ -86,12 +86,12 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 /* for copy button */
-pre[data-language="plaintext"] {
+pre[data-language] {
   position: relative;
 }
 div.copy-prompt {
-  padding: 5px;
+  padding: .5rem;
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: .5rem;
+  right: .5rem;
 }
