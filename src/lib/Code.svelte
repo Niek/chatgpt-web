@@ -7,6 +7,10 @@
   // Style depends on system theme
   const style = window.matchMedia("(prefers-color-scheme: dark)").matches ? githubDark : github;
 
+  // Copy function for the code block
+  import copy from "copy-to-clipboard";
+  import { afterUpdate } from "svelte";
+
   // Import all supported languages
   import {
     javascript,
@@ -68,6 +72,34 @@
     default:
       language = plaintext;
   }
+
+  // For copying code
+  // reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
+  const copyFunction = () => {
+    const codeBlocks = document.querySelectorAll("pre");
+    const showCopyMessage = "Copy";
+    codeBlocks.forEach((block) => {
+      const copyPrompt = document.createElement("div");
+      copyPrompt.className = "copy-prompt";
+      const copyPromptText = document.createElement("button");
+      copyPromptText.classList.add("button", "is-light", "is-outlined", "is-small", "is-responsive");
+      copyPromptText.innerHTML = showCopyMessage;
+      copyPrompt.appendChild(copyPromptText);
+      block.appendChild(copyPrompt);
+      block.querySelector(".copy-prompt > button").addEventListener("click", (evt) => {
+        copy(block.querySelector("code").textContent);
+        block.querySelector(".copy-prompt > button").innerHTML = "Copied!";
+        setTimeout(() => {
+          block.querySelector(".copy-prompt > button").innerHTML = showCopyMessage;
+        }, 1000);
+      });
+    });
+  };
+
+  afterUpdate(() => {
+    copyFunction();
+  })
+
 </script>
 
 <svelte:head>

@@ -5,7 +5,6 @@
   import type { Request, Response, Message, Settings } from "./Types.svelte";
   import Code from "./Code.svelte";
 
-  import copy from "copy-to-clipboard";
 
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
@@ -97,8 +96,7 @@
     // Scroll to the bottom of the page after any updates to the messages array
     window.scrollTo(0, document.body.scrollHeight);
     input.focus();
-    copyFunction();
-    copyFunction();
+    
   });
 
   // Marked options
@@ -262,28 +260,6 @@
     }
   };
 
-  // copy code block
-  // reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
-  const copyFunction = () => {
-    const codeBlocks = document.querySelectorAll("pre");
-    const showCopyMessage = "Copy";
-    codeBlocks.forEach((block) => {
-      const copyPrompt = document.createElement("div");
-      copyPrompt.className = "copy-prompt";
-      const copyPromptText = document.createElement("button");
-      copyPromptText.classList.add("button", "is-light", "is-outlined", "is-small", "is-responsive");
-      copyPromptText.innerHTML = showCopyMessage;
-      copyPrompt.appendChild(copyPromptText);
-      block.appendChild(copyPrompt);
-      block.querySelector(".copy-prompt > button").addEventListener("click", (evt) => {
-        copy(block.querySelector("code").textContent);
-        block.querySelector(".copy-prompt > button").innerHTML = "Copied!";
-        setTimeout(() => {
-          block.querySelector(".copy-prompt > button").innerHTML = showCopyMessage;
-        }, 1000);
-      });
-    });
-  };
 </script>
 
 <nav class="level chat-header">
