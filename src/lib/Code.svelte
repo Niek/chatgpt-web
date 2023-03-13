@@ -9,7 +9,6 @@
 
   // Copy function for the code block
   import copy from "copy-to-clipboard";
-  import { afterUpdate } from "svelte";
 
   // Import all supported languages
   import {
@@ -73,30 +72,29 @@
       language = plaintext;
   }
 
-  // For copying code
-  // reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
+  // For copying code - reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog
   const copyFunction = (event) => {
-    // Get the button the user click
-    const clickedElement = event.target as HTMLElement;
-    
+    // Get the button the user clicked on
+    const clickedElement = event.target as HTMLButtonElement;
+
     // Get the next element
     const nextElement = clickedElement.nextElementSibling;
-    
+
     // Modify the appearance of the button
-    const originalButtonContent = clickedElement.innerHTML
-    clickedElement.classList.add("is-success")
-    clickedElement.innerHTML = "Copied!"
-    
+    const originalButtonContent = clickedElement.innerHTML;
+    clickedElement.classList.add("is-success");
+    clickedElement.innerHTML = "Copied!";
+
     // Retrieve the code in the code block
-    let codeBlock = nextElement.querySelector("pre > code").innerHTML;
+    const codeBlock = (nextElement.querySelector("pre > code") as HTMLPreElement).innerText;
     copy(codeBlock);
-    
+
     // Restored the button after copying the text in 1 second.
     setTimeout(() => {
       clickedElement.innerHTML = originalButtonContent;
-      clickedElement.classList.remove("is-success")
+      clickedElement.classList.remove("is-success");
+      clickedElement.blur();
     }, 1000);
-
   };
 </script>
 
@@ -104,21 +102,16 @@
   {@html style}
 </svelte:head>
 
-<div class="code-block">
-  <button class="button is-light is-outlined is-small" on:click={copyFunction}>Copy</button>
+<div class="code-block is-relative">
+  <button class="button is-light is-outlined is-small p-2" on:click={copyFunction}>Copy</button>
   <Highlight code={text} {language} />
 </div>
 
 <style>
   /* for copy button */
-  .code-block{
-    position: relative;
-  }
-  .code-block > button{
-    padding: .5rem;
+  .code-block > button {
     position: absolute;
-    top: .5rem;
-    right: .5rem;
-    z-index: 10;
+    top: 0.5rem;
+    right: 0.5rem;
   }
 </style>
