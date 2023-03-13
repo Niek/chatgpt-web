@@ -1,7 +1,12 @@
 <script lang="ts">
   //import { fetchEventSource } from "@microsoft/fetch-event-source";
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from "./Storage.svelte";
+  import {
+    apiKeyStorage,
+    chatsStorage,
+    addMessage,
+    clearMessages,
+  } from "./Storage.svelte";
   import type { Request, Response, Message, Settings } from "./Types.svelte";
   import Code from "./Code.svelte";
 
@@ -13,6 +18,7 @@
 
   let input: HTMLTextAreaElement;
   let settings: HTMLDivElement;
+  let chatNameSettings: HTMLDivElement;
   let recognition: any = null;
   let recording = false;
 
@@ -141,9 +147,14 @@
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value;
+          const value = (
+            settings.querySelector(
+              `#settings-${setting.key}`
+            ) as HTMLInputElement
+          ).value;
           if (value) {
-            acc[setting.key] = setting.type === "number" ? parseFloat(value) : value;
+            acc[setting.key] =
+              setting.type === "number" ? parseFloat(value) : value;
           }
           return acc;
         }, {}),
@@ -195,7 +206,9 @@
         addMessage(chatId, choice.message);
         // Use TTS to read the response, if query was recorded
         if (recorded && "SpeechSynthesisUtterance" in window) {
-          const utterance = new SpeechSynthesisUtterance(choice.message.content);
+          const utterance = new SpeechSynthesisUtterance(
+            choice.message.content
+          );
           speechSynthesis.speak(utterance);
         }
       });
@@ -228,9 +241,29 @@
 
   const deleteChat = () => {
     if (confirm("Are you sure you want to delete this chat?")) {
-      chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
+      chatsStorage.update((chats) =>
+        chats.filter((chat) => chat.id !== chatId)
+      );
       chatId = null;
     }
+  };
+
+  const showChatNameSettings = () => {
+    chatNameSettings.classList.add("is-active");
+  };
+  const saveChatNameSettings = () => {
+    const newChatName = (
+      chatNameSettings.querySelector("#settings-chat-name") as HTMLInputElement
+    ).value;
+    // save if changed
+    if (newChatName && newChatName !== chat.name) {
+      chat.name = newChatName;
+      chatsStorage.set($chatsStorage);
+    }
+    closeChatNameSettings();
+  };
+  const closeChatNameSettings = () => {
+    chatNameSettings.classList.remove("is-active");
   };
 
   const showSettings = () => {
@@ -243,7 +276,9 @@
 
   const clearSettings = () => {
     settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement;
+      const input = settings.querySelector(
+        `#settings-${setting.key}`
+      ) as HTMLInputElement;
       input.value = "";
     });
   };
@@ -269,11 +304,7 @@
           class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Rename chat"
           on:click|preventDefault={() => {
-            let newChatName = prompt("Enter a new name for this chat", chat.name);
-            if (newChatName) {
-              chat.name = newChatName;
-              chatsStorage.set($chatsStorage);
-            }
+            showChatNameSettings();
           }}
         >
           ✏️
@@ -314,7 +345,9 @@
   {#if message.role === "user"}
     <article
       class="message is-info user-message"
-      class:has-text-right={message.content.split("\n").filter((line) => line.trim()).length === 1}
+      class:has-text-right={message.content
+        .split("\n")
+        .filter((line) => line.trim()).length === 1}
     >
       <div class="message-body content">
         <a
@@ -360,9 +393,13 @@
         />
         {#if message.usage}
           <p class="is-size-7">
-            This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+            This message was generated using <span class="has-text-weight-bold"
+              >{message.usage.total_tokens}</span
+            >
             tokens ~=
-            <span class="has-text-weight-bold">${(message.usage.total_tokens * token_price).toFixed(6)}</span>
+            <span class="has-text-weight-bold"
+              >${(message.usage.total_tokens * token_price).toFixed(6)}</span
+            >
           </p>
         {/if}
       </div>
@@ -374,7 +411,10 @@
   <progress class="progress is-small is-dark" max="100" />
 {/if}
 
-<form class="field has-addons has-addons-right" on:submit|preventDefault={() => submitForm()}>
+<form
+  class="field has-addons has-addons-right"
+  on:submit|preventDefault={() => submitForm()}
+>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"
@@ -396,12 +436,17 @@
     />
   </p>
   <p class="control" class:is-hidden={!recognition}>
-    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+    <button
+      class="button"
+      class:is-pulse={recording}
+      on:click|preventDefault={recordToggle}
       ><span class="greyscale">🎤</span></button
     >
   </p>
   <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
+    <button class="button" on:click|preventDefault={showSettings}
+      ><span class="greyscale">⚙️</span></button
+    >
   </p>
   <p class="control">
     <button class="button is-info" type="submit">Send</button>
@@ -427,7 +472,9 @@
       {#each settingsMap as setting}
         <div class="field is-horizontal">
           <div class="field-label is-normal">
-            <label class="label" for="settings-temperature">{setting.name}</label>
+            <label class="label" for="settings-temperature"
+              >{setting.name}</label
+            >
           </div>
           <div class="field-body">
             <div class="field">
@@ -444,8 +491,45 @@
     </section>
 
     <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
+      <button class="button is-info" on:click={closeSettings}
+        >Close settings</button
+      >
       <button class="button" on:click={clearSettings}>Clear settings</button>
     </footer>
   </div>
 </div>
+
+<!-- rename modal -->
+<div class="modal" bind:this={chatNameSettings}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click={closeChatNameSettings} />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Enter a new name this chat</p>
+    </header>
+    <section class="modal-card-body">
+      <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label" for="settings-temperature">New name:</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <input
+              class="input"
+              type="text"
+              id="settings-chat-name"
+              value={chat.name}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button is-info" on:click={saveChatNameSettings}
+        >Save</button
+      >
+      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
+    </footer>
+  </div>
+</div>
+<!-- end -->
