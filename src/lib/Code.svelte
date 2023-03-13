@@ -106,12 +106,3 @@
   <button class="button is-light is-outlined is-small p-2" on:click={copyFunction}>Copy</button>
   <Highlight code={text} {language} />
 </div>
-
-<style>
-  /* for copy button */
-  .code-block > button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-</style>
