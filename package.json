@@ -20,7 +20,7 @@
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^3.3.3",
     "postcss": "^8.4.21",
-    "sass": "^1.58.3",
+    "sass": "^1.59.2",
     "svelte": "^3.55.1",
     "svelte-check": "^3.0.4",
     "svelte-highlight": "^7.2.0",
