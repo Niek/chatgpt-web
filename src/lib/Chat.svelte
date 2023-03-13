@@ -5,7 +5,6 @@
   import type { Request, Response, Message, Settings } from "./Types.svelte";
   import Code from "./Code.svelte";
 
-
   import { afterUpdate, onMount } from "svelte";
   import SvelteMarkdown from "svelte-markdown";
 
@@ -96,7 +95,6 @@
     // Scroll to the bottom of the page after any updates to the messages array
     window.scrollTo(0, document.body.scrollHeight);
     input.focus();
-    
   });
 
   // Marked options
@@ -259,7 +257,6 @@
       recognition?.start();
     }
   };
-
 </script>
 
 <nav class="level chat-header">
