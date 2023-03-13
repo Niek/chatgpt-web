@@ -99,8 +99,9 @@
 
   // Marked options
   const markedownOptions = {
-    gfm: true,
-    breaks: true,
+    gfm: true, // Use GitHub Flavored Markdown
+    breaks: true, // Enable line breaks in markdown
+    mangle: false, // Do not mangle email addresses
   };
 
   const sendRequest = async (messages: Message[]): Promise<Response> => {
