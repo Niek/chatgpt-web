@@ -1,11 +1,14 @@
 <script lang="ts">
+  import {params, replace} from 'svelte-spa-router';
+
   import { addChat, clearChats } from "./Storage.svelte";
   import { exportAsMarkdown } from "./Export.svelte";
   import type { Chat } from "./Types.svelte";
 
-  export let activeChatId: number;
   export let sortedChats: Chat[];
   export let apiKey: string;
+
+  $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined;
 </script>
 
 <aside class="menu">
@@ -19,10 +22,9 @@
           {#each sortedChats as chat}
             <li>
               <a
-                href={"#"}
+                href={`#/chat/${chat.id}`}
                 class:is-disabled={!apiKey}
-                class:is-active={activeChatId === chat.id}
-                on:click|preventDefault={() => (activeChatId = chat.id)}>{chat.name || `Chat ${chat.id}`}</a
+                class:is-active={activeChatId === chat.id}>{chat.name || `Chat ${chat.id}`}</a
               >
             </li>
           {/each}
@@ -34,40 +36,35 @@
   <ul class="menu-list">
     <li>
       <a
-        href={"#"}
+        href={"#/"}
         class="panel-block"
         class:is-disabled={!apiKey}
-        class:is-active={!activeChatId}
-        on:click|preventDefault={() => {
-          activeChatId = null;
-        }}><span class="greyscale mr-2">🔑</span> API key</a
+        class:is-active={!activeChatId}><span class="greyscale mr-2">🔑</span> API key</a
       >
     </li>
     <li>
       <a
-        href={"#"}
+        href={"#/chat/new"}
         class="panel-block"
-        class:is-disabled={!apiKey}
-        on:click|preventDefault={() => {
-          activeChatId = addChat();
-        }}><span class="greyscale mr-2">➕</span> New chat</a
+        class:is-disabled={!apiKey}><span class="greyscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
       <a
-        href={"#"}
+        href={"#/"}
         class="panel-block"
         class:is-disabled={!apiKey}
-        on:click|preventDefault={() => {
-          clearChats();
-          activeChatId = null;
+        on:click={() => {
+          replace('#/').then(() => {
+            clearChats();
+          });
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
     {#if activeChatId}
       <li>
         <a
-          href={"#"}
+          href={"#/"}
           class="panel-block"
           class:is-disabled={!apiKey}
           on:click|preventDefault={() => {

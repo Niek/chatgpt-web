@@ -2,8 +2,6 @@
   import { addChat, apiKeyStorage } from "./Storage.svelte";
 
   $: apiKey = $apiKeyStorage;
-
-  export let activeChatId: number;
 </script>
 
 <article class="message">
@@ -54,12 +52,7 @@
   <article class="message is-info">
     <div class="message-body">
       Select an existing chat on the sidebar, or
-      <a
-        href={"#"}
-        on:click|preventDefault={() => {
-          activeChatId = addChat();
-        }}>create a new chat</a
-      >
+      <a href={"#/chat/new"}>create a new chat</a>
     </div>
   </article>
 {/if}
