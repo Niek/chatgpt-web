@@ -9,7 +9,7 @@
   import { replace } from "svelte-spa-router";
   import SvelteMarkdown from "svelte-markdown";
 
-  export let params = {};
+  export let params = { chatId: undefined };
   let chatId: number = parseInt(params.chatId);
   let updating: boolean = false;
 
