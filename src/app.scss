@@ -91,3 +91,9 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   top: 0.5rem;
   right: 0.5rem;
 }
+
+/* Make menu stick on the left side */
+.menu {
+  position: sticky;
+  top: 1rem;
+}
