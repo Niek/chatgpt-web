@@ -6,7 +6,7 @@
   import Code from "./Code.svelte";
 
   import { afterUpdate, onMount } from "svelte";
-  import { replace } from 'svelte-spa-router'
+  import { replace } from "svelte-spa-router";
   import SvelteMarkdown from "svelte-markdown";
 
   export let params = {};
@@ -231,7 +231,7 @@
 
   const deleteChat = () => {
     if (confirm("Are you sure you want to delete this chat?")) {
-      replace('/').then(() => {
+      replace("/").then(() => {
         chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
       });
     }

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import {params, replace} from 'svelte-spa-router';
+  import { params, replace } from "svelte-spa-router";
 
-  import { addChat, clearChats } from "./Storage.svelte";
+  import { clearChats } from "./Storage.svelte";
   import { exportAsMarkdown } from "./Export.svelte";
   import type { Chat } from "./Types.svelte";
 
@@ -21,10 +21,8 @@
         <ul>
           {#each sortedChats as chat}
             <li>
-              <a
-                href={`#/chat/${chat.id}`}
-                class:is-disabled={!apiKey}
-                class:is-active={activeChatId === chat.id}>{chat.name || `Chat ${chat.id}`}</a
+              <a href={`#/chat/${chat.id}`} class:is-disabled={!apiKey} class:is-active={activeChatId === chat.id}
+                >{chat.name || `Chat ${chat.id}`}</a
               >
             </li>
           {/each}
@@ -35,18 +33,13 @@
   <p class="menu-label">Actions</p>
   <ul class="menu-list">
     <li>
-      <a
-        href={"#/"}
-        class="panel-block"
-        class:is-disabled={!apiKey}
-        class:is-active={!activeChatId}><span class="greyscale mr-2">🔑</span> API key</a
+      <a href={"#/"} class="panel-block" class:is-disabled={!apiKey} class:is-active={!activeChatId}
+        ><span class="greyscale mr-2">🔑</span> API key</a
       >
     </li>
     <li>
-      <a
-        href={"#/chat/new"}
-        class="panel-block"
-        class:is-disabled={!apiKey}><span class="greyscale mr-2">➕</span> New chat</a
+      <a href={"#/chat/new"} class="panel-block" class:is-disabled={!apiKey}
+        ><span class="greyscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
@@ -55,7 +48,7 @@
         class="panel-block"
         class:is-disabled={!apiKey}
         on:click={() => {
-          replace('#/').then(() => {
+          replace("#/").then(() => {
             clearChats();
           });
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
