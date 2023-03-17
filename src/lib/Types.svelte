@@ -18,7 +18,7 @@
   };
 
   export type Request = {
-    model: "gpt-3.5-turbo" | "gpt-3.5-turbo-0301";
+    model?: Model;
     messages: Message[];
     temperature?: number;
     top_p?: number;
