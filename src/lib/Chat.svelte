@@ -486,6 +486,7 @@
               {#if setting.type === "number"}
                 <input
                   class="input"
+                  inputmode="decimal"
                   type={setting.type}
                   id="settings-{setting.key}"
                   min={setting.min}
