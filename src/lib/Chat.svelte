@@ -6,9 +6,11 @@
   import Code from "./Code.svelte";
 
   import { afterUpdate, onMount } from "svelte";
+  import { replace } from "svelte-spa-router";
   import SvelteMarkdown from "svelte-markdown";
 
-  export let chatId: number;
+  export let params = { chatId: undefined };
+  let chatId: number = parseInt(params.chatId);
   let updating: boolean = false;
 
   let input: HTMLTextAreaElement;
@@ -229,8 +231,9 @@
 
   const deleteChat = () => {
     if (confirm("Are you sure you want to delete this chat?")) {
-      chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
-      chatId = null;
+      replace("/").then(() => {
+        chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId));
+      });
     }
   };
 
