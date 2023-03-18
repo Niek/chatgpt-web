@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  chatgpt_web:
+    container_name: chatgpt_web
+    command: npm run deploy
+    restart: always
+    ports:
+      - 5173:5173
+    build:
+      context: "."
+      dockerfile: Dockerfile
