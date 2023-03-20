@@ -23,13 +23,9 @@
       },
       "externalBin": [],
       "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
+        "icons/logo.png"
       ],
-      "identifier": "cn.lucki.chatgpt",
+      "identifier": "nl.niek.chatgpt",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -56,10 +52,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 768,
         "resizable": true,
         "title": "ChatGPT Web Desktop",
-        "width": 800
+        "width": 1024
       }
     ]
   }
