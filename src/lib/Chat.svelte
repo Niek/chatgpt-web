@@ -24,6 +24,7 @@
 
   let input: HTMLTextAreaElement
   let settings: HTMLDivElement
+  let chatNameSettings: HTMLDivElement
   let recognition: any = null
   let recording = false
 
@@ -270,6 +271,24 @@
     }
   }
 
+  const showChatNameSettings = () => {
+    chatNameSettings.classList.add('is-active')
+  }
+  const saveChatNameSettings = () => {
+    const newChatName = (
+      chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement
+    ).value
+    // save if changed
+    if (newChatName && newChatName !== chat.name) {
+      chat.name = newChatName
+      chatsStorage.set($chatsStorage)
+    }
+    closeChatNameSettings()
+  }
+  const closeChatNameSettings = () => {
+    chatNameSettings.classList.remove('is-active')
+  }
+
   const showSettings = async () => {
     settings.classList.add('is-active')
 
@@ -321,11 +340,7 @@
           class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
           title="Rename chat"
           on:click|preventDefault={() => {
-            const newChatName = window.prompt('Enter a new name for this chat', chat.name)
-            if (newChatName) {
-              chat.name = newChatName
-              chatsStorage.set($chatsStorage)
-            }
+            showChatNameSettings()
           }}
         >
           ✏️
@@ -515,3 +530,38 @@
     </footer>
   </div>
 </div>
+
+<!-- rename modal -->
+<div class="modal" bind:this={chatNameSettings}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click={closeChatNameSettings} />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Enter a new name for this chat</p>
+    </header>
+    <section class="modal-card-body">
+      <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label" for="settings-temperature">New name:</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <input
+              class="input"
+              type="text"
+              id="settings-chat-name"
+              value={chat.name}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button is-info" on:click={saveChatNameSettings}
+        >Save</button
+      >
+      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
+    </footer>
+  </div>
+</div>
+<!-- end -->
