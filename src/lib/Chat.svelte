@@ -405,7 +405,7 @@
       </div>
     </article>
   {:else if message.role === 'system' || message.role === 'error'}
-    <article class="message is-danger">
+    <article class="message is-danger assistant-message">
       <div class="message-body content">
         <SvelteMarkdown
           source={message.content}
@@ -417,7 +417,7 @@
       </div>
     </article>
   {:else}
-    <article class="message is-success">
+    <article class="message is-success assistant-message">
       <div class="message-body content">
         <SvelteMarkdown
           source={message.content}
