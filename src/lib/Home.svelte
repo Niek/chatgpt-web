@@ -22,7 +22,9 @@
     <form
       class="field has-addons has-addons-right"
       on:submit|preventDefault={(event) => {
+        if (event.target && event.target[0].value) {
         apiKeyStorage.set(event.target[0].value)
+        }
       }}
     >
       <p class="control is-expanded">

@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { params, replace } from "svelte-spa-router";
+  import { params, replace } from 'svelte-spa-router'
 
-  import { clearChats } from "./Storage.svelte";
-  import { exportAsMarkdown } from "./Export.svelte";
-  import type { Chat } from "./Types.svelte";
+  import { clearChats } from './Storage.svelte'
+  import { exportAsMarkdown } from './Export.svelte'
+  import type { Chat } from './Types.svelte'
 
-  export let sortedChats: Chat[];
-  export let apiKey: string;
+  export let sortedChats: Chat[]
+  export let apiKey: string
 
-  $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined;
+  $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
 </script>
 
 <aside class="menu">
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
-      <li><a href={"#"}>No chats yet...</a></li>
+      <li><a href={'#'}>No chats yet...</a></li>
     {:else}
       <li>
         <ul>
@@ -33,35 +33,37 @@
   <p class="menu-label">Actions</p>
   <ul class="menu-list">
     <li>
-      <a href={"#/"} class="panel-block" class:is-disabled={!apiKey} class:is-active={!activeChatId}
+      <a href={'#/'} class="panel-block" class:is-disabled={!apiKey} class:is-active={!activeChatId}
         ><span class="greyscale mr-2">🔑</span> API key</a
       >
     </li>
     <li>
-      <a href={"#/chat/new"} class="panel-block" class:is-disabled={!apiKey}
+      <a href={'#/chat/new'} class="panel-block" class:is-disabled={!apiKey}
         ><span class="greyscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
       <a
-        href={"#/"}
+        href={'#/'}
         class="panel-block"
         class:is-disabled={!apiKey}
         on:click={() => {
-          replace("#/").then(() => {
-            clearChats();
-          });
+          replace('#/').then(() => {
+            clearChats()
+          })
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
     {#if activeChatId}
       <li>
         <a
-          href={"#/"}
+          href={'#/'}
           class="panel-block"
           class:is-disabled={!apiKey}
           on:click|preventDefault={() => {
-            exportAsMarkdown(activeChatId);
+            if (activeChatId) {
+              exportAsMarkdown(activeChatId)
+            }
           }}><span class="greyscale mr-2">📥</span> Export chat</a
         >
       </li>
