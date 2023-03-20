@@ -4,7 +4,7 @@
   import type { Chat, Message } from './Types.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
-  export const apiKeyStorage = persisted('apiKey', null as string)
+  export const apiKeyStorage = persisted('apiKey', '' as string)
 
   export const addChat = (): number => {
     const chats = get(chatsStorage)
@@ -28,14 +28,14 @@
 
   export const addMessage = (chatId: number, message: Message) => {
     const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages.push(message)
     chatsStorage.set(chats)
   }
 
   export const editMessage = (chatId: number, index: number, newMessage: Message) => {
     const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages[index] = newMessage
     chat.messages.splice(index + 1) // remove the rest of the messages
     chatsStorage.set(chats)
@@ -43,7 +43,7 @@
 
   export const clearMessages = (chatId: number) => {
     const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages = []
     chatsStorage.set(chats)
   }

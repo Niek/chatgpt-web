@@ -9,7 +9,8 @@
     type Settings,
     supportedModels,
     type ResponseModels,
-    type SettingsSelect
+    type SettingsSelect,
+    type Chat
   } from './Types.svelte'
   import Code from './Code.svelte'
 
@@ -17,7 +18,7 @@
   import { replace } from 'svelte-spa-router'
   import SvelteMarkdown from 'svelte-markdown'
 
-  export let params = { chatId: undefined }
+  export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
   let updating: boolean = false
 
@@ -90,7 +91,7 @@
     }
   ]
 
-  $: chat = $chatsStorage.find((chat) => chat.id === chatId)
+  $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   const tokenPrice = 0.000002 // $0.002 per 1000 tokens
 
   // Focus the input on mount

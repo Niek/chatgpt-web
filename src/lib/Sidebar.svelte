@@ -61,7 +61,9 @@
           class="panel-block"
           class:is-disabled={!apiKey}
           on:click|preventDefault={() => {
-            exportAsMarkdown(activeChatId)
+            if (activeChatId) {
+              exportAsMarkdown(activeChatId)
+            }
           }}><span class="greyscale mr-2">📥</span> Export chat</a
         >
       </li>

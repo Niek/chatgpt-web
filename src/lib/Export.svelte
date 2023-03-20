@@ -1,10 +1,11 @@
 <script context="module" lang="ts">
   import { get } from 'svelte/store'
+  import type { Chat } from './Types.svelte'
   import { chatsStorage } from './Storage.svelte'
 
   export const exportAsMarkdown = (chatId: number) => {
     const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
     const messages = chat.messages
     console.log(chat)
     let markdownContent = `# ${chat.name}\n`

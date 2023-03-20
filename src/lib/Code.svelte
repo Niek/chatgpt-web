@@ -78,7 +78,7 @@
     const clickedElement = event.target as HTMLButtonElement
 
     // Get the next element
-    const nextElement = clickedElement.nextElementSibling
+    const nextElement = clickedElement.nextElementSibling as HTMLElement
 
     // Modify the appearance of the button
     const originalButtonContent = clickedElement.innerHTML
