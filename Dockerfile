@@ -1,8 +1,8 @@
-FROM node:18
+FROM node:18-alpine
 
 ADD . /work
 WORKDIR /work
 
 RUN npm ci
 
-CMD ["bash"]
+CMD ["npm", "run", "dev:public"]

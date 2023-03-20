@@ -21,7 +21,7 @@ npm ci
 npm run dev # or: npm run build
 ```
 
-## Use with docker compose
+## Use with Docker compose
 
 ```bash
 docker compose up -d
