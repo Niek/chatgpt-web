@@ -23,7 +23,7 @@ jobs:
           node-version: '18'
 
       - name: Build
-        run: npm ci && npm run build:github
+        run: npm ci && npm run lint && npm run build:github
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

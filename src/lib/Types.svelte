@@ -18,7 +18,7 @@
   };
 
   export type Request = {
-    model: "gpt-3.5-turbo" | "gpt-3.5-turbo-0301";
+    model?: Model;
     messages: Message[];
     temperature?: number;
     top_p?: number;
@@ -32,12 +32,35 @@
     user?: string;
   };
 
+  // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
+  export const supportedModels = [
+    "gpt-4",
+    "gpt-4-0314",
+    "gpt-4-32k",
+    "gpt-4-32k-0314",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-0301",
+  ];
+  type Model = typeof supportedModels[number];
+
+  type SettingsNumber = {
+    type: "number";
+    default: number;
+    min: number;
+    max: number;
+    step: number;
+  };
+
+  export type SettingsSelect = {
+    type: "select";
+    default: Model;
+    options: Model[];
+  };
+
   export type Settings = {
     key: string;
     name: string;
-    default: number;
-    type: "number";
-  };
+  } & (SettingsNumber | SettingsSelect);
 
   type ResponseOK = {
     id: string;
@@ -61,4 +84,11 @@
   };
 
   export type Response = ResponseOK & ResponseError;
+
+  export type ResponseModels = {
+    object: "list";
+    data: {
+      id: string;
+    }[];
+  };
 </script>

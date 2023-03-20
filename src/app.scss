@@ -84,3 +84,16 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .modal-card-body { // remove this once https: //github.com/jloh/bulma-prefers-dark/pull/90 is merged and released
   background-color: $background-dark;
 }
+
+/* Support for copy code button */
+.code-block>button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+/* Make menu stick on the left side */
+.menu {
+  position: sticky;
+  top: 1rem;
+}

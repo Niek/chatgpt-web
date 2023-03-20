@@ -7,13 +7,23 @@
     addMessage,
     clearMessages,
   } from "./Storage.svelte";
-  import type { Request, Response, Message, Settings } from "./Types.svelte";
+  import {
+    type Request,
+    type Response,
+    type Message,
+    type Settings,
+    supportedModels,
+    type ResponseModels,
+    type SettingsSelect,
+  } from "./Types.svelte";
   import Code from "./Code.svelte";
 
   import { afterUpdate, onMount } from "svelte";
+  import { replace } from "svelte-spa-router";
   import SvelteMarkdown from "svelte-markdown";
 
-  export let chatId: number;
+  export let params = { chatId: undefined };
+  let chatId: number = parseInt(params.chatId);
   let updating: boolean = false;
 
   let input: HTMLTextAreaElement;
@@ -24,39 +34,64 @@
 
   const settingsMap: Settings[] = [
     {
+      key: "model",
+      name: "Model",
+      default: "gpt-3.5-turbo",
+      options: supportedModels,
+      type: "select",
+    },
+    {
       key: "temperature",
       name: "Sampling Temperature",
       default: 1,
+      min: 0,
+      max: 2,
+      step: 0.1,
       type: "number",
     },
     {
       key: "top_p",
       name: "Nucleus Sampling",
       default: 1,
+      min: 0,
+      max: 1,
+      step: 0.1,
       type: "number",
     },
     {
       key: "n",
       name: "Number of Messages",
       default: 1,
+      min: 1,
+      max: 10,
+      step: 1,
       type: "number",
     },
     {
       key: "max_tokens",
       name: "Max Tokens",
       default: 0,
+      min: 0,
+      max: 32768,
+      step: 1024,
       type: "number",
     },
     {
       key: "presence_penalty",
       name: "Presence Penalty",
       default: 0,
+      min: -2,
+      max: 2,
+      step: 0.2,
       type: "number",
     },
     {
       key: "frequency_penalty",
       name: "Frequency Penalty",
       default: 0,
+      min: -2,
+      max: 2,
+      step: 0.2,
       type: "number",
     },
   ];
@@ -65,7 +100,7 @@
   const token_price = 0.000002; // $0.002 per 1000 tokens
 
   // Focus the input on mount
-  onMount(() => {
+  onMount(async () => {
     input.focus();
 
     // Try to detect speech recognition support
@@ -105,8 +140,9 @@
 
   // Marked options
   const markedownOptions = {
-    gfm: true,
-    breaks: true,
+    gfm: true, // Use GitHub Flavored Markdown
+    breaks: true, // Enable line breaks in markdown
+    mangle: false, // Do not mangle email addresses
   };
 
   const sendRequest = async (messages: Message[]): Promise<Response> => {
@@ -135,7 +171,6 @@
     let response: Response;
     try {
       const request: Request = {
-        model: "gpt-3.5-turbo",
         // Submit only the role and content of the messages, provide the previous messages as well for context
         messages: messages
           .map((message): Message => {
@@ -241,10 +276,11 @@
 
   const deleteChat = () => {
     if (confirm("Are you sure you want to delete this chat?")) {
-      chatsStorage.update((chats) =>
-        chats.filter((chat) => chat.id !== chatId)
-      );
-      chatId = null;
+      replace("/").then(() => {
+        chatsStorage.update((chats) =>
+          chats.filter((chat) => chat.id !== chatId)
+        );
+      });
     }
   };
 
@@ -266,8 +302,23 @@
     chatNameSettings.classList.remove("is-active");
   };
 
-  const showSettings = () => {
+  const showSettings = async () => {
     settings.classList.add("is-active");
+
+    // Load available models from OpenAI
+    const allModels = (await (
+      await fetch("https://api.openai.com/v1/models", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${$apiKeyStorage}`,
+          "Content-Type": "application/json",
+        },
+      })
+    ).json()) as ResponseModels;
+    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model));
+
+    // Update the models in the settings
+    (settingsMap[0] as SettingsSelect).options = filteredModels;
   };
 
   const closeSettings = () => {
@@ -472,18 +523,32 @@
       {#each settingsMap as setting}
         <div class="field is-horizontal">
           <div class="field-label is-normal">
-            <label class="label" for="settings-temperature"
+            <label class="label" for="settings-{setting.key}"
               >{setting.name}</label
             >
           </div>
           <div class="field-body">
             <div class="field">
-              <input
-                class="input"
-                type={setting.type}
-                id="settings-{setting.key}"
-                placeholder={String(setting.default)}
-              />
+              {#if setting.type === "number"}
+                <input
+                  class="input"
+                  inputmode="decimal"
+                  type={setting.type}
+                  id="settings-{setting.key}"
+                  min={setting.min}
+                  max={setting.max}
+                  step={setting.step}
+                  placeholder={String(setting.default)}
+                />
+              {:else if setting.type === "select"}
+                <div class="select">
+                  <select id="settings-{setting.key}">
+                    {#each setting.options as option}
+                      <option value={option} selected={option == setting.default}>{option}</option>
+                    {/each}
+                  </select>
+                </div>
+              {/if}
             </div>
           </div>
         </div>

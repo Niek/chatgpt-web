@@ -29,7 +29,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/8343178?v=4",
       "profile": "https://danb.me",
       "contributions": [
-        "ideas"
+        "ideas",
+        "code"
       ]
     },
     {
@@ -67,6 +68,24 @@
       "profile": "https://github.com/abc91199",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "fuegovic",
+      "name": "fuegovic",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32828263?v=4",
+      "profile": "https://github.com/fuegovic",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "Sixzeroo",
+      "name": "Sixzeroo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20949383?v=4",
+      "profile": "https://www.liuin.cn",
+      "contributions": [
+        "code"
       ]
     }
   ],
