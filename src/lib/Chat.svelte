@@ -309,6 +309,9 @@
     }
   };
 </script>
+<!--Import syntax highlighting-->
+{@html '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css"></script>'}
+{@html '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>'}
 
 <nav class="level chat-header">
   <div class="level-left">
