@@ -24,7 +24,7 @@
 
   let input: HTMLTextAreaElement
   let settings: HTMLDivElement
-  let chatNameSettings: HTMLDivElement
+  let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
 
@@ -272,12 +272,12 @@
   }
 
   const showChatNameSettings = () => {
-    chatNameSettings.classList.add('is-active')
+    chatNameSettings.classList.add('is-active');
+    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus()
   }
+
   const saveChatNameSettings = () => {
-    const newChatName = (
-      chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement
-    ).value
+    const newChatName = (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).value
     // save if changed
     if (newChatName && newChatName !== chat.name) {
       chat.name = newChatName
@@ -285,6 +285,7 @@
     }
     closeChatNameSettings()
   }
+
   const closeChatNameSettings = () => {
     chatNameSettings.classList.remove('is-active')
   }
@@ -479,6 +480,7 @@
   on:keydown={(event) => {
     if (event.key === 'Escape') {
       closeSettings()
+      closeChatNameSettings()
     }
   }}
 />
@@ -532,7 +534,7 @@
 </div>
 
 <!-- rename modal -->
-<div class="modal" bind:this={chatNameSettings}>
+<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="modal-background" on:click={closeChatNameSettings} />
   <div class="modal-card">
@@ -542,7 +544,7 @@
     <section class="modal-card-body">
       <div class="field is-horizontal">
         <div class="field-label is-normal">
-          <label class="label" for="settings-temperature">New name:</label>
+          <label class="label" for="settings-chat-name">New name:</label>
         </div>
         <div class="field-body">
           <div class="field">
@@ -557,11 +559,9 @@
       </div>
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-info" on:click={saveChatNameSettings}
-        >Save</button
-      >
+      <input type="submit" class="button is-info" value="Save" />
       <button class="button" on:click={closeChatNameSettings}>Cancel</button>
     </footer>
   </div>
-</div>
+</form>
 <!-- end -->
