@@ -1,0 +1,21 @@
+name: Linting
+
+# Run on PRs only
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Lint
+        run: npm ci && npm run lint
