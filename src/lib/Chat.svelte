@@ -426,7 +426,7 @@
   <progress class="progress is-small is-dark" max="100" />
 {/if}
 
-<form class="field has-addons has-addons-right" on:submit|preventDefault={() => submitForm()}>
+<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"
