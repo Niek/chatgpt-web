@@ -23,7 +23,11 @@
       },
       "externalBin": [],
       "icon": [
-        "icons/logo.png"
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
       ],
       "identifier": "nl.niek.chatgpt",
       "longDescription": "",
@@ -54,7 +58,7 @@
         "fullscreen": false,
         "height": 768,
         "resizable": true,
-        "title": "ChatGPT Web Desktop",
+        "title": "ChatGPT-web Desktop app",
         "width": 1024
       }
     ]
