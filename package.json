@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:public": "vite --host 0.0.0.0",
     "build": "vite build",
     "build:github": "vite build --base=/chatgpt-web/",
     "preview": "vite preview",

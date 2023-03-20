@@ -21,6 +21,12 @@ npm ci
 npm run dev # or: npm run build
 ```
 
+## Use with Docker compose
+
+```bash
+docker compose up -d
+```
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
