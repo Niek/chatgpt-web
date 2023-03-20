@@ -12,9 +12,9 @@
   $: apiKey = $apiKeyStorage;
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
   if (urlParams.has("key")) {
-    apiKeyStorage.set(urlParams.get("key")!);
+    apiKeyStorage.set(urlParams.get("key") as string);
   }
 </script>
 
