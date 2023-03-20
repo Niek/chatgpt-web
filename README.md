@@ -50,6 +50,7 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/fuegovic"><img src="https://avatars.githubusercontent.com/u/32828263?v=4?s=100" width="100px;" alt="fuegovic"/><br /><sub><b>fuegovic</b></sub></a><br /><a href="#ideas-fuegovic" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.liuin.cn"><img src="https://avatars.githubusercontent.com/u/20949383?v=4?s=100" width="100px;" alt="Sixzeroo"/><br /><sub><b>Sixzeroo</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Sixzeroo" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://terryoy.github.io/"><img src="https://avatars.githubusercontent.com/u/1171589?v=4?s=100" width="100px;" alt="terryoy"/><br /><sub><b>terryoy</b></sub></a><br /><a href="#ideas-terryoy" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Niek/chatgpt-web/commits?author=terryoy" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
