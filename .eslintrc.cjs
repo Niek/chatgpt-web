@@ -31,5 +31,5 @@ module.exports = {
   settings: {
     'svelte3/typescript': true
   },
-  ignorePatterns: ['node_modules/*', 'dist/*', 'vite-env.d.ts', 'src-tauri/*']
+  ignorePatterns: ['node_modules/*', 'dist/*', 'vite-env.d.ts', 'src-tauri/*', '.eslintrc.cjs']
 }
