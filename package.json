@@ -26,6 +26,7 @@
     "copy-to-clipboard": "^3.3.3",
     "eslint-config-standard-with-typescript": "^34.0.1",
     "eslint-plugin-svelte3": "^4.0.0",
+    "flourite": "^1.2.2",
     "postcss": "^8.4.21",
     "sass": "^1.59.2",
     "svelte": "^3.55.1",

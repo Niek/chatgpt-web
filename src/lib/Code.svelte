@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Highlight } from 'svelte-highlight'
+  import flourite from 'flourite'
 
   // Import both dark and light styles
   import { github, githubDark } from 'svelte-highlight/styles'
@@ -22,6 +23,7 @@
     shell,
     php,
     plaintext,
+    yaml,
     type LanguageType
   } from 'svelte-highlight/languages'
 
@@ -33,6 +35,12 @@
 
   // Map lang string to LanguageType
   let language: LanguageType<string>
+
+  // If no language is set, try to detect it using flourite
+  if (!lang) {
+    lang = flourite(text, { shiki: true }).language
+  }
+
   switch (lang) {
     case 'js':
     case 'javascript':
@@ -63,10 +71,17 @@
     case 'sh':
     case 'shell':
     case 'bash':
+    case 'console':
+    case 'shellscript':
+    case 'zsh':
       language = shell
       break
     case 'php':
       language = php
+      break
+    case 'yaml':
+    case 'yml':
+      language = yaml
       break
     default:
       language = plaintext
