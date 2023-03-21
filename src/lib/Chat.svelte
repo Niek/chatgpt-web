@@ -37,6 +37,7 @@
     key: 'model',
     name: 'Model',
     default: 'gpt-3.5-turbo',
+    title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
     options: supportedModels,
     type: 'select'
   }
@@ -559,7 +560,7 @@
                 />
               {:else if setting.type === 'select'}
                 <div class="select">
-                  <select id="settings-{setting.key}">
+                  <select id="settings-{setting.key}" title="{setting.title}">
                     {#each setting.options as option}
                       <option value={option} selected={option === setting.default}>{option}</option>
                     {/each}
