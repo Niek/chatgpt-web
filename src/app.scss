@@ -53,6 +53,7 @@ a.is-disabled {
 /* Style the chat input */
 .chat-input {
   overflow-y:hidden;
+  resize: vertical;
 }
 
 $footer-padding: 3rem 1.5rem;

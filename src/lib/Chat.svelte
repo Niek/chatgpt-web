@@ -145,7 +145,7 @@
     // Send API request
     /*
     // Not working yet: a way to get the response as a stream
-    await fetchEventSource("https://api.openai.com/v1/chat/completions", {
+    await fetchEventSource(import.meta.env.VITE_API_BASE + "/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization:
@@ -186,7 +186,7 @@
         }, {})
       }
       response = await (
-        await fetch('https://api.openai.com/v1/chat/completions', {
+        await fetch(import.meta.env.VITE_API_BASE + '/v1/chat/completions', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${$apiKeyStorage}`,
@@ -295,7 +295,7 @@
 
     // Load available models from OpenAI
     const allModels = (await (
-      await fetch('https://api.openai.com/v1/models', {
+      await fetch(import.meta.env.VITE_API_BASE + '/v1/models', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${$apiKeyStorage}`,
@@ -442,7 +442,7 @@
   <progress class="progress is-small is-dark" max="100" />
 {/if}
 
-<form class="field has-addons has-addons-right" on:submit|preventDefault={() => submitForm()}>
+<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"
