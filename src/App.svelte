@@ -18,21 +18,25 @@
   }
 </script>
 
-<Navbar />
+<div class="page_container">
 
-<section class="section">
-  <div class="container is-fullhd">
-    <div class="columns">
-      <div class="column is-one-fifth">
-        <Sidebar bind:apiKey bind:sortedChats />
-      </div>
-      <div class="column is-four-fifths">
-        {#key $location}
-          <Router {routes} />
-        {/key}
+  <Navbar />
+
+  <section class="section">
+    <div class="container is-fullhd">
+      <div class="columns">
+        <div class="column is-one-fifth">
+          <Sidebar bind:apiKey bind:sortedChats />
+        </div>
+        <div class="column is-four-fifths">
+          {#key $location}
+            <Router {routes} />
+          {/key}
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<Footer />
+  <Footer />
+
+</div>
