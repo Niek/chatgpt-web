@@ -60,6 +60,7 @@
   export type Settings = {
     key: string;
     name: string;
+    title: string;
   } & (SettingsNumber | SettingsSelect);
 
   type ResponseOK = {
