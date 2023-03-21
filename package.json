@@ -10,12 +10,14 @@
     "build:github": "vite build --base=/chatgpt-web/",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "tauri": "tauri",
     "lint": "eslint . --fix"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^5.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
+    "@tauri-apps/cli": "^1.2.3",
     "@tsconfig/svelte": "^3.0.0",
     "@types/marked": "^4.0.8",
     "@types/node": "^18.15.3",
