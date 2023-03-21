@@ -7,10 +7,12 @@
     type Response,
     type Message,
     type Settings,
-    supportedModels,
+    type Model,
     type ResponseModels,
     type SettingsSelect,
-    type Chat
+    type Chat,
+    type Usage,
+    supportedModels
   } from './Types.svelte'
   import Code from './Code.svelte'
 
@@ -23,22 +25,24 @@
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
+  
   let updating: boolean = false
-
   let input: HTMLTextAreaElement
   let settings: HTMLDivElement
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
 
-  const settingsMap: Settings[] = [
-    {
-      key: 'model',
-      name: 'Model',
-      default: 'gpt-3.5-turbo',
-      options: supportedModels,
-      type: 'select'
-    },
+  const modelSetting: Settings & SettingsSelect = {
+    key: 'model',
+    name: 'Model',
+    default: 'gpt-3.5-turbo',
+    options: supportedModels,
+    type: 'select'
+  }
+
+  let settingsMap: Settings[] = [
+    modelSetting,
     {
       key: 'temperature',
       name: 'Sampling Temperature',
@@ -95,11 +99,23 @@
     }
   ]
 
-  $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
-  const tokenPrice = 0.000002 // $0.002 per 1000 tokens
+  // Reference: https://openai.com/pricing#language-models
+  const tokenPrice : Record<string, [number, number]> = {
+    'gpt-4-32k': [0.00006, 0.00012], // $0.06 per 1000 tokens prompt, $0.12 per 1000 tokens completion
+    'gpt-4': [0.00003, 0.00006], // $0.03 per 1000 tokens prompt, $0.06 per 1000 tokens completion
+    'gpt-3.5': [0.000002, 0.000002] // $0.002 per 1000 tokens (both prompt and completion)
+  }
 
-  // Focus the input on mount
+  $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
+
   onMount(async () => {
+    // Pre-select the last used model
+    if (chat.messages.length > 0) {
+      modelSetting.default = chat.messages[chat.messages.length - 1].model || modelSetting.default
+      settingsMap = settingsMap
+    }
+
+    // Focus the input on mount
     input.focus()
 
     // Try to detect speech recognition support
@@ -208,6 +224,16 @@
     return response
   }
 
+  const getPrice = (tokens: Usage, model: Model) : number => {
+    for (const [key, [promptPrice, completionPrice]] of Object.entries(tokenPrice)) {
+      if (model.startsWith(key)) {
+        return ((tokens.prompt_tokens * promptPrice) + (tokens.completion_tokens * completionPrice))
+      }
+    }
+
+    return 0
+  }
+
   const submitForm = async (recorded: boolean = false): Promise<void> => {
     // Compose the input message
     const inputMessage: Message = { role: 'user', content: input.value }
@@ -229,7 +255,10 @@
       })
     } else {
       response.choices.forEach((choice) => {
+        // Store usage and model in the message
         choice.message.usage = response.usage
+        choice.message.model = response.model
+  
         // Remove whitespace around the message that the OpenAI API sometimes returns
         choice.message.content = choice.message.content.trim()
         addMessage(chatId, choice.message)
@@ -298,7 +327,7 @@
 
     // Load available models from OpenAI
     const allModels = (await (
-      await fetch(import.meta.env.VITE_API_BASE + '/v1/models', {
+      await fetch(apiBase + '/v1/models', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${$apiKeyStorage}`,
@@ -306,10 +335,11 @@
         }
       })
     ).json()) as ResponseModels
-    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model));
+    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
 
     // Update the models in the settings
-    (settingsMap[0] as SettingsSelect).options = filteredModels
+    modelSetting.options = filteredModels
+    settingsMap = settingsMap
   }
 
   const closeSettings = () => {
@@ -431,9 +461,9 @@
         />
         {#if message.usage}
           <p class="is-size-7">
-            This message was generated using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+            This message was generated on <em>{message.model || modelSetting.default}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
             tokens ~=
-            <span class="has-text-weight-bold">${(message.usage.total_tokens * tokenPrice).toFixed(6)}</span>
+            <span class="has-text-weight-bold">${getPrice(message.usage, message.model || modelSetting.default).toFixed(6)}</span>
           </p>
         {/if}
       </div>

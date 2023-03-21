@@ -1,4 +1,14 @@
 <script context="module" lang="ts">
+  export const supportedModels = [ // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
+    'gpt-4',
+    'gpt-4-0314',
+    'gpt-4-32k',
+    'gpt-4-32k-0314',
+    'gpt-3.5-turbo',
+    'gpt-3.5-turbo-0301'
+  ]
+  export type Model = typeof supportedModels[number];
+
   export type Usage = {
     completion_tokens: number;
     prompt_tokens: number;
@@ -9,6 +19,7 @@
     role: 'user' | 'assistant' | 'system' | 'error';
     content: string;
     usage?: Usage;
+    model?: Model;
   };
 
   export type Chat = {
@@ -16,17 +27,6 @@
     name: string;
     messages: Message[];
   };
-
-  // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
-  export const supportedModels = [
-    'gpt-4',
-    'gpt-4-0314',
-    'gpt-4-32k',
-    'gpt-4-32k-0314',
-    'gpt-3.5-turbo',
-    'gpt-3.5-turbo-0301'
-  ]
-  type Model = typeof supportedModels[number];
 
   export type Request = {
     model?: Model;
@@ -72,6 +72,7 @@
       finish_reason: string;
     }[];
     usage: Usage;
+    model: Model;
   };
 
   type ResponseError = {
