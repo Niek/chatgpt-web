@@ -18,6 +18,9 @@
   import { replace } from 'svelte-spa-router'
   import SvelteMarkdown from 'svelte-markdown'
 
+  // This makes it possible to override the OpenAI API base URL in the .env file
+  const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
+
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
   let updating: boolean = false
@@ -145,7 +148,7 @@
     // Send API request
     /*
     // Not working yet: a way to get the response as a stream
-    await fetchEventSource(import.meta.env.VITE_API_BASE + "/v1/chat/completions", {
+    await fetchEventSource(apiBase + "/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization:
@@ -186,7 +189,7 @@
         }, {})
       }
       response = await (
-        await fetch(import.meta.env.VITE_API_BASE + '/v1/chat/completions', {
+        await fetch(apiBase + '/v1/chat/completions', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${$apiKeyStorage}`,
