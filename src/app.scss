@@ -109,3 +109,12 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   position: sticky;
   top: 1rem;
 }
+
+/* Loading chat messages */
+.is-loading {
+  opacity: 0.5;
+  @include loader;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.25em;
+}

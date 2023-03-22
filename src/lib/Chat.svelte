@@ -489,7 +489,11 @@
 {/each}
 
 {#if updating}
-  <progress class="progress is-small is-dark" max="100" />
+  <article class="message is-success assistant-message">
+    <div class="message-body content">
+      <span class="is-loading" />
+    </div>
+  </article>
 {/if}
 
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
