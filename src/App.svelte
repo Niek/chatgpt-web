@@ -26,7 +26,7 @@
       <div class="column is-one-fifth">
         <Sidebar bind:apiKey bind:sortedChats />
       </div>
-      <div class="column is-four-fifths">
+      <div class="column is-four-fifths" id="content">
         {#key $location}
           <Router {routes} />
         {/key}

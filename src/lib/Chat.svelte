@@ -166,7 +166,7 @@
   afterUpdate(() => {
     // Scroll to the bottom of the page after any updates to the messages array
     if (!updating) {
-      window.scrollTo(0, document.body.scrollHeight)
+      document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
       input.focus()
     }
   })
