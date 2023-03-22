@@ -1,5 +1,5 @@
 <script lang="ts">
-  // import { fetchEventSource } from "@microsoft/fetch-event-source";
+  // import { fetchEventSource } from '@microsoft/fetch-event-source'
 
   import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
   import {
@@ -173,26 +173,8 @@
     mangle: false // Do not mangle email addresses
   }
 
+  // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
-    // Send API request
-    /*
-    // Not working yet: a way to get the response as a stream
-    await fetchEventSource(apiBase + "/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization:
-          `Bearer ${$apiKeyStorage}`,
-        "Content-Type": "text/event-stream",
-      },
-      body: JSON.stringify(request),
-      onmessage(ev) {
-        console.log(ev);
-      },
-      onerror(err) {
-        throw err;
-      },
-    });
-    */
     // Show updating bar
     updating = true
 
@@ -217,6 +199,28 @@
           return acc
         }, {})
       }
+
+      // Not working yet: a way to get the response as a stream
+      /*
+      request.stream = true
+      await fetchEventSource(apiBase + '/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization:
+          `Bearer ${$apiKeyStorage}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request),
+        onmessage (ev) {
+          const data = JSON.parse(ev.data)
+          console.log(data)
+        },
+        onerror (err) {
+          throw err
+        }
+      })
+      */
+
       response = await (
         await fetch(apiBase + '/v1/chat/completions', {
           method: 'POST',
