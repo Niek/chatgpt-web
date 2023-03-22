@@ -63,7 +63,7 @@ a.is-disabled {
 
 /* Style the chat input */
 .chat-input {
-  overflow-y:hidden;
+  overflow-y: hidden;
   resize: vertical;
 }
 
@@ -98,7 +98,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 /* Support for copy code button */
-.code-block>button {
+.code-block > button {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
