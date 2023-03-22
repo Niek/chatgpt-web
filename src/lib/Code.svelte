@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Highlight } from 'svelte-highlight'
-  // import flourite from 'flourite'
+  import flourite from 'flourite'
 
   // Import both dark and light styles
   import { github, githubDark } from 'svelte-highlight/styles'
@@ -38,8 +38,7 @@
 
   // If no language is set, try to detect it using flourite
   if (!lang) {
-    // lang = flourite(text, { shiki: true }).language
-    // TODO: re-enable this once https://github.com/teknologi-umum/flourite/pull/75 is merged
+    lang = flourite(text, { shiki: true }).language
   }
 
   switch (lang) {
