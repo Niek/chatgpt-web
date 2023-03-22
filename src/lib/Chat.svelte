@@ -162,8 +162,7 @@
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
     // Scroll to the bottom of the page after any updates to the messages array
-    const chatWindow = document.getElementsByClassName('column is-four-fifths')[0]
-    chatWindow.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
     input.focus()
   })
 
