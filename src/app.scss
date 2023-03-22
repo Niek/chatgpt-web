@@ -39,6 +39,27 @@ a.is-disabled {
   width: fit-content;
 }
 
+article.user-message {
+  position: relative;
+}
+
+.timer_popout {
+  position: absolute;
+  top:50%;
+  height: 100%;
+  transform: translate(-0%,-50%);
+  z-index: -1;
+  transition: all 500ms ease;
+  &.message-body {
+    border-width: 0 0 0 0 !important;
+  }
+
+  &.open{
+    transform: translate(-90%,-50%);
+  }
+
+}
+
 .assistant-message {
   max-width: 90%;
   width: fit-content;
@@ -53,6 +74,11 @@ a.is-disabled {
 /* Swap the border on user messages to the other side */
 .user-message > .message-body {
   border-width: 0 4px 0 0 !important;
+}
+
+/* Remove the border on the timer popout */
+.user-message > .message-body.timer_popout {
+  border-width: 0 0 0 0 !important;
 }
 
 /* Show the edit button on hover of the chat name */

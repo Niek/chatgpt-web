@@ -20,6 +20,7 @@
     content: string;
     usage?: Usage;
     model?: Model;
+    timeTaken?: number;
   };
 
   export type Chat = {

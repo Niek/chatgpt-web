@@ -33,6 +33,9 @@
   let recognition: any = null
   let recording = false
 
+  let timerInterval: any = null
+  let timeElapsed: number = 0
+
   const modelSetting: Settings & SettingsSelect = {
     key: 'model',
     name: 'Model',
@@ -162,8 +165,10 @@
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
     // Scroll to the bottom of the page after any updates to the messages array
-    window.scrollTo(0, document.body.scrollHeight)
-    input.focus()
+    if (!updating) {
+      window.scrollTo(0, document.body.scrollHeight)
+      input.focus()
+    }
   })
 
   // Marked options
@@ -171,6 +176,13 @@
     gfm: true, // Use GitHub Flavored Markdown
     breaks: true, // Enable line breaks in markdown
     mangle: false // Do not mangle email addresses
+  }
+
+  const startTimer = () => {
+    timerInterval = setInterval(() => {
+      // Update each the time it has taken to process the current request. Use integers to avoid floating point errors.
+      timeElapsed += 1
+    }, 100)
   }
 
   const sendRequest = async (messages: Message[]): Promise<Response> => {
@@ -259,7 +271,9 @@
     // Resize back to single line height
     input.style.height = 'auto'
 
+    startTimer()
     const response = await sendRequest(chat.messages)
+    clearInterval(timerInterval)
 
     if (response.error) {
       addMessage(chatId, {
@@ -271,6 +285,8 @@
         // Store usage and model in the message
         choice.message.usage = response.usage
         choice.message.model = response.model
+
+        choice.message.timeTaken = timeElapsed / 10
   
         // Remove whitespace around the message that the OpenAI API sometimes returns
         choice.message.content = choice.message.content.trim()
@@ -282,6 +298,8 @@
         }
       })
     }
+
+    timeElapsed = 0
   }
 
   const suggestName = async (): Promise<void> => {
@@ -424,7 +442,7 @@
   </div>
 </nav>
 
-{#each chat.messages as message}
+{#each chat.messages as message, i}
   {#if message.role === 'user'}
     <article
       class="message is-info user-message"
@@ -449,6 +467,7 @@
           }}
         />
       </div>
+      <div class:open={updating && i === chat.messages.length - 1} class="message-body message timer_popout">{(timeElapsed / 10).toFixed(1)}s</div>
     </article>
   {:else if message.role === 'system' || message.role === 'error'}
     <article class="message is-danger assistant-message">
@@ -474,7 +493,7 @@
         />
         {#if message.usage}
           <p class="is-size-7">
-            This message was generated on <em>{message.model || modelSetting.default}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+            This message was generated {message.timeTaken ? `in ${message.timeTaken}s` : ''} on <em>{message.model || modelSetting.default}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
             tokens ~=
             <span class="has-text-weight-bold">${getPrice(message.usage, message.model || modelSetting.default).toFixed(6)}</span>
           </p>
