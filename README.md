@@ -11,9 +11,18 @@
 
 ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for [an OpenAI API key](https://platform.openai.com/account/api-keys) first. All messages are stored in your browser's local storage, so everything is **private**. You can also close the browser tab and come back later to continue the conversation.
 
-## Why?
-
-Why not use the [official ChatGPT interface](https://chat.openai.com/)? Becauce ChatGPT-web will allow more customization, and since it uses the commercial OpenAI API it should be more reliable. It's also *much* cheaper than ChatGPT Plus - at $20 per month, you would need to use *10 million* tokens on the OpenAI API for this to break even. Finally, since ChatGPT-web is open source, so you can host it yourself and make changes as you want.
+## Features
+* **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
+* **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
+* **Customizable**: You can customize the prompt, the temperature, and other model settings.
+* **Cheaper**: ChatGPT-web uses the commercial OpenAI API, so it's much cheaper than a ChatGPT Plus subscription.
+* **Fast**: ChatGPT-web is a single-page web app, so it's fast and responsive.
+* **Mobile-friendly**: ChatGPT-web is mobile-friendly, so you can use it on your phone.
+* **Voice input**: ChatGPT-web supports voice input, so you can talk to ChatGPT. It will also talk back to you.
+* **Pre-selected prompts**: ChatGPT-web comes with a list of [pre-selected prompts](https://github.com/f/awesome-chatgpt-prompts), so you can get started quickly.
+* **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
+* **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them.
+* **Desktop app**: ChatGPT-web can be bundles as a desktop app, so you can use it outside of the browser.
 
 ## Development
 
