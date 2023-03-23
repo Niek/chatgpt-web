@@ -6,10 +6,7 @@
   import Sidebar from './lib/Sidebar.svelte'
   import Footer from './lib/Footer.svelte'
 
-  import { apiKeyStorage, chatsStorage } from './lib/Storage.svelte'
-
-  $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
-  $: apiKey = $apiKeyStorage
+  import { apiKeyStorage } from './lib/Storage.svelte'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   const urlParams: URLSearchParams = new URLSearchParams(window.location.search)
@@ -24,7 +21,7 @@
   <div class="container is-fullhd">
     <div class="columns">
       <div class="column is-one-fifth">
-        <Sidebar bind:apiKey bind:sortedChats />
+        <Sidebar />
       </div>
       <div class="column is-four-fifths" id="content">
         {#key $location}
