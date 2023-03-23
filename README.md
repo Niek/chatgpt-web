@@ -44,6 +44,11 @@ git subtree pull --prefix src/awesome-chatgpt-prompts https://github.com/f/aweso
 docker compose up -d
 ```
 
+## Mocked api
+If you don't want to wait for the api to respond, you can use the mocked api instead. To use the mocked api create a `.env` at root of the project
+with key `VITE_API_BASE=http://localhost:5174` in it. You customize the mocked api response by including d followed by a number, it will delay the response X seconds. 
+You can customize the length of the response by including l followed by a number, it will return a response with X sentences. For example `d2 l10` = 2 seconds delay and 10 sentences response.
+
 ## Desktop app
 
 You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](https://www.rust-lang.org/tools/install). Then, simply run `npm run tauri dev` for the development version or `npm run tauri build` for the production version of the desktop app. The desktop app will be built in the `src-tauri/target` folder.
