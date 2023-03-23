@@ -118,3 +118,13 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   height: 1.5rem;
   border-width: 0.25em;
 }
+
+/* Support for fullwidth dropdowns, see https://github.com/jgthms/bulma/issues/2055 */
+.dropdown.is-fullwidth {
+  display: flex;
+
+  .dropdown-trigger,
+  .dropdown-menu {
+    width: 100%;
+  }
+}

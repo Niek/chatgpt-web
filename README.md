@@ -24,6 +24,11 @@ npm ci
 npm run dev # or: npm run build
 ```
 
+To update the [`awesome-chatgpt-prompts`](/src/awesome-chatgpt-prompts/) subtree, run :
+```bash
+git subtree pull --prefix src/awesome-chatgpt-prompts https://github.com/f/awesome-chatgpt-prompts.git main --squash
+```
+
 ## Use with Docker compose
 
 ```bash

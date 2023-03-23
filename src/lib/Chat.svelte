@@ -15,6 +15,7 @@
     supportedModels
   } from './Types.svelte'
   import Code from './Code.svelte'
+  import Prompts from './Prompts.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
@@ -494,6 +495,10 @@
       <span class="is-loading" />
     </div>
   </article>
+{/if}
+
+{#if chat.messages.length === 0}
+  <Prompts bind:input />
 {/if}
 
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
