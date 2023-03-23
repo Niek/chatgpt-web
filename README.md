@@ -14,15 +14,15 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 ## Features
 * **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
 * **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
-* **Customizable**: You can customize the prompt, the temperature, and other model settings.
+* **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GTP-4) are supported.
 * **Cheaper**: ChatGPT-web uses the commercial OpenAI API, so it's much cheaper than a ChatGPT Plus subscription.
-* **Fast**: ChatGPT-web is a single-page web app, so it's fast and responsive.
+* **Fast**: ChatGPT-web is a single-page web app, so it's [fast and responsive](https://pagespeed.web.dev/analysis/https-niek-github-io-chatgpt-web/8xv5uwrnes).
 * **Mobile-friendly**: ChatGPT-web is mobile-friendly, so you can use it on your phone.
 * **Voice input**: ChatGPT-web supports voice input, so you can talk to ChatGPT. It will also talk back to you.
 * **Pre-selected prompts**: ChatGPT-web comes with a list of [pre-selected prompts](https://github.com/f/awesome-chatgpt-prompts), so you can get started quickly.
 * **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
-* **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them.
-* **Desktop app**: ChatGPT-web can be bundles as a desktop app, so you can use it outside of the browser.
+* **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them with one click.
+* **Desktop app**: ChatGPT-web can be bundled as a desktop app, so you can use it outside of the browser.
 
 ## Development
 
