@@ -7,19 +7,16 @@
     type Response,
     type Message,
     type Settings,
-    type Model,
     type ResponseModels,
     type SettingsSelect,
     type Chat,
-    type Usage,
     supportedModels
   } from './Types.svelte'
-  import Code from './Code.svelte'
   import Prompts from './Prompts.svelte'
+  import Messages from './Messages.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
-  import SvelteMarkdown from 'svelte-markdown'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -113,13 +110,6 @@
     }
   ]
 
-  // Reference: https://openai.com/pricing#language-models
-  const tokenPrice : Record<string, [number, number]> = {
-    'gpt-4-32k': [0.00006, 0.00012], // $0.06 per 1000 tokens prompt, $0.12 per 1000 tokens completion
-    'gpt-4': [0.00003, 0.00006], // $0.03 per 1000 tokens prompt, $0.06 per 1000 tokens completion
-    'gpt-3.5': [0.000002, 0.000002] // $0.002 per 1000 tokens (both prompt and completion)
-  }
-
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
 
   onMount(async () => {
@@ -167,12 +157,6 @@
     input.focus()
   })
 
-  // Marked options
-  const markedownOptions = {
-    gfm: true, // Use GitHub Flavored Markdown
-    breaks: true, // Enable line breaks in markdown
-    mangle: false // Do not mangle email addresses
-  }
 
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
@@ -242,15 +226,6 @@
     return response
   }
 
-  const getPrice = (tokens: Usage, model: Model) : number => {
-    for (const [key, [promptPrice, completionPrice]] of Object.entries(tokenPrice)) {
-      if (model.startsWith(key)) {
-        return ((tokens.prompt_tokens * promptPrice) + (tokens.completion_tokens * completionPrice))
-      }
-    }
-
-    return 0
-  }
 
   const submitForm = async (recorded: boolean = false): Promise<void> => {
     // Compose the input message
@@ -387,107 +362,21 @@
     <div class="level-item">
       <p class="subtitle is-5">
         {chat.name || `Chat ${chat.id}`}
-        <a
-          href={'#'}
-          class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
-          title="Rename chat"
-          on:click|preventDefault={() => {
-            showChatNameSettings()
-          }}
-        >
-          ✏️
-        </a>
-        <a
-          href={'#'}
-          class="greyscale ml-2 is-hidden has-text-weight-bold editbutton"
-          title="Suggest a chat name"
-          on:click|preventDefault={suggestName}
-        >
-          💡
-        </a>
-        <a
-          href={'#'}
-          class="greyscale ml-2 is-hidden editbutton"
-          title="Delete this chat"
-          on:click|preventDefault={deleteChat}
-        >
-          🗑️
-        </a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
       </p>
     </div>
   </div>
 
   <div class="level-right">
     <p class="level-item">
-      <button
-        class="button is-warning"
-        on:click={() => {
-          clearMessages(chatId)
-        }}><span class="greyscale mr-2">🗑️</span> Clear messages</button
-      >
+      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
     </p>
   </div>
 </nav>
 
-{#each chat.messages as message}
-  {#if message.role === 'user'}
-    <article
-      class="message is-info user-message"
-      class:has-text-right={message.content.split('\n').filter((line) => line.trim()).length === 1}
-    >
-      <div class="message-body content">
-        <a
-          href={'#'}
-          class="greyscale is-pulled-right ml-2 is-hidden editbutton"
-          on:click={() => {
-            input.value = message.content
-            input.focus()
-          }}
-        >
-          ✏️
-        </a>
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code
-          }}
-        />
-      </div>
-    </article>
-  {:else if message.role === 'system' || message.role === 'error'}
-    <article class="message is-danger assistant-message">
-      <div class="message-body content">
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code
-          }}
-        />
-      </div>
-    </article>
-  {:else}
-    <article class="message is-success assistant-message">
-      <div class="message-body content">
-        <SvelteMarkdown
-          source={message.content}
-          options={markedownOptions}
-          renderers={{
-            code: Code
-          }}
-        />
-        {#if message.usage}
-          <p class="is-size-7">
-            This message was generated on <em>{message.model || modelSetting.default}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
-            tokens ~=
-            <span class="has-text-weight-bold">${getPrice(message.usage, message.model || modelSetting.default).toFixed(6)}</span>
-          </p>
-        {/if}
-      </div>
-    </article>
-  {/if}
-{/each}
+<Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
 
 {#if updating}
   <article class="message is-success assistant-message">
