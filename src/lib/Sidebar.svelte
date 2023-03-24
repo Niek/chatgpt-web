@@ -41,14 +41,14 @@
       >
     </li>
     <li>
-      <a
-        href={'#/'}
-        class="panel-block"
+      <a class="panel-block"
+        href="{'#/'}"
         class:is-disabled={!$apiKeyStorage}
         on:click={() => {
-          replace('#/').then(() => {
-            clearChats()
-          })
+          const confirmDelete = window.confirm('Are you sure you want to delete all your chats?')
+          if (confirmDelete) {
+            replace('#/').then(() => clearChats())
+          }
         }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
