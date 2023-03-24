@@ -18,7 +18,9 @@
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
+  import {marked} from "marked";
   import SvelteMarkdown from 'svelte-markdown'
+  import markedKatex from "marked-katex-extension";
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -173,6 +175,13 @@
     mangle: false // Do not mangle email addresses
   }
 
+  // Katex rendering options
+  const katexOptions = {
+    throwOnError: false
+  };
+
+  marked.use(markedKatex(katexOptions));
+  
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
     // Show updating bar
@@ -470,7 +479,7 @@
     <article class="message is-success assistant-message">
       <div class="message-body content">
         <SvelteMarkdown
-          source={message.content}
+          source={marked(message.content)}
           options={markedownOptions}
           renderers={{
             code: Code
