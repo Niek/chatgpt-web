@@ -1,0 +1,8 @@
+FROM python:alpine
+WORKDIR /work
+
+RUN pip install fastapi uvicorn lorem-text
+COPY mocked_api/mock_api.py .
+COPY mocked_api/models_response.json .
+
+CMD ["uvicorn", "mock_api:app", "--host", "0.0.0.0", "--port", "5174"]
