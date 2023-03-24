@@ -4,10 +4,14 @@ services:
   chatgpt_web:
     container_name: chatgpt_web
     restart: always
+    depends_on:
+      - mocked_api
     env_file:
       - .env
     ports:
       - 5173:5173
+    volumes:
+      - .:/app
     build:
       context: "."
       dockerfile: Dockerfile
