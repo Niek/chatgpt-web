@@ -42,6 +42,7 @@
     </li>
     <li>
       <a class="panel-block"
+        href="{'#/'}"
         class:is-disabled={!$apiKeyStorage}
         on:click={() => {
           const confirmDelete = window.confirm('Are you sure you want to delete all your chats?')
