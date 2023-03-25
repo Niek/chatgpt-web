@@ -22,7 +22,10 @@
   
   import {marked} from "marked";
   import markedKatex from "marked-katex-extension";
-  import katexStyle from '../katex.min.css'
+  import '../katex.min.css';
+  
+  // whether to render latex; default is true
+  const renderLatexFlag = JSON.parse(import.meta.env.VITE_RENDER_LATEX) || false
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -177,13 +180,17 @@
     mangle: false // Do not mangle email addresses
   }
 
-  // Katex rendering options
-  const katexOptions = {
-    throwOnError: false
+  // Katex rendering
+  let renderLatex = (text: string): string => {
+    if (renderLatexFlag == true) {
+      const katexOptions = { throwOnError: false };
+      marked.use(markedKatex(katexOptions));
+      return marked(text);
+    }
+
+    return text;
   };
 
-  marked.use(markedKatex(katexOptions));
-  
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
     // Show updating bar
@@ -481,7 +488,7 @@
     <article class="message is-success assistant-message">
       <div class="message-body content">
         <SvelteMarkdown
-          source={marked(message.content)}
+          source={renderLatex(message.content)}
           options={markedownOptions}
           renderers={{
             code: Code
