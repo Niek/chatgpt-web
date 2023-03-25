@@ -1,0 +1,8 @@
+FROM python:3.10.10-alpine3.17
+WORKDIR /work
+
+RUN pip install "fastapi<1.0" "uvicorn<0.22" "lorem-text<=2.1.x"
+COPY mocked_api/mock_api.py .
+COPY mocked_api/models_response.json .
+
+CMD ["uvicorn", "mock_api:app", "--host", "0.0.0.0", "--port", "5174"]
