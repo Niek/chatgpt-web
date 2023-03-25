@@ -18,9 +18,11 @@
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
-  import {marked} from "marked";
   import SvelteMarkdown from 'svelte-markdown'
+  
+  import {marked} from "marked";
   import markedKatex from "marked-katex-extension";
+  import katexStyle from '../katex.min.css'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
