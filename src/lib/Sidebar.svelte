@@ -8,10 +8,11 @@
 
     $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
 
-    function delChat(chatId) {
+    function delChat (chatId) {
       if (activeChatId === chatId) {
         // switch to another chat if deleting the active one
-        const newChatId = _.maxBy($chatsStorage.filter(chat => chat.id !== chatId), 'id').id
+        const newChatId = _.maxBy($chatsStorage.filter(chat => chat.id !== chatId), 'id')?.id
+        if (!newChatId) return
         replace(`/chat/:${newChatId}`).then(() => deleteChat(chatId))
       } else {
         deleteChat(chatId)
