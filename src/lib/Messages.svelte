@@ -19,7 +19,7 @@
 
     // Katex rendering
     const renderLatex = (text: string): string => {
-        if (renderLatexFlag == true) {
+        if (renderLatexFlag === true) {
         const katexOptions = { throwOnError: false };
         marked.use(markedKatex(katexOptions));
         return marked(text);
