@@ -17,7 +17,6 @@
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
-  import SvelteMarkdown from 'svelte-markdown'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -158,6 +157,7 @@
     input.focus()
   })
 
+  
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
     // Show updating bar
