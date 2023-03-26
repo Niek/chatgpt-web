@@ -157,7 +157,7 @@
     input.focus()
   })
 
-  
+
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
     // Show updating bar
