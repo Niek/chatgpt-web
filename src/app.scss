@@ -13,7 +13,7 @@
   flex-grow: 1;
   min-height: 100vh;
 
-  section.section{
+  section.section {
     flex-grow: 1;
   }
 }
@@ -32,7 +32,7 @@ a.is-disabled {
   filter: grayscale(100%);
 }
 
-.user-message { 
+.user-message {
   max-width: 90%;
   margin-right: 0;
   margin-left: auto;
@@ -108,6 +108,26 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .menu {
   position: sticky;
   top: 1rem;
+}
+
+.menu-list {
+  a:hover {
+    .delete-btn {
+      display: block;
+    }
+  }
+}
+
+.delete-btn {
+  display: none;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  margin-right: 5px;
+
 }
 
 /* Loading chat messages */
