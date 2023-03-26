@@ -27,7 +27,7 @@
       <div class="dropdown-menu" id="dropdown-menu" role="menu">
         <div class="dropdown-content">
           {#each prompts as prompt}
-            <a class="dropdown-item" href={'#'} on:click|preventDefault={() => inputPrompt(prompt.prompt)}>
+            <a title={prompt.prompt}   class="dropdown-item" href={'#'} on:click|preventDefault={() => inputPrompt(prompt.prompt)}>
               {prompt.act}
             </a>
           {/each}
