@@ -28,6 +28,11 @@
         return text;
     };
 
+    const renderersLatex = {
+        code: Code,
+        ...(renderLatexFlag ? {} : { html: Code })
+    };
+
     export let messages : Message[]
     export let input: HTMLTextAreaElement
     export let defaultModel: Model
@@ -79,7 +84,7 @@
   {:else}
     <article class="message is-success assistant-message">
       <div class="message-body content">
-        <SvelteMarkdown source={renderLatex(message.content)} options={markedownOptions} renderers={{ code: Code, html: Code }}/>
+        <SvelteMarkdown source={renderLatex(message.content)} options={markedownOptions} renderers={renderersLatex}/>
         {#if message.usage}
           <p class="is-size-7">
             This message was generated on <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
