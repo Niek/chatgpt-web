@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {params, replace} from 'svelte-spa-router'
+    import { params, replace } from 'svelte-spa-router'
 
-    import {apiKeyStorage, chatsStorage, clearChats, deleteChat} from './Storage.svelte'
-    import {exportAsMarkdown} from './Export.svelte'
+    import { apiKeyStorage, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
+    import { exportAsMarkdown } from './Export.svelte'
     import _ from 'lodash'
     $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
