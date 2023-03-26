@@ -18,13 +18,6 @@
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
   import SvelteMarkdown from 'svelte-markdown'
-  
-  import {marked} from "marked";
-  import markedKatex from "marked-katex-extension";
-  import '../katex.min.css';
-  
-  // whether to render latex; default is true
-  const renderLatexFlag = JSON.parse(import.meta.env.VITE_RENDER_LATEX) || false
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -164,18 +157,6 @@
     document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
     input.focus()
   })
-
-
-  // Katex rendering
-  let renderLatex = (text: string): string => {
-    if (renderLatexFlag == true) {
-      const katexOptions = { throwOnError: false };
-      marked.use(markedKatex(katexOptions));
-      return marked(text);
-    }
-
-    return text;
-  };
 
   // Send API request
   const sendRequest = async (messages: Message[]): Promise<Response> => {
