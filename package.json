@@ -19,7 +19,7 @@
     "@rollup/plugin-dsv": "^3.0.2",
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
     "@tauri-apps/cli": "^1.2.3",
-    "@tsconfig/svelte": "^3.0.0",
+    "@tsconfig/svelte": "^4.0.0",
     "@types/marked": "^4.0.8",
     "@types/node": "^18.15.10",
     "bulma": "^0.9.4",
