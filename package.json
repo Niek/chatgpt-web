@@ -39,5 +39,8 @@
     "tslib": "^2.5.0",
     "typescript": "^5.0.2",
     "vite": "^4.1.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }
