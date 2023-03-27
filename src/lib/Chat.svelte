@@ -441,6 +441,7 @@
       <p class="modal-card-title">Settings</p>
     </header>
     <section class="modal-card-body">
+      <p class="notification is-warning">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p>
       {#each settingsMap as setting}
         <div class="field is-horizontal">
           <div class="field-label is-normal">
