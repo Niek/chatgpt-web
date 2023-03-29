@@ -298,7 +298,8 @@
 
   const showChatNameSettings = () => {
     chatNameSettings.classList.add('is-active');
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus()
+    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
+    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).select()
   }
 
   const saveChatNameSettings = () => {
