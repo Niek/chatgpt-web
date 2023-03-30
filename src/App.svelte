@@ -41,9 +41,9 @@
 
 <Navbar />
 
-<section class="section">
-  <div class="container is-fullhd">
-    <div class="columns">
+<section class="section is-flex is-flex-grow-1	">
+  <div class="container is-fullhd is-flex is-flex-direction-row is-flex-grow-1">
+    <div class="columns is-flex is-flex-grow-1">
       <div class="column is-one-fifth">
         <Sidebar />
       </div>

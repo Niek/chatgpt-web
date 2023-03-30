@@ -15,21 +15,7 @@
   min-height: 100vh;
 
   section.section {
-    flex-grow: 1;
-    display: flex;
     padding-bottom: 5px;
-  }
-
-  div.container {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: row;
-  }
-
-  div.columns {
-    display: flex;
-    flex-grow: 1;
-
   }
 
 }
