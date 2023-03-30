@@ -16,7 +16,22 @@
 
   section.section {
     flex-grow: 1;
+    display: flex;
+    padding-bottom: 5px;
   }
+
+  div.container {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: row;
+  }
+
+  div.columns {
+    display: flex;
+    flex-grow: 1;
+
+  }
+
 }
 
 .rotate {
@@ -52,7 +67,7 @@ a.is-disabled {
 }
 
 /* Swap the border on user messages to the other side */
-.user-message>.message-body {
+.user-message > .message-body {
   border-width: 0 4px 0 0 !important;
 }
 
@@ -92,7 +107,7 @@ $modal-content-width: 1000px;
 
   100% {
     background-color: initial
-      /* Default color */
+    /* Default color */
   }
 }
 
@@ -106,7 +121,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 /* Support for copy code button */
-.code-block>button {
+.code-block > button {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -126,6 +141,17 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
       background-color: initial;
     }
   }
+}
+
+#content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.message-container {
+  flex-grow: 1;
+  margin-bottom: 30px;
 }
 
 /* Loading chat messages */
