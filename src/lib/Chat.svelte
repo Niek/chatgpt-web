@@ -377,21 +377,21 @@
   </div>
 </nav>
 
-<div class="message-container">
-    <Messages bind:input messages={chat.messages} defaultModel={modelSetting.default}/>
+<div class="message-container is-flex-grow-1 mb-5">
+  <Messages bind:input messages={chat.messages} defaultModel={modelSetting.default}/>
 
-    {#if updating}
-        <article class="message is-success assistant-message">
-            <div class="message-body content">
-                <span class="is-loading"/>
-            </div>
-        </article>
-    {/if}
+  {#if updating}
+    <article class="message is-success assistant-message">
+      <div class="message-body content">
+        <span class="is-loading"/>
+      </div>
+    </article>
+  {/if}
 
 
-    {#if chat.messages.length === 0}
-        <Prompts bind:input/>
-    {/if}
+  {#if chat.messages.length === 0}
+      <Prompts bind:input/>
+  {/if}
 </div>
 
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>

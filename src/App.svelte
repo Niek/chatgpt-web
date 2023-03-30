@@ -41,13 +41,13 @@
 
 <Navbar />
 
-<section class="section is-flex is-flex-grow-1	">
+<section class="section is-flex is-flex-grow-1 pb-5">
   <div class="container is-fullhd is-flex is-flex-direction-row is-flex-grow-1">
     <div class="columns is-flex is-flex-grow-1">
       <div class="column is-one-fifth">
         <Sidebar />
       </div>
-      <div class="column is-four-fifths" id="content">
+      <div class="column is-four-fifths is-flex is-flex-direction-column" id="content">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}

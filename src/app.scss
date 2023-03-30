@@ -13,11 +13,6 @@
   flex-direction: column;
   flex-grow: 1;
   min-height: 100vh;
-
-  section.section {
-    padding-bottom: 5px;
-  }
-
 }
 
 .rotate {
@@ -127,17 +122,6 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
       background-color: initial;
     }
   }
-}
-
-#content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.message-container {
-  flex-grow: 1;
-  margin-bottom: 30px;
 }
 
 /* Loading chat messages */
