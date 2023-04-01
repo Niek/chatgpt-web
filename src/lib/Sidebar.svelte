@@ -38,9 +38,9 @@
       <li>
         <ul>
           {#each sortedChats as chat}
-            <li>
+            <li class="group">
               <a style="position: relative" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
-                <a class="is-pulled-right is-hidden px-1 py-0 grayscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}>🗑️</a>
+                <a class="is-pulled-right !hidden group-hover:!block px-1 py-0 grayscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}>🗑️</a>
                 {chat.name || `Chat ${chat.id}`}
               </a>
             </li>
@@ -61,7 +61,7 @@
         ><span class="grayscale mr-2">➕</span> New chat</a
       >
     </li>
-    <li>
+    <li class="group">
       <a class="panel-block"
         href="{'#/'}"
         class:is-disabled={!$apiKeyStorage}
