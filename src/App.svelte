@@ -1,6 +1,7 @@
 <script lang="ts">
   import Router, { location, querystring, replace } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
+  import { Alert } from 'flowbite-svelte'
 
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
