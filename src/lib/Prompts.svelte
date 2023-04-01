@@ -14,9 +14,9 @@
 </script>
 
 {#if input}
-<div class="columns is-centered">
-  <div class="column is-half">
-    <div class="dropdown is-fullwidth" class:is-active={active}>
+<div class="">
+  <div class="flex justify-center">
+    <div class="dropdown mx-auto mb-8" class:is-active={active}>
       <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div class="dropdown-trigger" on:click={() => { active = !active }}>
         <button class="button is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu">

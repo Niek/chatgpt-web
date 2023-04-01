@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "/node_modules/bulma/bulma.sass";
+@import "/node_modules/bulma-prefers-dark/build/bulma-prefers-dark.sass";
+
+#app{
+  min-height: 100vh;
+  @apply flex flex-col;
+}

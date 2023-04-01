@@ -42,19 +42,19 @@
 
 <Navbar />
 
-<section class="section">
-  <div class="container is-fullhd">
-    <div class="columns">
-      <div class="column is-one-fifth">
+<section class="flex flex-col grow mx-4">
+
+    <div class="flex flex-col gap-x-2 md:flex-row">
+      <div class="flex basis-1/5">
         <Sidebar />
       </div>
-      <div class="column is-four-fifths" id="content">
+      <div class="flex basis-4/5 flex-col grow" id="content">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
       </div>
     </div>
-  </div>
+
 </section>
 
 <Footer />

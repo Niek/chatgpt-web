@@ -358,7 +358,7 @@
   }
 </script>
 
-<nav class="level chat-header">
+<nav class="level chat-header mt-4">
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
@@ -377,6 +377,8 @@
   </div>
 </nav>
 
+<div class="flex flex-col grow mb-4">
+
 <Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
 
 {#if updating}
@@ -390,6 +392,8 @@
 {#if chat.messages.length === 0}
   <Prompts bind:input />
 {/if}
+
+  </div>
 
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">

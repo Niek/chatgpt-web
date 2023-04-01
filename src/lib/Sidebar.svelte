@@ -29,7 +29,7 @@
   }
 </script>
 
-<aside class="menu">
+<aside class="menu grow">
   <p class="menu-label">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
