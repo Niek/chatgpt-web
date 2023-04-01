@@ -358,14 +358,14 @@
   }
 </script>
 
-<nav class="level chat-header mt-4">
+<nav class="level chat-header mt-4 group/edit">
   <div class="level-left">
     <div class="level-item">
-      <p class="subtitle is-5">
+      <p class="subtitle is-5 ">
         {chat.name || `Chat ${chat.id}`}
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
+        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
+        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
+        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
       </p>
     </div>
   </div>
