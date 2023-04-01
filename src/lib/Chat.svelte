@@ -363,16 +363,16 @@
     <div class="level-item">
       <p class="subtitle is-5 ">
         {chat.name || `Chat ${chat.id}`}
-        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
-        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
-        <a href={'#'} class="greyscale ml-2 hidden group-hover/edit:inline editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
+        <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
+        <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
+        <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
       </p>
     </div>
   </div>
 
   <div class="level-right">
     <p class="level-item">
-      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
+      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</button>
     </p>
   </div>
 </nav>
@@ -418,11 +418,11 @@
   </p>
   <p class="control" class:is-hidden={!recognition}>
     <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="greyscale">🎤</span></button
+      ><span class="grayscale">🎤</span></button
     >
   </p>
   <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
+    <button class="button" on:click|preventDefault={showSettings}><span class="grayscale">⚙️</span></button>
   </p>
   <p class="control">
     <button class="button is-info" type="submit">Send</button>

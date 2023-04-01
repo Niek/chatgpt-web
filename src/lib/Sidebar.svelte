@@ -40,7 +40,7 @@
           {#each sortedChats as chat}
             <li>
               <a style="position: relative" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
-                <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}>🗑️</a>
+                <a class="is-pulled-right is-hidden px-1 py-0 grayscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}>🗑️</a>
                 {chat.name || `Chat ${chat.id}`}
               </a>
             </li>
@@ -53,12 +53,12 @@
   <ul class="menu-list">
     <li>
       <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
-        ><span class="greyscale mr-2">🔑</span> API key</a
+        ><span class="grayscale mr-2">🔑</span> API key</a
       >
     </li>
     <li>
       <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
-        ><span class="greyscale mr-2">➕</span> New chat</a
+        ><span class="grayscale mr-2">➕</span> New chat</a
       >
     </li>
     <li>
@@ -70,7 +70,7 @@
           if (confirmDelete) {
             replace('#/').then(() => clearChats())
           }
-        }}><span class="greyscale mr-2">🗑️</span> Clear chats</a
+        }}><span class="grayscale mr-2">🗑️</span> Clear chats</a
       >
     </li>
     {#if activeChatId}
@@ -83,7 +83,7 @@
             if (activeChatId) {
               exportAsMarkdown(activeChatId)
             }
-          }}><span class="greyscale mr-2">📥</span> Export chat</a
+          }}><span class="grayscale mr-2">📥</span> Export chat</a
         >
       </li>
     {/if}

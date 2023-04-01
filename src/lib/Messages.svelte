@@ -41,7 +41,7 @@
       <div class="message-body content">
         <a
           href={'#'}
-          class="greyscale is-pulled-right ml-2 is-hidden editbutton"
+          class="grayscale is-pulled-right ml-2 is-hidden editbutton"
           on:click={() => {
             input.value = message.content
             input.focus()
