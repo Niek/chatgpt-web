@@ -42,8 +42,9 @@
 
 <Navbar />
 
-<section class="flex flex-col grow mx-4">
+<section class="flex flex-col grow">
 
+    <div class="mx-4">
     <div class="flex flex-col gap-x-2 md:flex-row">
       <div class="flex basis-1/5">
         <Sidebar />
@@ -53,6 +54,8 @@
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
       </div>
+    </div>
+
     </div>
 
 </section>
