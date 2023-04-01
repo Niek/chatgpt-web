@@ -1,12 +1,5 @@
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p>
-      <strong>ChatGPT-web</strong>
-      by
-      <a href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      &mdash; see
-      <a href="https://github.com/Niek/chatgpt-web">GitHub</a>
-      for source code.
-    </p>
+<footer class="footer text-center w-full py-12 bg-gray-900">
+  <div class="text-white mx-auto text-center">
+    <strong>ChatGPT-web</strong> by <a class="text-blue-400 hover:underline" href="https://niekvandermaas.nl/">Niek van der Maas</a> —  see <a class="text-blue-400 hover:underline" href="https://github.com/Niek/chatgpt-web">GitHub</a> for source code.
   </div>
 </footer>
