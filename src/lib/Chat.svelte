@@ -181,7 +181,7 @@
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value
+          const value = $settingsStorage.find((s:Settings) => s.key === setting.key)?.value || settingsMap.find(s => s.key === setting.key).default
           if (value) {
             acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
           }
