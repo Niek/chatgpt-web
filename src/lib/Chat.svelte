@@ -33,6 +33,7 @@
 
   import { Button, Modal, Label, Input, Checkbox, Alert, Select, Dropdown, Radio, Helper } from 'flowbite-svelte'
   let settingsModalVisible = false
+  let renameModalVisible = false
   
   const modelSetting: Settings & SettingsSelect = {
     key: 'model',
@@ -299,10 +300,12 @@
     }
   }
 
-  const showChatNameSettings = () => {
-    chatNameSettings.classList.add('is-active');
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).select()
+  async function showChatNameSettings () {
+    renameModalVisible = true
+    setTimeout(() => {
+      (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
+      (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).select()
+    }, 0)
   }
 
   const saveChatNameSettings = () => {
@@ -316,7 +319,7 @@
   }
 
   const closeChatNameSettings = () => {
-    chatNameSettings.classList.remove('is-active')
+    renameModalVisible = false
   }
 
   const openSettings = async () => {
@@ -490,38 +493,14 @@
   </form>
 </Modal>
 
+<Modal bind:open={renameModalVisible}  size="xs" autoclose={false} class="w-full">
+  <form bind:this={chatNameSettings} class="flex flex-col space-y-6" action="#">
+    <h3 class="text-xl font-medium text-gray-900 dark:text-white p-0">Rename {chat.name}</h3>
 
+    <Input  type="text" id="settings-chat-name" value={chat.name}/>
 
+    <Button color="red" on:click={closeChatNameSettings}>Cancel</Button>
+    <Button on:click={saveChatNameSettings}>Save and Close</Button>
 
-<!-- rename modal -->
-<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click={closeChatNameSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Enter a new name for this chat</p>
-    </header>
-    <section class="modal-card-body">
-      <div class="field is-horizontal">
-        <div class="field-label is-normal">
-          <label class="label" for="settings-chat-name">New name:</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <input
-              class="input"
-              type="text"
-              id="settings-chat-name"
-              value={chat.name}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-    <footer class="modal-card-foot">
-      <input type="submit" class="button is-info" value="Save" />
-      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
-    </footer>
-  </div>
-</form>
-<!-- end -->
+  </form>
+</Modal>
