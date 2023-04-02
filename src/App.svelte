@@ -43,20 +43,17 @@
 <Navbar />
 
 <section class="flex flex-col grow">
-
-    <div class="mx-4">
-    <div class="flex flex-col gap-x-2 md:flex-row">
-      <div class="flex basis-1/5">
+    <div class="flex flex-col grow gap-x-2 items-stretch md:flex-row">
+      <div id="sidebar" class="flex basis-0 md:basis-1/5">
         <Sidebar />
       </div>
-      <div class="flex basis-4/5 flex-col grow" id="content">
+      <div  id="content" class="flex basis-0 md:basis-4/5 flex-col  p-4">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
       </div>
     </div>
 
-    </div>
 
 </section>
 

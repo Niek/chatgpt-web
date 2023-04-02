@@ -29,8 +29,8 @@
   }
 </script>
 
-<aside class="menu grow">
-  <p class="menu-label">Chats</p>
+<aside class="menu grow pt-4 ">
+  <p class="menu-label ml-3">Chats</p>
   <ul class="menu-list">
     {#if sortedChats.length === 0}
       <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
@@ -49,7 +49,8 @@
       </li>
     {/if}
   </ul>
-  <p class="menu-label">Actions</p>
+  <div class="ml-3">
+   <p class="menu-label">Actions</p>
   <ul class="menu-list">
     <li>
       <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
@@ -88,4 +89,6 @@
       </li>
     {/if}
   </ul>
+    </div>
+
 </aside>
