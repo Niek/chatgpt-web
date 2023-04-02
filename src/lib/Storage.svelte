@@ -1,10 +1,12 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
   import { get } from 'svelte/store'
-  import type { Chat, Message } from './Types.svelte'
+  import type { Chat, Message, Settings } from './Types.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const apiKeyStorage = persisted('apiKey', '' as string)
+
+  export const settingsStorage = persisted('settings', [] as Settings[])
 
   export const addChat = (): number => {
     const chats = get(chatsStorage)
@@ -52,4 +54,9 @@
     const chats = get(chatsStorage)
     chatsStorage.set(chats.filter((chat) => chat.id !== chatId))
   }
+
+  export const updateSettings = (settings: Settings[]) => {
+    settingsStorage.set(settings)
+  }
+
 </script>

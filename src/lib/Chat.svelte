@@ -1,7 +1,7 @@
 <script lang="ts">
   // import { fetchEventSource } from '@microsoft/fetch-event-source'
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, settingsStorage, addMessage, clearMessages, updateSettings } from './Storage.svelte'
   import {
     type Request,
     type Response,
@@ -26,11 +26,14 @@
   
   let updating: boolean = false
   let input: HTMLTextAreaElement
-  let settings: HTMLDivElement
+  let settings: HTMLFormElement
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
 
+  import { Button, Modal, Label, Input, Checkbox, Alert, Select, Dropdown, Radio, Helper } from 'flowbite-svelte'
+  let settingsModalVisible = false
+  
   const modelSetting: Settings & SettingsSelect = {
     key: 'model',
     name: 'Model',
@@ -316,8 +319,8 @@
     chatNameSettings.classList.remove('is-active')
   }
 
-  const showSettings = async () => {
-    settings.classList.add('is-active')
+  const openSettings = async () => {
+    settingsModalVisible = true
 
     // Load available models from OpenAI
     const allModels = (await (
@@ -337,11 +340,24 @@
   }
 
   const closeSettings = () => {
-    settings.classList.remove('is-active')
+    saveSettings()
+    settingsModalVisible = false
+  }
+
+  const saveSettings = () => {
+    const newSettings:Settings[] = []
+    // Save the settings
+    settingsMap.forEach((setting) => {
+      const input = document.querySelector(`#settings-${setting.key}`) as HTMLInputElement
+      setting.value = input.value
+      newSettings.push(setting)
+    })
+    updateSettings(newSettings)
   }
 
   const clearSettings = () => {
     settingsMap.forEach((setting) => {
+      console.log('clearing', setting.key)
       const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
       input.value = ''
     })
@@ -422,7 +438,7 @@
     >
   </p>
   <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="grayscale">⚙️</span></button>
+    <button class="button" on:click|preventDefault={openSettings}><span class="grayscale">⚙️</span></button>
   </p>
   <p class="control">
     <button class="button is-info" type="submit">Send</button>
@@ -439,54 +455,43 @@
 />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" bind:this={settings}>
-  <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Settings</p>
-    </header>
-    <section class="modal-card-body">
-      <p class="notification is-warning">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p>
-      {#each settingsMap as setting}
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label" for="settings-{setting.key}">{setting.name}</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              {#if setting.type === 'number'}
-                <input
-                  class="input"
-                  inputmode="decimal"
-                  type={setting.type}
-                  title="{setting.title}"
-                  id="settings-{setting.key}"
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  placeholder={String(setting.default)}
-                />
-              {:else if setting.type === 'select'}
-                <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}">
-                    {#each setting.options as option}
-                      <option value={option} selected={option === setting.default}>{option}</option>
-                    {/each}
-                  </select>
-                </div>
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/each}
-    </section>
+<Modal bind:open={settingsModalVisible}  size="xs" autoclose={false} class="w-full">
+  <form class="flex flex-col space-y-6" action="#" bind:this={settings}>
+    <h3 class="text-xl font-medium text-gray-900 dark:text-white p-0">Settings</h3>
+  <Alert rounded border color="yellow">
+    <span class="font-medium">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</span>
+  </Alert>
 
-    <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
-      <button class="button" on:click={clearSettings}>Clear settings</button>
-    </footer>
-  </div>
-</div>
+  {#each settingsMap as setting}
+     <Label class="space-y-1"><span>{setting.name}</span>
+
+       {#if setting.type === 'number'}
+         <Input type={setting.type}
+                inputmode="decimal"
+                title="{setting.title}"
+                id="settings-{setting.key}"
+                min={setting.min}
+                max={setting.max}
+                step={setting.step}
+                value={$settingsStorage.find((s) => s.key === setting.key)?.value || ''}
+                placeholder={String(setting.default)}>
+         </Input>
+       {:else if setting.type === 'select'}
+          <Select id="settings-{setting.key}" title="{setting.title}">
+            {#each setting.options as option}
+              <option value={option} selected={option === setting.default}>{option}</option>
+            {/each}
+          </Select>
+        {/if}
+     </Label>
+    {/each}
+  <Button on:click={closeSettings}>Save and Close</Button>
+  <Button color="red" on:click={clearSettings}>Clear settings</Button>
+  </form>
+</Modal>
+
+
+
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
