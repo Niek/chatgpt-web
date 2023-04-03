@@ -32,6 +32,7 @@
     }
 </script>
 
+
 {#each messages as message}
   {#if message.role === 'user'}
     <article
@@ -41,7 +42,7 @@
       <div class="message-body content">
         <a
           href={'#'}
-          class="grayscale is-pulled-right ml-2 is-hidden editbutton"
+          class="grayscale ml-2 hidden editbutton"
           on:click={() => {
             input.value = message.content
             input.focus()
@@ -63,7 +64,7 @@
       <div class="message-body content">
         <SvelteMarkdown source={message.content} options={markedownOptions} renderers={{ code: Code, html: Code }}/>
         {#if message.usage}
-          <p class="is-size-7">
+          <p class="text-xs text-gray-500">
             This message was generated on <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
             tokens ~= <span class="has-text-weight-bold">${getPrice(message.usage, message.model || defaultModel).toFixed(6)}</span>
           </p>

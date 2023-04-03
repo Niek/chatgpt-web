@@ -323,7 +323,6 @@
   }
 
   const openSettings = async () => {
-    console.log('open')
     settingsModalVisible = true
 
     // Load available models from OpenAI
@@ -389,7 +388,7 @@
   <Button size="xs" color="yellow" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</Button>
 </nav>
 
-<div class="flex flex-col grow mb-4">
+<div class="flex flex-col grow gap-y-4 mb-4">
 
 <Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
 

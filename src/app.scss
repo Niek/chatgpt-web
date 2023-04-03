@@ -8,3 +8,36 @@
   min-height: 100vh;
   @apply flex flex-col;
 }
+
+.message {
+
+  width: 90%;
+  @apply bg-gray-800;
+  @apply p-4;
+
+  &.is-info{
+    @apply border-l-blue-400 border-l-2;
+    @apply rounded-r;
+    @apply pl-2;
+  }
+
+  &.is-success{
+    @apply border-r-green-400 border-r-2;
+    @apply rounded-l;
+    @apply pr-2;
+  }
+
+  &.is-danger{
+    @apply border-r-red-400 border-r-2;
+    @apply rounded-l;
+    @apply text-red-500;
+  }
+
+  &.assistant-message {
+    @apply self-end;
+  }
+
+  &.user-message {
+    @apply self-start;
+  }
+}
