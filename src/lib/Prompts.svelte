@@ -1,5 +1,6 @@
 <script lang="ts">
   import prompts from '../awesome-chatgpt-prompts/prompts.csv'
+  import { Dropdown, DropdownItem, Button, Chevron } from 'flowbite-svelte'
 
   const inputPrompt = (prompt: string) => {
     input.value = prompt
@@ -14,30 +15,16 @@
 </script>
 
 {#if input}
-<div class="">
-  <div class="flex justify-center">
-    <div class="dropdown mx-auto mb-8" class:is-active={active}>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <div class="dropdown-trigger" on:click={() => { active = !active }}>
-        <button class="button is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu">
-          <span>Select a pre-made prompt</span>
-          <span class="icon is-small">👇</span>
-        </button>
-      </div>
-      <div class="dropdown-menu" id="dropdown-menu" role="menu">
-        <div class="dropdown-content">
-          {#each prompts as prompt}
-            <a title={prompt.prompt} class="dropdown-item" href={'#'} on:click|preventDefault={() => inputPrompt(prompt.prompt)}>
-              {prompt.act}
-            </a>
-          {/each}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="mx-auto">
+<Button color="dark"><Chevron>Select a pre-made prompt 👇</Chevron></Button>
+<Dropdown >
+  {#each prompts as prompt}
+    <DropdownItem title="{prompt.prompt}" on:click={() => inputPrompt(prompt.prompt)}>{prompt.act}</DropdownItem>
+  {/each}
 
-<div class="columns is-centered">
-  <div class="column is-half has-text-centered">or type below:</div>
+</Dropdown>
+  </div>
+<div class="mx-auto">
+  <div class="mt-2">or type below:</div>
 </div>
 {/if}
