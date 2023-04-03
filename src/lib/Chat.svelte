@@ -31,7 +31,7 @@
   let recognition: any = null
   let recording = false
 
-  import { Button, Modal, Label, Input, Alert, Select, Textarea, ToolbarButton } from 'flowbite-svelte'
+  import { Button, Modal, Label, Input, Alert, Select, ToolbarButton } from 'flowbite-svelte'
   let settingsModalVisible = false
   let renameModalVisible = false
   
@@ -437,10 +437,12 @@
                 placeholder="Type your message here..."></textarea>
 
     <ToolbarButton type="button">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <span class="grayscale" on:click|preventDefault={recordToggle}>🎤</span>
     </ToolbarButton>
 
     <ToolbarButton type="button">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <span class="grayscale" on:click|preventDefault={openSettings}>⚙️</span>
     </ToolbarButton>
 

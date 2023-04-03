@@ -1,6 +1,6 @@
 <script lang="ts">
   import { apiKeyStorage } from './Storage.svelte'
-  import {Button, Input} from "flowbite-svelte";
+  import { Button, Input } from 'flowbite-svelte'
 
   $: apiKey = $apiKeyStorage
 </script>
