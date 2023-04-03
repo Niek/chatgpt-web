@@ -1,5 +1,6 @@
 <script lang="ts">
   import { apiKeyStorage } from './Storage.svelte'
+  import {Button, Input} from "flowbite-svelte";
 
   $: apiKey = $apiKeyStorage
 </script>
@@ -28,17 +29,16 @@
       }}
     >
       <p class="control is-expanded">
-        <input
+        <Input
           aria-label="OpenAI API key"
           type="password"
           autocomplete="off"
           class="input"
-          class:is-danger={!apiKey}
           value={apiKey}
         />
       </p>
-      <p class="control">
-        <button class="button is-info" type="submit">Save</button>
+      <p class="mt-2">
+        <Button type="submit">Save</Button>
       </p>
     </form>
 
@@ -51,10 +51,11 @@
   </div>
 </article>
 {#if apiKey}
-  <article class="message is-info">
+
+  <article class="message">
     <div class="message-body">
       Select an existing chat on the sidebar, or
-      <a href={'#/chat/new'}>create a new chat</a>
+      <a class="underline text-blue-400 hover:text-blue-500" href={'#/chat/new'}>create a new chat</a>
     </div>
   </article>
 {/if}
