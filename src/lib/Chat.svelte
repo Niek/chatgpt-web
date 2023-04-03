@@ -378,23 +378,15 @@
   }
 </script>
 
-<nav class="level chat-header mt-4 group/edit">
-  <div class="level-left">
-    <div class="level-item">
-      <p class="subtitle is-5 ">
-        {chat.name || `Chat ${chat.id}`}
+<nav class="flex flex-row justify-between chat-header mt-4 t">
+  <div class="group/edit grow cursor-pointer">
+        <span class="text-lg">{chat.name || `Chat ${chat.id}`}</span>
         <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
         <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
         <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
-      </p>
-    </div>
   </div>
 
-  <div class="level-right">
-    <p class="level-item">
-      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</button>
-    </p>
-  </div>
+  <Button color="yellow" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</Button>
 </nav>
 
 <div class="flex flex-col grow mb-4">
