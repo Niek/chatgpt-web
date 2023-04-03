@@ -386,7 +386,7 @@
         <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
   </div>
 
-  <Button color="yellow" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</Button>
+  <Button size="xs" color="yellow" on:click={() => { clearMessages(chatId) }}><span class="grayscale mr-2">🗑️</span> Clear messages</Button>
 </nav>
 
 <div class="flex flex-col grow mb-4">
@@ -415,6 +415,13 @@
       <textarea bind:this={input} id="chat"
                 class="w-full rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:placeholder-gray-400 dark:text-white  border border-gray-200 dark:border-gray-600 mx-4 p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 rows="1"
+                  on:keydown={(e) => {
+                // Only send if Enter is pressed, not Shift+Enter
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  submitForm()
+                  e.preventDefault()
+                }
+              }}
                 placeholder="Type your message here..."></textarea>
 
     <ToolbarButton type="button">
