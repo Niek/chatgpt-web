@@ -31,7 +31,7 @@
   let recognition: any = null
   let recording = false
 
-  import { Button, Modal, Label, Input, Checkbox, Alert, Select, Dropdown, Radio, Helper } from 'flowbite-svelte'
+  import { Button, Modal, Label, Input, Alert, Select } from 'flowbite-svelte'
   let settingsModalVisible = false
   let renameModalVisible = false
   
