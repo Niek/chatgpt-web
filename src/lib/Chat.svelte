@@ -421,16 +421,22 @@
   <Alert color="dark" class="px-3 py-2">
     <svelte:fragment slot="icon">
 
-      <textarea bind:this={input} id="chat"
+      <textarea bind:this={input}
+                id="chat"
                 class="w-full rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:placeholder-gray-400 dark:text-white  border border-gray-200 dark:border-gray-600 mx-4 p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 rows="1"
-                  on:keydown={(e) => {
+                on:keydown={(e) => {
                 // Only send if Enter is pressed, not Shift+Enter
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  submitForm()
-                  e.preventDefault()
-                }
-              }}
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    submitForm()
+                    e.preventDefault()
+                  }
+                }}
+                on:input={(e) => {
+                  // Resize the textarea to fit the content - auto is important to reset the height after deleting content
+                  input.style.height = 'auto'
+                  input.style.height = input.scrollHeight + 'px'
+                }}
                 placeholder="Type your message here..."></textarea>
 
     <ToolbarButton type="button">
