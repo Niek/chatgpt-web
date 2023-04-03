@@ -9,6 +9,7 @@
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
+  import { Alert } from 'flowbite-svelte'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
@@ -43,8 +44,11 @@
 
 <section class="flex flex-col grow">
     <div class="flex flex-col grow gap-x-2 items-stretch md:flex-row">
-      <div id="sidebar" class="flex basis-0 md:basis-1/5">
+      <div id="sidebar" class="flex flex-col justify-end basis-0 md:basis-1/5 p-4">
         <Sidebar />
+        <!--Spacer element-->
+        <Alert color="opacity-0" class="px-3 py-2"><div class="invisible p-4">_</div></Alert>
+
       </div>
       <div  id="content" class="flex grow basis-0 md:basis-4/5 flex-col p-4">
         {#key $location}
