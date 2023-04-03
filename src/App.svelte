@@ -46,7 +46,7 @@
       <div id="sidebar" class="flex basis-0 md:basis-1/5">
         <Sidebar />
       </div>
-      <div  id="content" class="flex basis-0 md:basis-4/5 flex-col  p-4">
+      <div  id="content" class="flex grow basis-0 md:basis-4/5 flex-col p-4">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
