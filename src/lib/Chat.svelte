@@ -31,7 +31,7 @@
   let recognition: any = null
   let recording = false
 
-  import { Button, Modal, Label, Input, Alert, Select } from 'flowbite-svelte'
+  import { Button, Modal, Label, Input, Alert, Select, Textarea, ToolbarButton } from 'flowbite-svelte'
   let settingsModalVisible = false
   let renameModalVisible = false
   
@@ -323,6 +323,7 @@
   }
 
   const openSettings = async () => {
+    console.log('open')
     settingsModalVisible = true
 
     // Load available models from OpenAI
@@ -414,39 +415,32 @@
 
   </div>
 
-<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
-  <p class="control is-expanded">
-    <textarea
-      class="input is-info is-focused chat-input"
-      placeholder="Type your message here..."
-      rows="1"
-      on:keydown={(e) => {
-        // Only send if Enter is pressed, not Shift+Enter
-        if (e.key === 'Enter' && !e.shiftKey) {
-          submitForm()
-          e.preventDefault()
-        }
-      }}
-      on:input={(e) => {
-        // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-        input.style.height = 'auto'
-        input.style.height = input.scrollHeight + 'px'
-      }}
-      bind:this={input}
-    />
-  </p>
-  <p class="control" class:is-hidden={!recognition}>
-    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="grayscale">🎤</span></button
-    >
-  </p>
-  <p class="control">
-    <button class="button" on:click|preventDefault={openSettings}><span class="grayscale">⚙️</span></button>
-  </p>
-  <p class="control">
-    <button class="button is-info" type="submit">Send</button>
-  </p>
+<form on:submit|preventDefault={() => submitForm()}>
+  <label for="chat" class="sr-only">Your message</label>
+  <Alert color="dark" class="px-3 py-2">
+    <svelte:fragment slot="icon">
+
+      <textarea bind:this={input} id="chat"
+                class="w-full rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:placeholder-gray-400 dark:text-white  border border-gray-200 dark:border-gray-600 mx-4 p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                rows="1"
+                placeholder="Type your message here..."></textarea>
+
+    <ToolbarButton type="button">
+      <span class="grayscale" on:click|preventDefault={recordToggle}>🎤</span>
+    </ToolbarButton>
+
+    <ToolbarButton type="button">
+      <span class="grayscale" on:click|preventDefault={openSettings}>⚙️</span>
+    </ToolbarButton>
+
+    <ToolbarButton type="submit" color="blue" class="rounded-full text-blue-600 dark:text-blue-500 ml-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
+        <span class="sr-only">Send message</span>
+    </ToolbarButton>
+    </svelte:fragment>
+  </Alert>
 </form>
+
 
 <svelte:window
   on:keydown={(event) => {
