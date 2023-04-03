@@ -1,8 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "/node_modules/bulma/bulma.sass";
-@import "/node_modules/bulma-prefers-dark/build/bulma-prefers-dark.sass";
+
+body{
+  @apply bg-gray-900;
+  //@apply text-white;
+  color:rgb(181,181,181);
+
+}
 
 #app{
   min-height: 100vh;
