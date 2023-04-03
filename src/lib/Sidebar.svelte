@@ -34,7 +34,7 @@
     }
 </script>
 
-<Sidebar>
+<Sidebar class="w-full md:w-64">
     <SidebarWrapper>
         <SidebarGroup ulClass="my-0">
             {#each sortedChats as chat}
