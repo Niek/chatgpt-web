@@ -377,7 +377,7 @@
   }
 </script>
 
-<nav class="flex flex-row justify-between chat-header mt-4 t">
+<nav class="flex flex-row justify-between chat-header my-4">
   <div class="group/edit grow cursor-pointer">
         <span class="text-lg">{chat.name || `Chat ${chat.id}`}</span>
         <a href={'#'} class="grayscale ml-2 hidden group-hover/edit:inline editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
