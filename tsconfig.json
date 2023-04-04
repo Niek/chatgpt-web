@@ -7,6 +7,6 @@
     "resolveJsonModule": true,
     "strictNullChecks": true
   },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "vite.config.ts", "svelte.config.js","postcss.config.js"],
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "vite.config.ts", "svelte.config.js", "postcss.config.js", "tailwind.config.cjs"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

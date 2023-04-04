@@ -43,21 +43,19 @@
 <Navbar />
 
 <section class="flex flex-col grow">
-    <div class="flex flex-col grow gap-x-2 items-stretch md:flex-row mx-auto w-full max-w-[1936px]">
-      <div id="sidebar" class="flex flex-col justify-end basis-1/5 p-4">
-        <Sidebar />
-        <!--Spacer element-->
-        <Alert color="opacity-0" class="px-3 py-2"><div class="invisible p-4">_</div></Alert>
+  <div class="flex flex-col grow gap-x-2 items-stretch md:flex-row mx-auto w-full max-w-[1936px]">
+    <div id="sidebar" class="flex flex-col justify-end basis-1/5 p-4">
+      <Sidebar />
+      <!--Spacer element-->
+      <Alert color="opacity-0" class="px-3 py-2"><div class="invisible p-4">_</div></Alert>
 
-      </div>
-      <div  id="content" class="flex  flex-col grow p-4">
-        {#key $location}
-          <Router {routes} on:conditionsFailed={() => replace('/')}/>
-        {/key}
-      </div>
     </div>
-
-
+    <div id="content" class="flex flex-col grow p-4">
+      {#key $location}
+        <Router {routes} on:conditionsFailed={() => replace('/')}/>
+      {/key}
+    </div>
+  </div>
 </section>
 
 <Footer />
