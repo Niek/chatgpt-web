@@ -27,6 +27,8 @@
     "eslint-config-standard-with-typescript": "^34.0.1",
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.3",
+    "flowbite": "^1.6.4",
+    "flowbite-svelte": "^0.34.4",
     "postcss": "^8.4.21",
     "sass": "^1.60.0",
     "svelte": "^3.55.1",
@@ -39,11 +41,5 @@
     "tslib": "^2.5.0",
     "typescript": "^5.0.2",
     "vite": "^4.1.0"
-  },
-  "dependencies": {
-    "@popperjs/core": "^2.11.7",
-    "classnames": "^2.3.2",
-    "flowbite": "^1.6.4",
-    "flowbite-svelte": "^0.34.4"
   }
 }
