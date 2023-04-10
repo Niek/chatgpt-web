@@ -37,7 +37,7 @@
     "svelte-markdown": "^0.2.3",
     "svelte-spa-router": "^3.3.0",
     "tslib": "^2.5.0",
-    "typescript": "^5.0.3",
+    "typescript": "^5.0.4",
     "vite": "^4.1.0"
   }
 }
