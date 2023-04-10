@@ -4,8 +4,9 @@ services:
   chatgpt_web:
     container_name: chatgpt_web
     restart: always
-    depends_on:
-      - mocked_api
+    # depends_on:
+    #   - mocked_api
+    #   - llama_api
     env_file:
       - .env
     ports:
