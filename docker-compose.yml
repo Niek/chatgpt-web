@@ -30,7 +30,7 @@ services:
   #   build: ./llama_api/.
   #   ports:
   #     - 5174:8000
-  #  env_file:
+  #   env_file:
   #    - .env
   #   volumes:
   #     - ./models/:/models:cached
