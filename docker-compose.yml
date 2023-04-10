@@ -29,7 +29,7 @@ services:
   # llama_api:
   #   build: ./llama_api/.
   #   ports:
-  #     - 5175:8000
+  #     - 5174:8000
   #   environment:
   #     - MODEL=/models/7B/ggml-vicuna-7b-4bit.bin
   #   volumes:
