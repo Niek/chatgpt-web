@@ -26,11 +26,11 @@ services:
   #   ports:
   #     - 5174:5174
 
-  # llama-api:
-  #   build: ./llama-api/Dockerfile
+  # llama_api:
+  #   build: ./llama_api/.
   #   ports:
   #     - 5175:8000
   #   environment:
-  #     - MODEL=/models/ggml-vicuna-7b-4bit.bin
+  #     - MODEL=/models/7B/ggml-vicuna-7b-4bit.bin
   #   volumes:
-  #     - ./models/:/models
+  #     - ./models/:/models:cached
