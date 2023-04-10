@@ -44,6 +44,15 @@ git subtree pull --prefix src/awesome-chatgpt-prompts https://github.com/f/aweso
 docker compose up -d
 ```
 
+## Llama api
+If you want to use local/offline models using llama.cpp, you can use llama-cpp-python API instead. 
+
+To use the llama API:
+- Copy your models in the root of the project in a folder called `models`. 
+- Edit the `docker-compose.yml` file at the root of the project and uncomment the `llama-api` service and the `depends-on` in the chatgpt-web service.
+- Edit the `.env` file at root of the project and uncommentt the key `VITE_API_BASE=http://localhost:5174` in it. You will also need to alter the name of the model path to point to the model you wish to use.
+- Run the `docker compose up -d` command above.
+
 ## Mocked api
 If you don't want to wait for the API to respond, you can use the mocked API instead. To use the mocked API, edit the `.env` file at root of the project ans set the key `VITE_API_BASE=http://localhost:5174` in it. Then, run the `docker compose up -d` command above.
 
