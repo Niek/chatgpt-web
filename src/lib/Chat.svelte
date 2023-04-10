@@ -1,7 +1,7 @@
 <script lang="ts">
-  // import { fetchEventSource } from '@microsoft/fetch-event-source'
+  import { fetchEventSource } from '@microsoft/fetch-event-source'
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, addMessage, editMessage, clearMessages } from './Storage.svelte'
   import {
     type Request,
     type Response,
@@ -12,6 +12,7 @@
     type Chat,
     supportedModels
   } from './Types.svelte'
+  import {ChatCompletionResponse} from './ChatCompletionResponse.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
 
@@ -159,11 +160,8 @@
 
 
   // Send API request
-  const sendRequest = async (messages: Message[]): Promise<Response> => {
-    // Show updating bar
-    updating = true
-
-    let response: Response
+  const sendRequest = async (messages: Message[], streamResponse: boolean): Promise<ChatCompletionResponse> => {
+    const chatResponse = new ChatCompletionResponse()
     try {
       const request: Request = {
         // Submit only the role and content of the messages, provide the previous messages as well for context
@@ -182,48 +180,45 @@
             acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
           }
           return acc
-        }, {})
+        }, {}),
+        stream: streamResponse
       }
 
-      // Not working yet: a way to get the response as a stream
-      /*
-      request.stream = true
-      await fetchEventSource(apiBase + '/v1/chat/completions', {
+      const fetchOptions = {
         method: 'POST',
         headers: {
-          Authorization:
-          `Bearer ${$apiKeyStorage}`,
+          Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(request),
-        onmessage (ev) {
-          const data = JSON.parse(ev.data)
-          console.log(data)
-        },
-        onerror (err) {
-          throw err
-        }
-      })
-      */
+      }
 
-      response = await (
-        await fetch(apiBase + '/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
-            'Content-Type': 'application/json'
+      if (streamResponse) {
+        fetchEventSource(apiBase + '/v1/chat/completions', {
+          ...fetchOptions,
+          onmessage (ev) {
+            if (!chatResponse.hasFinished()) {
+              const data = JSON.parse(ev.data)
+              chatResponse.updateFromAsyncResponse(data)
+            }
           },
-          body: JSON.stringify(request)
+          onerror (err) {
+            throw err
+          }
+        }).catch(err => {
+          chatResponse.updateFromError(err.message)
         })
-      ).json()
+      } else {
+        const response = await fetch(apiBase + '/v1/chat/completions', fetchOptions)
+        const json = await response.json()
+        chatResponse.updateFromSyncResponse(json)
+      }
+
     } catch (e) {
-      response = { error: { message: e.message } } as Response
+      chatResponse.updateFromError(e.message)
     }
 
-    // Hide updating bar
-    updating = false
-
-    return response
+    return chatResponse
   }
 
 
@@ -239,28 +234,30 @@
     // Resize back to single line height
     input.style.height = 'auto'
 
-    const response = await sendRequest(chat.messages)
+    // Show updating indicator
+    updating = true
 
-    if (response.error) {
-      addMessage(chatId, {
-        role: 'error',
-        content: `Error: ${response.error.message}`
-      })
-    } else {
-      response.choices.forEach((choice) => {
-        // Store usage and model in the message
-        choice.message.usage = response.usage
-        choice.message.model = response.model
-  
-        // Remove whitespace around the message that the OpenAI API sometimes returns
-        choice.message.content = choice.message.content.trim()
-        addMessage(chatId, choice.message)
-        // Use TTS to read the response, if query was recorded
-        if (recorded && 'SpeechSynthesisUtterance' in window) {
-          const utterance = new SpeechSynthesisUtterance(choice.message.content)
-          window.speechSynthesis.speak(utterance)
-        }
-      })
+    // Start message fetch and update stored message upon change
+    const response = await sendRequest(chat.messages, true)
+    let messageIndex: Number
+    const upsertMessage = (message) => {
+      if (messageIndex) {
+        editMessage(chatId, messageIndex, message)
+      } else {
+        messageIndex = addMessage(chatId, message)
+        updating = false
+      }
+    };
+    response.onMessageChange(upsertMessage)
+
+    // Wait until we have the full message then store that once received
+    const finalMessage = await response.promiseToFinish()
+    upsertMessage(finalMessage)
+
+    // Use TTS to read the response, if query was recorded
+    if (recorded && 'SpeechSynthesisUtterance' in window) {
+      const utterance = new SpeechSynthesisUtterance(finalMessage.content)
+      window.speechSynthesis.speak(utterance)
     }
   }
 
@@ -271,21 +268,20 @@
     }
     addMessage(chatId, suggestMessage)
 
-    const response = await sendRequest(chat.messages)
+    // Show updating indicator
+    updating = true
 
-    if (response.error) {
-      addMessage(chatId, {
-        role: 'error',
-        content: `Error: ${response.error.message}`
-      })
-    } else {
-      response.choices.forEach((choice) => {
-        choice.message.usage = response.usage
-        addMessage(chatId, choice.message)
-        chat.name = choice.message.content
-        chatsStorage.set($chatsStorage)
-      })
-    }
+    // Get the response message
+    const response = await sendRequest(chat.messages, false)
+    const message = await response.promiseToFinish()
+    addMessage(chatId, message)
+
+    // Update chat name
+    chat.name = message.content
+    chatsStorage.set($chatsStorage)
+
+    // Remove updating indicator
+    updating = false
   }
 
   const deleteChat = () => {

@@ -26,11 +26,12 @@
     chatsStorage.set([])
   }
 
-  export const addMessage = (chatId: number, message: Message) => {
+  export const addMessage = (chatId: number, message: Message): number => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages.push(message)
     chatsStorage.set(chats)
+    return chat.messages.length - 1;
   }
 
   export const editMessage = (chatId: number, index: number, newMessage: Message) => {
