@@ -16,11 +16,20 @@ services:
       context: "."
       dockerfile: Dockerfile
 
-  mocked_api:
-    container_name: mocked_api
-    build:
-        context: "."
-        dockerfile: mocked_api/Dockerfile-mockapi
-    restart: always
-    ports:
-      - 5174:5174
+  # mocked_api:
+  #   container_name: mocked_api
+  #   build:
+  #       context: "."
+  #       dockerfile: mocked_api/Dockerfile-mockapi
+  #   restart: always
+  #   ports:
+  #     - 5174:5174
+
+  # llama-api:
+  #   build: ./llama-api/Dockerfile
+  #   ports:
+  #     - 5175:8000
+  #   environment:
+  #     - MODEL=/models/ggml-vicuna-7b-4bit.bin
+  #   volumes:
+  #     - ./models/:/models
