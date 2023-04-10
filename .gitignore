@@ -25,4 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 *.env
-models/
+
+# llama-api
+models
