@@ -31,7 +31,7 @@
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages.push(message)
     chatsStorage.set(chats)
-    return chat.messages.length - 1;
+    return chat.messages.length - 1
   }
 
   export const editMessage = (chatId: number, index: number, newMessage: Message) => {

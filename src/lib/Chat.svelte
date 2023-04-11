@@ -4,7 +4,6 @@
   import { apiKeyStorage, chatsStorage, addMessage, editMessage, clearMessages } from './Storage.svelte'
   import {
     type Request,
-    type Response,
     type Message,
     type Settings,
     type ResponseModels,
@@ -12,7 +11,7 @@
     type Chat,
     supportedModels
   } from './Types.svelte'
-  import {ChatCompletionResponse} from './ChatCompletionResponse.svelte'
+  import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
 
@@ -190,7 +189,7 @@
           Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(request),
+        body: JSON.stringify(request)
       }
 
       if (streamResponse) {
@@ -213,7 +212,6 @@
         const json = await response.json()
         chatResponse.updateFromSyncResponse(json)
       }
-
     } catch (e) {
       chatResponse.updateFromError(e.message)
     }
@@ -239,7 +237,7 @@
 
     // Start message fetch and update stored message upon change
     const response = await sendRequest(chat.messages, true)
-    let messageIndex: Number
+    let messageIndex: number
     const upsertMessage = (message) => {
       if (messageIndex) {
         editMessage(chatId, messageIndex, message)
@@ -247,7 +245,7 @@
         messageIndex = addMessage(chatId, message)
         updating = false
       }
-    };
+    }
     response.onMessageChange(upsertMessage)
 
     // Wait until we have the full message then store that once received
