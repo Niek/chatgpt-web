@@ -162,6 +162,9 @@
   const sendRequest = async (messages: Message[], streamResponse: boolean): Promise<ChatCompletionResponse> => {
     const chatResponse = new ChatCompletionResponse()
     try {
+      // Show updating indicator
+      updating = true
+  
       const request: Request = {
         // Submit only the role and content of the messages, provide the previous messages as well for context
         messages: messages
@@ -196,6 +199,9 @@
         fetchEventSource(apiBase + '/v1/chat/completions', {
           ...fetchOptions,
           onmessage (ev) {
+            // Remove updating indicator
+            updating = false
+  
             if (!chatResponse.hasFinished()) {
               const data = JSON.parse(ev.data)
               chatResponse.updateFromAsyncResponse(data)
@@ -210,6 +216,10 @@
       } else {
         const response = await fetch(apiBase + '/v1/chat/completions', fetchOptions)
         const json = await response.json()
+  
+        // Remove updating indicator
+        updating = false
+
         chatResponse.updateFromSyncResponse(json)
       }
     } catch (e) {
@@ -231,9 +241,6 @@
 
     // Resize back to single line height
     input.style.height = 'auto'
-
-    // Show updating indicator
-    updating = true
 
     // Start message fetch and update stored message upon change
     const response = await sendRequest(chat.messages, true)
@@ -266,9 +273,6 @@
     }
     addMessage(chatId, suggestMessage)
 
-    // Show updating indicator
-    updating = true
-
     // Get the response message
     const response = await sendRequest(chat.messages, false)
     const message = await response.promiseToFinish()
@@ -277,9 +281,6 @@
     // Update chat name
     chat.name = message.content
     chatsStorage.set($chatsStorage)
-
-    // Remove updating indicator
-    updating = false
   }
 
   const deleteChat = () => {

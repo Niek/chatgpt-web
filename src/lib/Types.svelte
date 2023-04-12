@@ -71,10 +71,7 @@
       index: number;
       message: Message;
       finish_reason: string;
-      delta?: {
-        role: 'user' | 'assistant' | 'system' | 'error';
-        content: string;
-      };
+      delta?: Message;
     }[];
     usage: Usage;
     model: Model;

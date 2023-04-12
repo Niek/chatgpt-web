@@ -2,88 +2,63 @@
 import type { Message, Response } from './Types.svelte'
 
 export class ChatCompletionResponse {
-  private message: Message
-  private finishPromise: Promise<Message>
-  private finishResolver: (value: Message) => void
-  private finished: boolean = false
-  private messageChangeListeners: ((m: Message) => void)[] = []
-
-  public constructor () {
-    this.message = {
-      role: 'assistant',
-      content: '',
-      usage: undefined,
-      model: undefined
-    }
-
-    this.finishPromise = new Promise<Message>((resolve, reject) => {
-      this.finishResolver = resolve
-    })
+  private message: Message = {
+    role: 'assistant',
+    content: ''
   }
 
-  public updateFromSyncResponse (responseData: Response) {
+  private finishResolver: (value: Message) => void
+  private finishPromise = new Promise<Message>((resolve) => {
+    this.finishResolver = resolve
+  })
+
+  private finished = false
+  private messageChangeListeners: ((m: Message) => void)[] = []
+
+  updateFromSyncResponse (responseData: Response) {
     this.message.usage = responseData.usage
     this.message.model = responseData.model
     const choiceMessage = responseData.choices[0].message
     this.message.role = choiceMessage.role
     this.message.content = choiceMessage.content.trim()
-    this.messageChange()
+    this.notifyMessageChange()
     this.finish()
   }
 
-  public updateFromAsyncResponse (responseData: Response) {
+  updateFromAsyncResponse (responseData: Response) {
     this.message.model = responseData.model
     const choice = responseData.choices[0]
-
-    // Role typically provided on first chunk of data
-    if (choice.delta?.role) {
-      this.message.role = choice.delta.role
-    }
-
-    // Content not provided in some chunks of data
-    if (choice.delta?.content) {
-      this.message.content += choice.delta.content
-    }
-
-    this.messageChange()
-    if (choice.finish_reason !== null) {
-      this.finish()
-    }
+    choice.delta?.role && (this.message.role = choice.delta.role)
+    choice.delta?.content && (this.message.content += choice.delta.content)
+    this.notifyMessageChange()
+    if (choice.finish_reason !== null) this.finish()
   }
 
-  public updateFromError (errorMessage: string) {
+  updateFromError (errorMessage: string): void {
     this.message.role = 'error'
     this.message.content = `Error: ${errorMessage}`
-    this.messageChange()
+    this.notifyMessageChange()
     this.finish()
   }
 
-  public onMessageChange (listener: (m: Message) => void) {
+  onMessageChange = (listener: (m: Message) => void): number =>
     this.messageChangeListeners.push(listener)
+
+  promiseToFinish = (): Promise<Message> => this.finishPromise
+
+  hasFinished = (): boolean => this.finished
+
+  private notifyMessageChange (): void {
+    this.messageChangeListeners.forEach((listener) => {
+      listener(this.getMessageCopy())
+    })
   }
 
-  public promiseToFinish () {
-    return this.finishPromise
-  }
+  private getMessageCopy = (): Message => JSON.parse(JSON.stringify(this.message)) as Message
 
-  public hasFinished () {
-    return this.finished
-  }
-
-  private messageChange () {
-    for (const listener of this.messageChangeListeners) {
-      listener(this.copyMessage())
-    }
-  }
-
-  private copyMessage () {
-    return JSON.parse(JSON.stringify(this.message)) as Message
-  }
-
-  private finish () {
+  private finish = (): void => {
     this.finished = true
-    this.finishResolver(this.copyMessage())
+    this.finishResolver(this.getMessageCopy())
   }
 }
-
 </script>
