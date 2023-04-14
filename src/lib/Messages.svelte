@@ -52,7 +52,13 @@
         <SvelteMarkdown source={message.content} options={markedownOptions} renderers={{ code: Code, html: Code }}/>
       </div>
     </article>
-  {:else if message.role === 'system' || message.role === 'error'}
+  {:else if message.role === 'system'}
+    <article class="message is-warning user-message">
+      <div class="message-body content">
+        <SvelteMarkdown source={message.content} options={markedownOptions} renderers={{ code: Code, html: Code }}/>
+      </div>
+    </article>
+  {:else if message.role === 'error'}
     <article class="message is-danger assistant-message">
       <div class="message-body content">
         <SvelteMarkdown source={message.content} options={markedownOptions} renderers={{ code: Code, html: Code }}/>

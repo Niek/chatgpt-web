@@ -29,15 +29,15 @@
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.3",
     "postcss": "^8.4.21",
-    "sass": "^1.60.0",
+    "sass": "^1.61.0",
     "svelte": "^3.58.0",
-    "svelte-check": "^3.1.2",
+    "svelte-check": "^3.2.0",
     "svelte-highlight": "^7.2.1",
     "svelte-local-storage-store": "^0.4.0",
     "svelte-markdown": "^0.2.3",
     "svelte-spa-router": "^3.3.0",
     "tslib": "^2.5.0",
-    "typescript": "^5.0.3",
+    "typescript": "^5.0.4",
     "vite": "^4.1.0"
   }
 }
