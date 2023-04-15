@@ -14,7 +14,6 @@
     "lint": "eslint . --fix"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^5.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rollup/plugin-dsv": "^3.0.2",
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
