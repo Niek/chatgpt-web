@@ -50,7 +50,7 @@
       <Alert color="opacity-0" class="px-3 py-2"><div class="invisible p-4">_</div></Alert>
 
     </div>
-    <div id="content" class="flex flex-col grow p-4">
+    <div id="content" class="flex flex-col grow p-4 overflow-x-scroll">
       {#key $location}
         <Router {routes} on:conditionsFailed={() => replace('/')}/>
       {/key}
