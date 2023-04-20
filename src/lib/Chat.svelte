@@ -420,11 +420,11 @@
       bind:this={input}
     />
   </p>
-  <p class="control" class:is-hidden={!recognition}>
+<!--   <p class="control" class:is-hidden={!recognition}>
     <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
       ><span class="greyscale">🎤</span></button
     >
-  </p>
+  </p> -->
   <p class="control">
     <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
   </p>
