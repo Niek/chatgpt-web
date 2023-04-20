@@ -1,5 +1,5 @@
 <footer class="footer">
-  <div class="content has-text-centered">
+<!--   <div class="content has-text-centered">
     <p>
       <strong>ChatGPT-web</strong>
       by
@@ -8,5 +8,5 @@
       <a href="https://github.com/Niek/chatgpt-web">GitHub</a>
       for source code.
     </p>
-  </div>
+  </div> -->
 </footer>
