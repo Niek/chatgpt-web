@@ -395,6 +395,7 @@
 {#if $currentChatId !== 0 && ($currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system'))}
   <Prompts bind:input />
 {/if}
+
 </div>
 <Footer class="prompt-input-container" strongMask={true}>
   <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
@@ -412,14 +413,13 @@
           }
         }}
         on:input={e => autoGrowInputOnEvent(e)}
-        bind:this={input}
-      />
+        bind:this={input}></textarea>
     </p>
-    <p class="control mic" class:is-hidden={!recognition}>
+    <!-- <p class="control mic" class:is-hidden={!recognition}>
       <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
         ><span class="icon"><Fa icon={faMicrophone} /></span></button
       >
-    </p>
+    </p> -->
     <p class="control settings">
       <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
     </p>
