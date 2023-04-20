@@ -4,7 +4,7 @@
 
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
-  import Footer from './lib/Footer.svelte'
+  // import Footer from './lib/Footer.svelte'
   import Home from './lib/Home.svelte'
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
@@ -56,4 +56,4 @@
   </div>
 </section>
 
-<Footer />
+<!-- <Footer /> -->
