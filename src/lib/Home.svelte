@@ -42,7 +42,7 @@ const setPetalsEnabled = (event: Event) => {
 </script>
 
 <section class="section">
-  <article class="message">
+  <!--<article class="message">
     <div class="message-body">
     <p class="mb-4">
       <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
@@ -163,7 +163,7 @@ const setPetalsEnabled = (event: Event) => {
         </p>
       {/if}
     </div>
-  </article>
+  </article> -->
   {#if apiKey}
     <article class="message is-info">
       <div class="message-body">
