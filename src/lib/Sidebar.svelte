@@ -51,12 +51,12 @@
   </ul>
   <p class="menu-label">Actions</p>
   <ul class="menu-list">
-    <li>
+<!--     <li>
       <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
         ><span class="greyscale mr-2">🔑</span> API key</a
       >
     </li>
-    <li>
+ -->    <li>
       <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
         ><span class="greyscale mr-2">➕</span> New chat</a
       >
