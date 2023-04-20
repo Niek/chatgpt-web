@@ -4,7 +4,7 @@
   $: apiKey = $apiKeyStorage
 </script>
 
-<article class="message">
+<!-- <article class="message">
   <div class="message-body">
     <strong><a href="https://github.com/Niek/chatgpt-web">ChatGPT-web</a></strong>
     is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for
@@ -49,7 +49,7 @@
       </p>
     {/if}
   </div>
-</article>
+</article> -->
 {#if apiKey}
   <article class="message is-info">
     <div class="message-body">
