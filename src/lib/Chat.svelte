@@ -1,7 +1,7 @@
 <script lang="ts">
   // import { fetchEventSource } from '@microsoft/fetch-event-source'
 
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, addMessage, setSystemText, clearMessages } from './Storage.svelte'
   import {
     type Request,
     type Response,
@@ -26,6 +26,7 @@
   
   let updating: boolean = false
   let input: HTMLTextAreaElement
+  let systemText: HTMLTextAreaElement
   let settings: HTMLDivElement
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
@@ -152,17 +153,21 @@
 
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
-    // Scroll to the bottom of the page after any updates to the messages array
-    document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-    input.focus()
+    //  System-Text loses focus with every keypress without also we don't want to scroll if we just opened the system text area
+    if (active && isElementOffScreen(input)) {
+      // Scroll to the bottom of the page after any updates to the messages array
+      input.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      input.focus()
+    }
   })
 
 
   // Send API request
-  const sendRequest = async (messages: Message[]): Promise<Response> => {
+  const sendRequest = async (chat: Chat): Promise<Response> => {
     // Show updating bar
     updating = true
-
+    const messages = [...chat.messages]
+    chat.systemText && messages.unshift(chat.systemText)
     let response: Response
     try {
       const request: Request = {
@@ -235,7 +240,10 @@
       addMessage(chatId, systemPrompt)
     }
     */
-  
+    if (systemText.value.length > 0) {
+      const systemPrompt: Message = { role: 'system', content: systemText.value }
+      setSystemText(chatId, systemPrompt)
+    }
     // Compose the input message
     const inputMessage: Message = { role: 'user', content: input.value }
     addMessage(chatId, inputMessage)
@@ -247,7 +255,7 @@
     // Resize back to single line height
     input.style.height = 'auto'
 
-    const response = await sendRequest(chat.messages)
+    const response = await sendRequest(chat)
 
     if (response.error) {
       addMessage(chatId, {
@@ -279,7 +287,7 @@
     }
     addMessage(chatId, suggestMessage)
 
-    const response = await sendRequest(chat.messages)
+    const response = await sendRequest(chat)
 
     if (response.error) {
       addMessage(chatId, {
@@ -364,6 +372,22 @@
       recognition?.start()
     }
   }
+let active: boolean = false
+
+function isElementOffScreen (el) {
+    const rect = el.getBoundingClientRect()
+    const windowHeight =
+      window.innerHeight || document.documentElement.clientHeight
+    const windowWidth =
+      window.innerWidth || document.documentElement.clientWidth
+
+    return (
+      rect.bottom < 0 ||
+      rect.right < 0 ||
+      rect.left > windowWidth ||
+      rect.top > windowHeight
+    )
+  }
 </script>
 
 <nav class="level chat-header">
@@ -377,14 +401,32 @@
       </p>
     </div>
   </div>
-
   <div class="level-right">
+    <div class="level-right">
+      <p class="level-item">
+        <button class="button" class:is-success={!active} on:click={() => { active = !active }}><span class="greyscale mr-2">💭</span> System Prompt</button>
+      </p>
+    </div>
     <p class="level-item">
       <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
     </p>
   </div>
 </nav>
-
+<p class="box" class:is-vanished={active}>
+  <textarea
+    class="input is-info is-focused system-input"
+    placeholder="Type context here... 'You are a helpful AI'"
+    rows="1"
+    form="chat-form"
+    value={chat.systemText?.content}
+    on:input={(e) => {
+      // Resize the textarea to fit the content - auto is important to reset the height after deleting content
+      input.style.height = 'auto'
+      input.style.height = input.scrollHeight + 'px'
+    }}
+    bind:this={systemText}
+  />
+</p>
 <Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
 
 {#if updating}
@@ -399,7 +441,7 @@
   <Prompts bind:input />
 {/if}
 
-<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
+<form id="chat-form" class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
       class="input is-info is-focused chat-input"

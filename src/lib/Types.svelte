@@ -26,6 +26,7 @@
     id: number;
     name: string;
     messages: Message[];
+    systemText?: Message;
   };
 
   export type Request = {

@@ -26,6 +26,12 @@
     chatsStorage.set([])
   }
 
+  export const setSystemText = (chatId: number, message: Message) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    chat.systemText = message
+    chatsStorage.set(chats)
+  }
   export const addMessage = (chatId: number, message: Message) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -45,6 +51,7 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages = []
+    chat.systemText = undefined
     chatsStorage.set(chats)
   }
 

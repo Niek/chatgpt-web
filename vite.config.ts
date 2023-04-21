@@ -25,7 +25,12 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
     }
   } else {
     return {
-      plugins
+      plugins,
+      test: {
+        name: 'node',
+        root: './unit',
+        environment: 'jsdom'
+      }
     }
   }
 })
