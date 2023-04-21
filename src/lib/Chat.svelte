@@ -421,8 +421,8 @@ function isElementOffScreen (el) {
     value={chat.systemText?.content}
     on:input={(e) => {
       // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-      input.style.height = 'auto'
-      input.style.height = input.scrollHeight + 'px'
+      systemText.style.height = 'auto'
+      systemText.style.height = systemText.scrollHeight + 'px'
     }}
     bind:this={systemText}
   />
