@@ -28,8 +28,11 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
       plugins,
       test: {
         name: 'node',
-        root: './unit',
-        environment: 'jsdom'
+        root: './',
+        environment: 'jsdom',
+        include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+        globals: true,
+        mockReset: true
       }
     }
   }

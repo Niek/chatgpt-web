@@ -4,7 +4,19 @@
   import type { Chat, Message } from './Types.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
+  export const logStorage = persisted('message', [] as string[])
   export const apiKeyStorage = persisted('apiKey', '' as string)
+
+  export const addLog = (msg: string): void => {
+    const messages = get(logStorage)
+    messages.push(msg)
+    logStorage.set(messages)
+  }
+  export const getLog = (): string => {
+    const messages = get(logStorage)
+    return JSON.stringify(messages)
+  }
+
 
   export const addChat = (): number => {
     const chats = get(chatsStorage)
@@ -47,11 +59,11 @@
     chatsStorage.set(chats)
   }
 
-  export const clearMessages = (chatId: number) => {
+  export const clearMessages = (chatId: number, keepSystemPrompt: boolean) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     chat.messages = []
-    chat.systemText = undefined
+    if (!keepSystemPrompt) { chat.systemText = undefined }
     chatsStorage.set(chats)
   }
 

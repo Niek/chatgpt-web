@@ -9,10 +9,10 @@
 }
 
 #app {
-  display: flex;
+  display       : flex;
   flex-direction: column;
-  flex-grow: 1;
-  min-height: 100vh;
+  flex-grow     : 1;
+  min-height    : 100vh;
 
   section.section {
     flex-grow: 1;
@@ -20,10 +20,10 @@
 }
 
 .is-vanished {
-  opacity: 0;
-  height: 0;
-  padding: 0;
-  margin: 0;
+  opacity   : 0;
+  height    : 0;
+  padding   : 0;
+  margin    : 0;
   transition: opacity 0.3s ease, height 0.3s ease;
 }
 
@@ -33,8 +33,8 @@
 
 a.is-disabled {
   pointer-events: none;
-  cursor: default;
-  opacity: 0.5;
+  cursor        : default;
+  opacity       : 0.5;
 }
 
 .greyscale {
@@ -42,21 +42,40 @@ a.is-disabled {
 }
 
 .user-message {
-  max-width: 90%;
+  max-width   : 90%;
   margin-right: 0;
-  margin-left: auto;
-  width: fit-content;
+  margin-left : auto;
+  width       : fit-content;
 }
 
 .assistant-message {
   max-width: 90%;
-  width: fit-content;
+  width    : fit-content;
 }
 
 /* Show the edit button on hover of the user message */
 .user-message:hover .editbutton {
   /* TODO: add when ready: display: block !important; */
   text-decoration: none !important;
+}
+
+nav {
+
+  .level-item {
+    position: relative;
+    /* Set position of the parent container to relative */
+  }
+
+  .level-item .checkbox {
+    position : absolute;
+    /* Set position of the checkbox to absolute */
+    bottom   : 0;
+    /* Align the checkbox to the bottom of the parent container */
+    left     : 50%;
+    /* Move the checkbox to the center of the parent container */
+    transform: translateX(-50%);
+    /* Center the checkbox horizontally */
+  }
 }
 
 /* Swap the border on user messages to the other side */
@@ -66,18 +85,18 @@ a.is-disabled {
 
 /* Show the edit button on hover of the chat name */
 .chat-header:hover .editbutton {
-  display: inline !important;
+  display        : inline !important;
   text-decoration: none !important;
 }
 
 /* Style the chat input */
 .chat-input {
   overflow-y: hidden;
-  resize: vertical;
+  resize    : vertical;
 }
 
-$footer-padding: 3rem 1.5rem;
-$fullhd: 2000px;
+$footer-padding     : 3rem 1.5rem;
+$fullhd             : 2000px;
 $modal-content-width: 1000px;
 
 @import "/node_modules/bulma/bulma.sass";
@@ -118,21 +137,21 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 /* Support for copy code button */
 .code-block>button {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top     : 0.5rem;
+  right   : 0.5rem;
 }
 
 /* Make menu stick on the left side */
 .menu {
   position: sticky;
-  top: 1rem;
+  top     : 1rem;
 }
 
 /* Delete button on side menu chat name */
 .menu-list {
   a:hover {
     .delete-button {
-      display: block !important;
+      display         : block !important;
       background-color: initial;
     }
   }
@@ -142,8 +161,8 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .is-loading {
   opacity: 0.5;
   @include loader;
-  width: 1.5rem;
-  height: 1.5rem;
+  width       : 1.5rem;
+  height      : 1.5rem;
   border-width: 0.25em;
 }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { params, replace } from 'svelte-spa-router'
 
-  import { apiKeyStorage, chatsStorage, clearChats, deleteChat } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, clearChats, deleteChat, getLog } from './Storage.svelte'
   import { exportAsMarkdown } from './Export.svelte'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
@@ -74,18 +74,36 @@
       >
     </li>
     {#if activeChatId}
-      <li>
-        <a
-          href={'#/'}
-          class="panel-block"
-          class:is-disabled={!apiKeyStorage}
-          on:click|preventDefault={() => {
-            if (activeChatId) {
-              exportAsMarkdown(activeChatId)
-            }
-          }}><span class="greyscale mr-2">📥</span> Export chat</a
-        >
-      </li>
+    <li>
+      <a
+        href={'#/'}
+        class="panel-block"
+        class:is-disabled={!$apiKeyStorage}
+        on:click|preventDefault={() => {
+          if (activeChatId) {
+            exportAsMarkdown(activeChatId)
+          }
+        }}><span class="greyscale mr-2">📥</span> Export chat</a
+      >
+    </li>
     {/if}
+    <li>
+      <a
+        href={'#/'}
+        class="panel-block"
+        on:click|preventDefault={() => {
+            const logs = getLog()
+            const blob = new Blob([logs], { type: 'text/plain' })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'logs.txt'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+        }}><span class="greyscale mr-2">💬</span> Download log</a
+      >
+    </li>
   </ul>
 </aside>

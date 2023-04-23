@@ -1,123 +1,44 @@
 <script lang="ts">
   // import { fetchEventSource } from '@microsoft/fetch-event-source'
-
-  import { apiKeyStorage, chatsStorage, addMessage, setSystemText, clearMessages } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, addMessage, setSystemText, clearMessages, addLog } from './Storage.svelte'
   import {
     type Request,
     type Response,
     type Message,
-    type Settings,
-    type ResponseModels,
-    type SettingsSelect,
-    type Chat,
-    supportedModels
+    type Chat
+
+
   } from './Types.svelte'
+  import Code from './Code.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
+  import SettingModal from './SettingModal.svelte'
+  import { modelSetting, settingsMap, apiBase } from './Settings.svelte'
+  import SvelteMarkdown from 'svelte-markdown'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
-  const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
-  
+
   let updating: boolean = false
+  let loadingcontent: string
   let input: HTMLTextAreaElement
   let systemText: HTMLTextAreaElement
   let settings: HTMLDivElement
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
-
-  const modelSetting: Settings & SettingsSelect = {
-    key: 'model',
-    name: 'Model',
-    default: 'gpt-3.5-turbo',
-    title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-    options: supportedModels,
-    type: 'select'
-  }
-
-  let settingsMap: Settings[] = [
-    modelSetting,
-    {
-      key: 'temperature',
-      name: 'Sampling Temperature',
-      default: 1,
-      title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
-              '\n' +
-              'We generally recommend altering this or top_p but not both.',
-      min: 0,
-      max: 2,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'top_p',
-      name: 'Nucleus Sampling',
-      default: 1,
-      title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
-              '\n' +
-              'We generally recommend altering this or temperature but not both',
-      min: 0,
-      max: 1,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'n',
-      name: 'Number of Messages',
-      default: 1,
-      title: 'How many chat completion choices to generate for each input message.',
-      min: 1,
-      max: 10,
-      step: 1,
-      type: 'number'
-    },
-    {
-      key: 'max_tokens',
-      name: 'Max Tokens',
-      title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
-      default: 0,
-      min: 0,
-      max: 32768,
-      step: 1024,
-      type: 'number'
-    },
-    {
-      key: 'presence_penalty',
-      name: 'Presence Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    },
-    {
-      key: 'frequency_penalty',
-      name: 'Frequency Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    }
-  ]
+  let keepSystemPrompt = true
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
 
   onMount(async () => {
-    // Pre-select the last used model
+  // Pre-select the last used model
     if (chat.messages.length > 0) {
       modelSetting.default = chat.messages[chat.messages.length - 1].model || modelSetting.default
-      settingsMap = settingsMap
     }
 
     // Focus the input on mount
@@ -125,10 +46,10 @@
 
     // Try to detect speech recognition support
     if ('SpeechRecognition' in window) {
-      // @ts-ignore
+    // @ts-ignore
       recognition = new window.SpeechRecognition()
     } else if ('webkitSpeechRecognition' in window) {
-      // @ts-ignore
+    // @ts-ignore
       recognition = new window.webkitSpeechRecognition() // eslint-disable-line new-cap
     }
 
@@ -138,7 +59,7 @@
         recording = true
       }
       recognition.onresult = (event) => {
-        // Stop speech recognition, submit the form and remove the pulse
+      // Stop speech recognition, submit the form and remove the pulse
         const last = event.results.length - 1
         const text = event.results[last][0].transcript
         input.value = text
@@ -150,7 +71,6 @@
       console.log('Speech recognition not supported')
     }
   })
-
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
     //  System-Text loses focus with every keypress without also we don't want to scroll if we just opened the system text area
@@ -169,6 +89,7 @@
     const messages = [...chat.messages]
     chat.systemText && messages.unshift(chat.systemText)
     let response: Response
+    const message: Message = { content: '', role: null }
     try {
       const request: Request = {
         // Submit only the role and content of the messages, provide the previous messages as well for context
@@ -183,54 +104,83 @@
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
           const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value
-          if (value) {
-            acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
+
+          if (value !== '') {
+            acc[setting.key] = (setting.type === 'number' || setting.type === 'checkbox') ? JSON.parse(value) : value
           }
           return acc
         }, {})
       }
 
-      // Not working yet: a way to get the response as a stream
-      /*
-      request.stream = true
-      await fetchEventSource(apiBase + '/v1/chat/completions', {
+
+      const responseStream = await fetch(apiBase + '/v1/chat/completions', {
         method: 'POST',
         headers: {
-          Authorization:
-          `Bearer ${$apiKeyStorage}`,
+          Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(request),
-        onmessage (ev) {
-          const data = JSON.parse(ev.data)
-          console.log(data)
-        },
-        onerror (err) {
-          throw err
+        signal: new AbortController().signal // create an AbortController to cancel the request if needed
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch response: ${res.statusText}`)
         }
+        return res.body
       })
-      */
-
-      response = await (
-        await fetch(apiBase + '/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(request)
-        })
-      ).json()
+      for await (const line of readLines(responseStream)) {
+        if (!response) {
+          response = line
+        }
+        if (line.choices[0].delta.content !== undefined) { message.content += line.choices[0].delta.content }
+        if (line.choices[0].delta.role in ['user', 'system', 'error', 'assistant']) { message.role += line.choices[0].delta.role }
+      }
     } catch (e) {
-      response = { error: { message: e.message } } as Response
+      return { error: { message: e.message } } as Response
     }
-
     // Hide updating bar
     updating = false
-
+    response.choices[0].message = message
     return response
   }
 
+  async function * readLines (responseStream:ReadableStream<Uint8Array>) {
+    const reader = responseStream.getReader()
+
+    while (true) {
+      const { done, value } = await reader.read()
+      const text = new TextDecoder().decode(value)
+      const lines = text
+        .split('\n')
+        .filter((line) => line.trim().startsWith('data: '))
+      if (done) {
+        break
+      }
+      for (const line of lines) {
+        console.log(text)
+        if (line.slice(6) === '[DONE]') return
+        yield JSON.parse(line.slice(6)) as Response
+      }
+    }
+
+    reader.releaseLock()
+  }
+
+
+  // Define a function to write to the log file
+  const writeToLogFile = async (data: any) => {
+  // Get the current time
+    const currentTime = new Date().toISOString()
+
+    // Convert the data to a string
+    const dataAsString = JSON.stringify(data)
+
+    // Create a log message with the current time and response data
+    const logMessage = `${currentTime}: ${dataAsString}\n`
+
+    // Write the log message to the log file
+
+    addLog(logMessage)
+  }
 
   const submitForm = async (recorded: boolean = false): Promise<void> => {
     // Compose the system prompt message if there are no messages yet - disabled for now
@@ -256,6 +206,7 @@
     input.style.height = 'auto'
 
     const response = await sendRequest(chat)
+    // Send the request and get the response
 
     if (response.error) {
       addMessage(chatId, {
@@ -267,10 +218,11 @@
         // Store usage and model in the message
         choice.message.usage = response.usage
         choice.message.model = response.model
-  
+
         // Remove whitespace around the message that the OpenAI API sometimes returns
         choice.message.content = choice.message.content.trim()
         addMessage(chatId, choice.message)
+        writeToLogFile(choice.message)
         // Use TTS to read the response, if query was recorded
         if (recorded && 'SpeechSynthesisUtterance' in window) {
           const utterance = new SpeechSynthesisUtterance(choice.message.content)
@@ -304,6 +256,10 @@
     }
   }
 
+  export const showSettings = () => {
+    settings.classList.add('is-active')
+  }
+
   const deleteChat = () => {
     if (window.confirm('Are you sure you want to delete this chat?')) {
       replace('/').then(() => {
@@ -332,36 +288,6 @@
     chatNameSettings.classList.remove('is-active')
   }
 
-  const showSettings = async () => {
-    settings.classList.add('is-active')
-
-    // Load available models from OpenAI
-    const allModels = (await (
-      await fetch(apiBase + '/v1/models', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    ).json()) as ResponseModels
-    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
-
-    // Update the models in the settings
-    modelSetting.options = filteredModels
-    settingsMap = settingsMap
-  }
-
-  const closeSettings = () => {
-    settings.classList.remove('is-active')
-  }
-
-  const clearSettings = () => {
-    settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
-      input.value = ''
-    })
-  }
 
   const recordToggle = () => {
     // Check if already recording - if so, stop - else start
@@ -372,9 +298,9 @@
       recognition?.start()
     }
   }
-let active: boolean = false
+  let active: boolean = false
 
-function isElementOffScreen (el) {
+  function isElementOffScreen (el) {
     const rect = el.getBoundingClientRect()
     const windowHeight =
       window.innerHeight || document.documentElement.clientHeight
@@ -399,6 +325,7 @@ function isElementOffScreen (el) {
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
       </p>
+
     </div>
   </div>
   <div class="level-right">
@@ -407,9 +334,15 @@ function isElementOffScreen (el) {
         <button class="button" class:is-success={!active} on:click={() => { active = !active }}><span class="greyscale mr-2">💭</span> System Prompt</button>
       </p>
     </div>
-    <p class="level-item">
-      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
-    </p>
+    <div class="level-item">
+      <p class="level-item">
+        <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
+        <label class="checkbox">
+          <input type="checkbox" bind:checked="{keepSystemPrompt}">
+          &nbsp;Keep system prompt
+        </label>
+      </p>
+    </div>
   </div>
 </nav>
 <p class="box" class:is-vanished={active}>
@@ -418,7 +351,7 @@ function isElementOffScreen (el) {
     placeholder="Type context here... 'You are a helpful AI'"
     rows="1"
     form="chat-form"
-    value={chat.systemText?.content}
+    value={chat.systemText?.content || ''}
     on:input={(e) => {
       // Resize the textarea to fit the content - auto is important to reset the height after deleting content
       systemText.style.height = 'auto'
@@ -432,13 +365,18 @@ function isElementOffScreen (el) {
 {#if updating}
   <article class="message is-success assistant-message">
     <div class="message-body content">
+      <SvelteMarkdown source={loadingcontent} options={{
+        gfm: true, // Use GitHub Flavored Markdown
+        breaks: true, // Enable line breaks in markdown
+        mangle: false // Do not mangle email addresses
+      }} renderers={{ code: Code, html: Code }}/>
       <span class="is-loading" />
     </div>
   </article>
 {/if}
 
 {#if chat.messages.length === 0}
-  <Prompts bind:input />
+<Prompts bind:input />
 {/if}
 
 <form id="chat-form" class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
@@ -474,65 +412,15 @@ function isElementOffScreen (el) {
     <button class="button is-info" type="submit">Send</button>
   </p>
 </form>
-
 <svelte:window
   on:keydown={(event) => {
     if (event.key === 'Escape') {
-      closeSettings()
       closeChatNameSettings()
     }
   }}
 />
+  <SettingModal bind:settings />
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" bind:this={settings}>
-  <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Settings</p>
-    </header>
-    <section class="modal-card-body">
-      <p class="notification is-warning">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p>
-      {#each settingsMap as setting}
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label" for="settings-{setting.key}">{setting.name}</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              {#if setting.type === 'number'}
-                <input
-                  class="input"
-                  inputmode="decimal"
-                  type={setting.type}
-                  title="{setting.title}"
-                  id="settings-{setting.key}"
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  placeholder={String(setting.default)}
-                />
-              {:else if setting.type === 'select'}
-                <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}">
-                    {#each setting.options as option}
-                      <option value={option} selected={option === setting.default}>{option}</option>
-                    {/each}
-                  </select>
-                </div>
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/each}
-    </section>
-
-    <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
-      <button class="button" on:click={clearSettings}>Clear settings</button>
-    </footer>
-  </div>
-</div>
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>

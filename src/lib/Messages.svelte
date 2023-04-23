@@ -2,6 +2,8 @@
     import Code from './Code.svelte'
     import SvelteMarkdown from 'svelte-markdown'
     import type { Message, Model, Usage } from './Types.svelte'
+    import { getPrice, convertToUsage, findSublists } from './TokenUtil.svelte'
+
 
     // Marked options
     const markedownOptions = {
@@ -14,22 +16,21 @@
     export let input: HTMLTextAreaElement
     export let defaultModel: Model
 
-    // Reference: https://openai.com/pricing#language-models
-    const tokenPrice : Record<string, [number, number]> = {
-      'gpt-4-32k': [0.00006, 0.00012], // $0.06 per 1000 tokens prompt, $0.12 per 1000 tokens completion
-      'gpt-4': [0.00003, 0.00006], // $0.03 per 1000 tokens prompt, $0.06 per 1000 tokens completion
-      'gpt-3.5': [0.000002, 0.000002] // $0.002 per 1000 tokens (both prompt and completion)
-    }
 
-    const getPrice = (tokens: Usage, model: Model): number => {
-      for (const [key, [promptPrice, completionPrice]] of Object.entries(tokenPrice)) {
-        if (model.startsWith(key)) {
-          return ((tokens.prompt_tokens * promptPrice) + (tokens.completion_tokens * completionPrice))
-        }
-      }
-
-      return 0
-    }
+let usage: Usage
+let combinedUse: Usage
+const model: String | undefined = messages.length > 0 ? messages[messages.length - 1].model : undefined
+$: combinedUse = messages && messages.filter((item) => item.role === 'assistant').length > 0
+  ? findSublists(messages, (item) => item.role === 'assistant').map((msgs) => convertToUsage(messages, model))
+        .reduce((acc, curr) => {
+          return {
+            completion_tokens: acc.completion_tokens + curr.completion_tokens,
+            prompt_tokens: acc.prompt_tokens + curr.prompt_tokens,
+            total_tokens: acc.total_tokens + curr.total_tokens
+          }
+        }, { completion_tokens: 0, prompt_tokens: 0, total_tokens: 0 })
+      : { completion_tokens: 0, prompt_tokens: 0, total_tokens: 0 }
+$: usage = convertToUsage(messages, model)
 </script>
 
 {#each messages as message}
@@ -76,5 +77,23 @@
         {/if}
       </div>
     </article>
+    {/if}
+  {/each}
+  {#if messages.length > 0}
+  <p class="is-size-7">
+    The complete chat is currently using <span class="has-text-weight-bold">
+      {usage.total_tokens.toLocaleString()} total tokens</span>
+    adding ~= <span class="has-text-weight-bold">
+      ${getPrice({ prompt_tokens: usage.total_tokens, completion_tokens: 0 }, messages[0]?.model || defaultModel).toFixed(6)}
+    </span>
+    to the next prompt
+  </p>
+  <div class="is-size-7">In all the currently visible messages amount to 
+    {combinedUse.prompt_tokens?.toLocaleString() || '0'} prompt tokens, 
+    {combinedUse.completion_tokens?.toLocaleString() || '0'} completion tokens, 
+    {combinedUse.total_tokens?.toLocaleString() || '0'} total tokens and  
+    ~= <span class="has-text-weight-bold">
+      ${(getPrice(combinedUse, messages[0]?.model || defaultModel) || 0.00000).toFixed(6) }
+    </span>
+    </div>
   {/if}
-{/each}

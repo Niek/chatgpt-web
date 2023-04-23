@@ -1,13 +1,5 @@
 <script context="module" lang="ts">
-  export const supportedModels = [ // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
-    'gpt-4',
-    'gpt-4-0314',
-    'gpt-4-32k',
-    'gpt-4-32k-0314',
-    'gpt-3.5-turbo',
-    'gpt-3.5-turbo-0301'
-  ]
-  export type Model = typeof supportedModels[number];
+  export type Model = string;
 
   export type Usage = {
     completion_tokens: number;
@@ -57,12 +49,16 @@
     default: Model;
     options: Model[];
   };
+  export type SettingsToggle = {
+    type: 'checkbox';
+    default: Boolean;
+  };
 
   export type Settings = {
     key: string;
     name: string;
     title: string;
-  } & (SettingsNumber | SettingsSelect);
+  } & (SettingsNumber | SettingsSelect | SettingsToggle);
 
   type ResponseOK = {
     id: string;
@@ -76,6 +72,19 @@
     usage: Usage;
     model: Model;
   };
+  type ResponseDelta = {
+    id: string;
+    object: string;
+    created: number;
+    choices: {
+      delta:{
+        role?: 'user' | 'assistant' | 'system' | 'error';
+        content?: string;
+      }
+      }[];
+    usage: Usage;
+    model: Model;
+  };
 
   type ResponseError = {
     error: {
@@ -86,7 +95,7 @@
     };
   };
 
-  export type Response = ResponseOK & ResponseError;
+  export type Response = ResponseOK & ResponseError & ResponseDelta;
 
   export type ResponseModels = {
     object: 'list';

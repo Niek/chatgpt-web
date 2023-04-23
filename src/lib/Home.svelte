@@ -30,7 +30,7 @@
       <p class="control is-expanded">
         <input
           aria-label="OpenAI API key"
-          type="password"
+          type="text"
           autocomplete="off"
           class="input"
           class:is-danger={!apiKey}
