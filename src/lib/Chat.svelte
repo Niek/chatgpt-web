@@ -23,7 +23,7 @@
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
-  
+
   let updating: boolean = false
   let input: HTMLTextAreaElement
   let settings: HTMLDivElement
@@ -168,12 +168,12 @@
       const request: Request = {
         // Submit only the role and content of the messages, provide the previous messages as well for context
         messages: messages
-          .map((message): Message => {
-            const { role, content } = message
-            return { role, content }
-          })
-          // Skip error messages
-          .filter((message) => message.role !== 'error'),
+                .map((message): Message => {
+                  const { role, content } = message
+                  return { role, content }
+                })
+                // Skip error messages
+                .filter((message) => message.role !== 'error'),
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
@@ -207,14 +207,14 @@
       */
 
       response = await (
-        await fetch(apiBase + '/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(request)
-        })
+              await fetch(apiBase + '/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${$apiKeyStorage}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+              })
       ).json()
     } catch (e) {
       response = { error: { message: e.message } } as Response
@@ -235,7 +235,7 @@
       addMessage(chatId, systemPrompt)
     }
     */
-  
+
     // Compose the input message
     const inputMessage: Message = { role: 'user', content: input.value }
     addMessage(chatId, inputMessage)
@@ -259,7 +259,7 @@
         // Store usage and model in the message
         choice.message.usage = response.usage
         choice.message.model = response.model
-  
+
         // Remove whitespace around the message that the OpenAI API sometimes returns
         choice.message.content = choice.message.content.trim()
         addMessage(chatId, choice.message)
@@ -329,13 +329,13 @@
 
     // Load available models from OpenAI
     const allModels = (await (
-      await fetch(apiBase + '/v1/models', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          'Content-Type': 'application/json'
-        }
-      })
+            await fetch(apiBase + '/v1/models', {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${$apiKeyStorage}`,
+                'Content-Type': 'application/json'
+              }
+            })
     ).json()) as ResponseModels
     const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
 
@@ -385,12 +385,12 @@
   </div>
 </nav>
 
-<Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
+<Messages bind:input chatId={chat.id} messages={chat.messages} defaultModel={modelSetting.default} />
 
 {#if updating}
   <article class="message is-success assistant-message">
     <div class="message-body content">
-      <span class="is-loading" />
+      <span class="is-loading"></span>
     </div>
   </article>
 {/if}
@@ -402,27 +402,26 @@
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
-      class="input is-info is-focused chat-input"
-      placeholder="Type your message here..."
-      rows="1"
-      on:keydown={(e) => {
+            class="input is-info is-focused chat-input"
+            placeholder="Type your message here..."
+            rows="1"
+            on:keydown={(e) => {
         // Only send if Enter is pressed, not Shift+Enter
         if (e.key === 'Enter' && !e.shiftKey) {
           submitForm()
           e.preventDefault()
         }
       }}
-      on:input={(e) => {
+            on:input={(e) => {
         // Resize the textarea to fit the content - auto is important to reset the height after deleting content
         input.style.height = 'auto'
         input.style.height = input.scrollHeight + 'px'
       }}
-      bind:this={input}
-    />
+            bind:this={input}></textarea>
   </p>
   <p class="control" class:is-hidden={!recognition}>
     <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="greyscale">🎤</span></button
+    ><span class="greyscale">🎤</span></button
     >
   </p>
   <p class="control">
@@ -434,7 +433,7 @@
 </form>
 
 <svelte:window
-  on:keydown={(event) => {
+        on:keydown={(event) => {
     if (event.key === 'Escape') {
       closeSettings()
       closeChatNameSettings()
@@ -460,15 +459,15 @@
             <div class="field">
               {#if setting.type === 'number'}
                 <input
-                  class="input"
-                  inputmode="decimal"
-                  type={setting.type}
-                  title="{setting.title}"
-                  id="settings-{setting.key}"
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  placeholder={String(setting.default)}
+                        class="input"
+                        inputmode="decimal"
+                        type={setting.type}
+                        title="{setting.title}"
+                        id="settings-{setting.key}"
+                        min={setting.min}
+                        max={setting.max}
+                        step={setting.step}
+                        placeholder={String(setting.default)}
                 />
               {:else if setting.type === 'select'}
                 <div class="select">
@@ -508,10 +507,10 @@
         <div class="field-body">
           <div class="field">
             <input
-              class="input"
-              type="text"
-              id="settings-chat-name"
-              value={chat.name}
+                    class="input"
+                    type="text"
+                    id="settings-chat-name"
+                    value={chat.name}
             />
           </div>
         </div>

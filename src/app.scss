@@ -35,14 +35,47 @@ a.is-disabled {
 
 .user-message {
   max-width: 90%;
-  margin-right: 0;
-  margin-left: auto;
   width: fit-content;
+  position: relative;
+}
+
+.message-container {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.message-container.user {
+  justify-content: flex-end;
+}
+
+.message-delete {
+  padding: 20px 12px;
+  cursor: pointer;
+}
+
+.message-delete > div {
+  width: 14px;
+  height: 1px;
+  background-color: rgb(140, 140, 140);
+  border-radius: 2px;
+}
+
+.message-delete > :nth-child(1) {
+  transform: rotate(45deg);
+  margin-bottom: -1px;
+}
+
+.message-delete > :nth-child(2) {
+  transform: rotate(-45deg);
+  margin-top: -1px;
 }
 
 .assistant-message {
   max-width: 90%;
   width: fit-content;
+  position: relative;
+  margin-bottom: 0!important;
 }
 
 /* Show the edit button on hover of the user message */
@@ -52,7 +85,7 @@ a.is-disabled {
 }
 
 /* Swap the border on user messages to the other side */
-.user-message>.message-body {
+.user-message > .message-body {
   border-width: 0 4px 0 0 !important;
 }
 
@@ -92,7 +125,7 @@ $modal-content-width: 1000px;
 
   100% {
     background-color: initial
-      /* Default color */
+    /* Default color */
   }
 }
 
@@ -106,7 +139,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 /* Support for copy code button */
-.code-block>button {
+.code-block > button {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
