@@ -168,12 +168,12 @@
       const request: Request = {
         // Submit only the role and content of the messages, provide the previous messages as well for context
         messages: messages
-                .map((message): Message => {
-                  const { role, content } = message
-                  return { role, content }
-                })
-                // Skip error messages
-                .filter((message) => message.role !== 'error'),
+          .map((message): Message => {
+            const { role, content } = message
+            return { role, content }
+          })
+        // Skip error messages
+          .filter((message) => message.role !== 'error'),
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
@@ -207,14 +207,14 @@
       */
 
       response = await (
-              await fetch(apiBase + '/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${$apiKeyStorage}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(request)
-              })
+        await fetch(apiBase + '/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${$apiKeyStorage}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(request)
+        })
       ).json()
     } catch (e) {
       response = { error: { message: e.message } } as Response
@@ -329,13 +329,13 @@
 
     // Load available models from OpenAI
     const allModels = (await (
-            await fetch(apiBase + '/v1/models', {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${$apiKeyStorage}`,
-                'Content-Type': 'application/json'
-              }
-            })
+      await fetch(apiBase + '/v1/models', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${$apiKeyStorage}`,
+          'Content-Type': 'application/json'
+        }
+      })
     ).json()) as ResponseModels
     const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
 
