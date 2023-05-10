@@ -6,14 +6,13 @@
     type Request,
     type Response,
     type Message,
-    type Settings,
     type ResponseModels,
-    type SettingsSelect,
     type Chat,
     supportedModels
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
+  import { settingsMap, modelSetting } from './setting'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
@@ -31,92 +30,12 @@
   let recognition: any = null
   let recording = false
 
-  const modelSetting: Settings & SettingsSelect = {
-    key: 'model',
-    name: 'Model',
-    default: 'gpt-3.5-turbo',
-    title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-    options: supportedModels,
-    type: 'select'
-  }
-
-  let settingsMap: Settings[] = [
-    modelSetting,
-    {
-      key: 'temperature',
-      name: 'Sampling Temperature',
-      default: 1,
-      title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
-              '\n' +
-              'We generally recommend altering this or top_p but not both.',
-      min: 0,
-      max: 2,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'top_p',
-      name: 'Nucleus Sampling',
-      default: 1,
-      title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
-              '\n' +
-              'We generally recommend altering this or temperature but not both',
-      min: 0,
-      max: 1,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'n',
-      name: 'Number of Messages',
-      default: 1,
-      title: 'How many chat completion choices to generate for each input message.',
-      min: 1,
-      max: 10,
-      step: 1,
-      type: 'number'
-    },
-    {
-      key: 'max_tokens',
-      name: 'Max Tokens',
-      title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
-      default: 0,
-      min: 0,
-      max: 32768,
-      step: 1024,
-      type: 'number'
-    },
-    {
-      key: 'presence_penalty',
-      name: 'Presence Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    },
-    {
-      key: 'frequency_penalty',
-      name: 'Frequency Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    }
-  ]
-
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
 
   onMount(async () => {
     // Pre-select the last used model
     if (chat.messages.length > 0) {
       modelSetting.default = chat.messages[chat.messages.length - 1].model || modelSetting.default
-      settingsMap = settingsMap
     }
 
     // Focus the input on mount
@@ -177,7 +96,7 @@
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value
+          const value = chat.setting[setting.key]
           if (value) {
             acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
           }
@@ -341,7 +260,10 @@
 
     // Update the models in the settings
     modelSetting.options = filteredModels
-    settingsMap = settingsMap
+
+    if (!chat.setting.model) {
+      chat.setting.model = modelSetting.default
+    }
   }
 
   const closeSettings = () => {
@@ -349,9 +271,8 @@
   }
 
   const clearSettings = () => {
-    settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
-      input.value = ''
+    Object.keys(chat.setting).forEach((key) => {
+      chat.setting[key] = null
     })
   }
 
@@ -462,19 +383,21 @@
                 <input
                   class="input"
                   inputmode="decimal"
-                  type={setting.type}
+                  type='number'
                   title="{setting.title}"
                   id="settings-{setting.key}"
                   min={setting.min}
                   max={setting.max}
                   step={setting.step}
                   placeholder={String(setting.default)}
+                  bind:value={chat.setting[setting.key]}
                 />
               {:else if setting.type === 'select'}
                 <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}">
+                  <select id="settings-{setting.key}" title="{setting.title}"
+                    bind:value={chat.setting[setting.key]}>
                     {#each setting.options as option}
-                      <option value={option} selected={option === setting.default}>{option}</option>
+                      <option value={option}>{option}</option>
                     {/each}
                   </select>
                 </div>

@@ -26,6 +26,7 @@
     id: number;
     name: string;
     messages: Message[];
+    setting: { [key: string]: any; };
   };
 
   export type Request = {

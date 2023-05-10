@@ -2,6 +2,7 @@
   import { persisted } from 'svelte-local-storage-store'
   import { get } from 'svelte/store'
   import type { Chat, Message } from './Types.svelte'
+  import { settingsMap } from './setting'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const apiKeyStorage = persisted('apiKey', '' as string)
@@ -16,7 +17,8 @@
     chats.push({
       id: chatId,
       name: `Chat ${chatId}`,
-      messages: []
+      messages: [],
+      setting: settingsMap.reduce((obj, item) => ({ ...obj, [item.key]: null }), {})
     })
     chatsStorage.set(chats)
     return chatId
