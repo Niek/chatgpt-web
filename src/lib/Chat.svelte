@@ -231,6 +231,14 @@
 
 
   const submitForm = async (recorded: boolean = false): Promise<void> => {
+    // Compose the system prompt message if there are no messages yet - disabled for now
+    /*
+    if (chat.messages.length === 0) {
+      const systemPrompt: Message = { role: 'system', content: 'You are a helpful assistant.' }
+      addMessage(chatId, systemPrompt)
+    }
+    */
+  
     // Compose the input message
     const inputMessage: Message = { role: 'user', content: input.value }
     addMessage(chatId, inputMessage)
