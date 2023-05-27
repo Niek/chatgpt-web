@@ -289,13 +289,13 @@ const globalSettingsList:GlobalSetting[] = [
       {
         key: 'lastProfile',
         name: 'Last Profile',
-        default: 'jenny',
+        default: 'default',
         type: 'text'
       },
       {
         key: 'defaultProfile',
         name: 'Default Profile',
-        default: 'jenny',
+        default: 'default',
         type: 'text'
       }
 ]
