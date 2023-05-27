@@ -30,7 +30,7 @@
     noEdit = message.summarized
   })
 
-  function edit (msgid) {
+  const edit = (msgid) => {
     if (noEdit) return
     editing = true
     setTimeout(() => {
@@ -40,12 +40,12 @@
   }
 
   let dbnc
-  function update () {
+  const update = () => {
     clearTimeout(dbnc)
     dbnc = setTimeout(() => { doChange() }, 250)
   }
 
-  function doChange () {
+  const doChange = () => {
     if (message.content !== original) {
       dispatch('change', message)
     }
