@@ -143,23 +143,6 @@
     setTimeout(() => document.querySelector('.chat-focus-point')?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0)
   }
 
-  // Show question modal
-  // Yeah, probably should make a component, but...
-  let qYesNo = (v) => {}
-  let question:any = null
-  const askQuestion = (title, message, yesFn, noFn, cls?) => {
-    qYesNo = (v) => { question = null; v ? yesFn() : noFn() }
-    question = [title, message, cls]
-  }
-
-  // Show notice modal
-  let nDone = (v) => {}
-  let notice:any = null
-  const doNotice = (title, message, doneFn, cls?) => {
-    nDone = (v) => { notice = null; doneFn() }
-    notice = [title, message, cls]
-  }
-
   // Send API request
   const sendRequest = async (messages: Message[], doingSummary?:boolean, withSummary?:boolean): Promise<Response> => {
     // Show updating bar
@@ -556,13 +539,13 @@
       (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting) && showSettingsModal++
     }
     if (setting.key === 'profile' && checkSessionActivity(chatId)) {
-      askQuestion(
-        'Warning',
-        'Switching profiles will clear your current chat session.  Are you sure you want to continue?',
-        () => { doSet() }, // Yes
-        () => { el.value = getChatSettingValue(chatId, setting) }, // No
-        'is-warning'
-      )
+      if (window.confirm('Switching profiles will clear your current chat session.  Are you sure you want to continue?')) {
+        // Switch profiles
+        () => { doSet() }
+      } else {
+        // Roll-back
+        () => { el.value = getChatSettingValue(chatId, setting) }
+      }
     } else {
       debounce[setting.key] = setTimeout(doSet, 250)
     }
@@ -584,7 +567,7 @@
     try {
       saveCustomProfile(chat.settings)
     } catch (e) {
-      doNotice('Error saving profile', e.message, () => {}, 'is-danger')
+      alert('Error saving profile: ' + e.message)
     }
   }
 
@@ -614,7 +597,7 @@
       updateProfileSelectOptions()
       showSettingsModal && showSettingsModal++
     } catch (e) {
-      doNotice('Error cloning profile', e.message, () => {}, 'is-danger')
+      alert('Error cloning profile: ' + e.message)
     }
   }
 
@@ -629,7 +612,7 @@
       updateProfileSelectOptions()
       showSettings()
     } catch (e) {
-      doNotice('Error deleting profile', e.message, () => {}, 'is-danger')
+      alert('Error deleting profile: ' + e.message)
     }
   }
 
@@ -652,7 +635,7 @@
         updateProfileSelectOptions()
         showSettingsModal && showSettingsModal++
       } catch (e) {
-        doNotice('Unable to import profile', e.message, () => {}, 'is-danger')
+        alert('Unable to import profile: ' + e.message)
       }
     }
   }
@@ -870,53 +853,6 @@
     </footer>
   </div>
 </div>
-
-<!-- notice modal -->
-<div class="modal" class:is-active={!!notice}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click|preventDefault={() => { nDone(false) }}></div>
-  <div class="modal-content">
-    <article class="message {((notice && notice[2]) || '')}">
-      <div class="message-header">
-        <p>{notice && notice[0]}</p>
-        <button class="delete" aria-label="delete" on:click|preventDefault={() => { nDone(false) }}></button>
-      </div>
-      <div class="message-body">
-        {notice && notice[1]}
-      </div>
-      <footer style="padding: 1em">
-        <button class="button is-success" on:click|preventDefault={() => { nDone(true) }}>Close</button>
-      </footer>
-    </article>
-  </div>
-  <!-- <button class="modal-close is-large" aria-label="close"></button> -->
-</div>
-
-<!-- question modal -->
-<div class="modal" class:is-active={!!question}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click|preventDefault={() => { qYesNo(false) }}></div>
-  <div class="modal-content">
-    <article class="message {((question && question[2]) || '')}">
-      <div class="message-header">
-        <p>{question && question[0]}</p>
-        <button class="delete" aria-label="delete" on:click|preventDefault={() => { qYesNo(false) }}></button>
-      </div>
-      <div class="message-body">
-        {question && question[1]}
-      </div>
-      <footer style="padding: 1em">
-        <button class="button is-success" on:click|preventDefault={() => { qYesNo(true) }}>Continue</button>
-        <button class="button"on:click|preventDefault={() => { qYesNo(false) }}>Cancel</button>
-      </footer>
-    </article>
-  </div>
-  <!-- <button class="modal-close is-large" aria-label="close"></button> -->
-</div>
-
-
-
-
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
