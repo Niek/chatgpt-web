@@ -122,7 +122,7 @@
     }
     if (!chat.settings.profile) {
       const profile = getProfile('') // get default profile
-      applyProfile(chatId, profile.profile as any, true)
+      applyProfile(chatId, profile.profile as any)
       if (getChatSettingValueByKey(chatId, 'startSession')) {
         setChatSettingValueByKey(chatId, 'startSession', false)
         setTimeout(() => { submitForm(false, true) }, 0)
@@ -536,21 +536,23 @@
         default:
           setChatSettingValue(chatId, setting, el.value)
       }
-      (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting) && showSettingsModal++
+      (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting) 
+        && showSettingsModal && showSettingsModal++
     }
-    if (setting.key === 'profile' && checkSessionActivity(chatId)) {
-      if (window.confirm('Switching profiles will clear your current chat session.  Are you sure you want to continue?')) {
-        // Switch profiles
-        () => { doSet() }
+    if (setting.key === 'profile' && checkSessionActivity(chatId) 
+      && (getProfile(el.value).characterName !== getChatSettingValueByKey(chatId,'characterName'))) {
+      const val = getChatSettingValue(chatId, setting)
+      if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {
+        doSet()
       } else {
-        // Roll-back
-        () => { el.value = getChatSettingValue(chatId, setting) }
+        // roll-back
+        setChatSettingValue(chatId, setting, val)
+        // refresh setting modal, if open
+        showSettingsModal && showSettingsModal++
       }
-    } else {
-      debounce[setting.key] = setTimeout(doSet, 250)
     }
+    debounce[setting.key] = setTimeout(doSet, 250)
   }
-
   const autoGrowInputOnEvent = (event: Event) => {
     // Resize the textarea to fit the content - auto is important to reset the height after deleting content
     if (event.target === null) return
@@ -567,7 +569,7 @@
     try {
       saveCustomProfile(chat.settings)
     } catch (e) {
-      alert('Error saving profile: ' + e.message)
+      alert('Error saving profile: \n' + e.message)
     }
   }
 
@@ -597,7 +599,7 @@
       updateProfileSelectOptions()
       showSettingsModal && showSettingsModal++
     } catch (e) {
-      alert('Error cloning profile: ' + e.message)
+      alert('Error cloning profile: \n' + e.message)
     }
   }
 
@@ -608,11 +610,11 @@
       chat.settings.profile = globalStore.defaultProfile
       saveChatStore()
       setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
-      applyProfile(chatId, chat.settings.profile as any, true)
+      applyProfile(chatId, chat.settings.profile as any)
       updateProfileSelectOptions()
       showSettings()
     } catch (e) {
-      alert('Error deleting profile: ' + e.message)
+      alert('Error deleting profile: \n' + e.message)
     }
   }
 
@@ -635,7 +637,7 @@
         updateProfileSelectOptions()
         showSettingsModal && showSettingsModal++
       } catch (e) {
-        alert('Unable to import profile: ' + e.message)
+        alert('Unable to import profile: \n' + e.message)
       }
     }
   }
@@ -656,6 +658,9 @@
 
   <div class="level-right">
     <p class="level-item">
+      {#if chat.settings.autoStartSession && chat.settings.systemPrompt && chat.settings.useSystemPrompt}
+        
+      {/if}
       <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button>
     </p>
   </div>

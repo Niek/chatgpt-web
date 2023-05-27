@@ -80,20 +80,20 @@ export const checkSessionActivity = (chatId:number):boolean => {
   return false
 }
 
-export const applyProfile = (chatId:number, key:string, keepMessages?:boolean) => {
+export const applyProfile = (chatId:number, key:string, resetChat:boolean = false) => {
   const profile = getProfile(key)
   Object.entries(profile).forEach(([k, v]) => {
         const setting = getChatSettingByKey(k as any)
         if (setting) setChatSettingValue(chatId, setting as any, v)
   })
-  const messages = getMessages(chatId)
-  if (keepMessages && messages.length) {
-        setChatSettingValueByKey(chatId, 'startSession', false)
-        setGlobalSettingValueByKey('lastProfile', key)
-        return
+  if (!resetChat && getMessages(chatId).length) {
+    // If there are any messages, just apply settings, don't apply chat messages
+    setChatSettingValueByKey(chatId, 'startSession', false)
+    setGlobalSettingValueByKey('lastProfile', key)
+    return
   }
+  // Clear current messages
   clearMessages(chatId)
-
   // Add the system prompt
   const systemPromptMessage:Message = {
         role: 'system',
