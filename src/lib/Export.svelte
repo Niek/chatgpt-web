@@ -7,7 +7,6 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const messages = chat.messages
-    console.log(chat)
     let markdownContent = `# ${chat.name}\n`
 
     messages.forEach((message) => {
@@ -21,6 +20,35 @@
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.download = `${chat.name}.md`
+    a.href = url
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  export const exportChatAsJSON = (chatId: number) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const exportContent = JSON.stringify(chat)
+    const blob = new Blob([exportContent], { type: 'text/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.download = `${chat.name}.json`
+    a.href = url
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  export const exportProfileAsJSON = (chatId: number) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const profile = chat.settings
+    const exportContent = JSON.stringify(profile)
+    const blob = new Blob([exportContent], { type: 'text/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.download = `${profile.profileName}.json`
     a.href = url
     document.body.appendChild(a)
     a.click()

@@ -1,126 +1,98 @@
 <script lang="ts">
-  // import { fetchEventSource } from '@microsoft/fetch-event-source'
-
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  // This beast needs to be broken down into multiple components before it gets any worse.
+  import {
+    saveChatStore,
+    apiKeyStorage,
+    chatsStorage,
+    globalStorage,
+    addMessage,
+    insertMessages,
+    clearMessages,
+    copyChat,
+    getChatSettingValue,
+    getChatSettingValueByKey,
+    setChatSettingValue,
+    getChatSettingValueNullDefault,
+    setChatSettingValueByKey,
+    saveCustomProfile,
+    deleteCustomProfile,
+    setGlobalSettingValueByKey
+  } from './Storage.svelte'
+  import { getChatSettingByKey, getChatSettingList } from './Settings.svelte'
   import {
     type Request,
     type Response,
     type Message,
-    type Settings,
+    type ChatSetting,
     type ResponseModels,
-    type SettingsSelect,
+    type SettingSelect,
     type Chat,
-    supportedModels
+    type SelectOption,
+    supportedModels,
+    type ChatSettings
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
+  import { applyProfile, checkSessionActivity, getProfile, getProfileSelect, prepareSummaryPrompt } from './Profiles.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
+  import Fa from 'svelte-fa/src/fa.svelte'
+  import {
+    faArrowUpFromBracket,
+    faPaperPlane,
+    faGear,
+    faPenToSquare,
+    faTrash,
+    faMicrophone,
+    faLightbulb,
+    faClone,
+    faEllipsisVertical,
+    faFloppyDisk,
+    faThumbtack,
+    faDownload,
+    faUpload
+  } from '@fortawesome/free-solid-svg-icons/index'
+  import { encode } from 'gpt-tokenizer'
+  import { v4 as uuidv4 } from 'uuid'
+  import { exportProfileAsJSON } from './Export.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
-  
+
   let updating: boolean = false
+  let updatingMessage: string = ''
   let input: HTMLTextAreaElement
-  let settings: HTMLDivElement
+  // let settings: HTMLDivElement
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
+  let profileFileInput
+  let showSettingsModal = 0
+  let showProfileMenu = false
 
-  const modelSetting: Settings & SettingsSelect = {
-    key: 'model',
-    name: 'Model',
-    default: 'gpt-3.5-turbo',
-    title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-    options: supportedModels,
-    type: 'select'
-  }
-
-  let settingsMap: Settings[] = [
-    modelSetting,
-    {
-      key: 'temperature',
-      name: 'Sampling Temperature',
-      default: 1,
-      title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
-              '\n' +
-              'We generally recommend altering this or top_p but not both.',
-      min: 0,
-      max: 2,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'top_p',
-      name: 'Nucleus Sampling',
-      default: 1,
-      title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
-              '\n' +
-              'We generally recommend altering this or temperature but not both',
-      min: 0,
-      max: 1,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'n',
-      name: 'Number of Messages',
-      default: 1,
-      title: 'How many chat completion choices to generate for each input message.',
-      min: 1,
-      max: 10,
-      step: 1,
-      type: 'number'
-    },
-    {
-      key: 'max_tokens',
-      name: 'Max Tokens',
-      title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
-      default: 0,
-      min: 0,
-      max: 32768,
-      step: 1024,
-      type: 'number'
-    },
-    {
-      key: 'presence_penalty',
-      name: 'Presence Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    },
-    {
-      key: 'frequency_penalty',
-      name: 'Frequency Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    }
-  ]
+  const settingsList = getChatSettingList()
+  const modelSetting = getChatSettingByKey('model') as ChatSetting & SettingSelect
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
+  $: globalStore = $globalStorage
 
   onMount(async () => {
-    // Pre-select the last used model
-    if (chat.messages.length > 0) {
-      modelSetting.default = chat.messages[chat.messages.length - 1].model || modelSetting.default
-      settingsMap = settingsMap
+    // Sanitize old save
+    if (!chat.settings) chat.settings = {} as ChatSettings
+    // make sure old chat has UUID
+    if (chat && chat.messages && chat.messages[0] && !chat.messages[0].uuid) {
+      chat.messages.forEach((m) => {
+        m.uuid = uuidv4()
+      })
+      saveChatStore()
     }
 
     // Focus the input on mount
-    input.focus()
+    focusInput()
 
     // Try to detect speech recognition support
     if ('SpeechRecognition' in window) {
@@ -148,39 +120,170 @@
     } else {
       console.log('Speech recognition not supported')
     }
+    if (!chat.settings.profile) {
+      const profile = getProfile('') // get default profile
+      applyProfile(chatId, profile.profile as any, true)
+      if (getChatSettingValueByKey(chatId, 'startSession')) {
+        setChatSettingValueByKey(chatId, 'startSession', false)
+        setTimeout(() => { submitForm(false, true) }, 0)
+      }
+    }
   })
 
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
+    sizeTextElements()
     // Scroll to the bottom of the page after any updates to the messages array
-    document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-    input.focus()
+    // focusInput()
   })
 
+  // Scroll to the bottom of the chat on update
+  const focusInput = () => {
+    input.focus()
+    setTimeout(() => document.querySelector('.chat-focus-point')?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0)
+  }
+
+  // Show question modal
+  // Yeah, probably should make a component, but...
+  let qYesNo = (v) => {}
+  let question:any = null
+  const askQuestion = (title, message, yesFn, noFn, cls?) => {
+    qYesNo = (v) => { question = null; v ? yesFn() : noFn() }
+    question = [title, message, cls]
+  }
+
+  // Show notice modal
+  let nDone = (v) => {}
+  let notice:any = null
+  const doNotice = (title, message, doneFn, cls?) => {
+    nDone = (v) => { notice = null; doneFn() }
+    notice = [title, message, cls]
+  }
 
   // Send API request
-  const sendRequest = async (messages: Message[]): Promise<Response> => {
+  const sendRequest = async (messages: Message[], doingSummary?:boolean, withSummary?:boolean): Promise<Response> => {
     // Show updating bar
     updating = true
+    updatingMessage = ''
 
     let response: Response
+
+    // Submit only the role and content of the messages, provide the previous messages as well for context
+    const filtered = messages.filter((message) => message.role !== 'error' && message.content && !message.summarized)
+  
+    // Get an estimate of the total prompt size we're sending
+    const promptTokenCount:number = filtered.reduce((a, m) => {
+      a += encode(m.content).length + 8 // + 8, always seems to under count by around 8
+      return a
+    }, 0)
+
+    if (getChatSettingValueByKey(chatId, 'useSummarization') &&
+          !withSummary && !doingSummary &&
+          (promptTokenCount > getChatSettingValueByKey(chatId, 'summaryThreshold'))) {
+      // Too many tokens -- well need to sumarize some past ones else we'll run out of space
+      // Get a block of past prompts we'll summarize
+      let pinTop = getChatSettingValueByKey(chatId, 'pinTop')
+      const tp = getChatSettingValueByKey(chatId, 'trainingPrompts')
+      pinTop = Math.max(pinTop, tp || 0)
+      let pinBottom = getChatSettingValueByKey(chatId, 'pinBottom')
+      const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
+      const mlen = filtered.length - systemPad // always keep system prompt
+      let diff = mlen - (pinTop + pinBottom)
+      while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
+        // Not enough prompts exposed to summarize
+        // try to open up pinTop and pinBottom to see if we can get more to summarize
+        if (pinTop === 1 && pinBottom > 1) {
+          // If we have a pin top, try to keep some of it as long as we can
+          pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+        } else {
+          pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+          pinTop = Math.max(Math.floor(pinTop / 2), 0)
+        }
+        diff = mlen - (pinTop + pinBottom)
+      }
+      if (diff > 0) {
+        // We've found at least one prompt we can try to summarize
+        // Reduce to prompts we'll send in for summary
+        // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
+        const summarize = filtered.slice(0, filtered.length - pinBottom)
+        // Always try to end the prompts being summarized with a user prompt.  Seems to work better.
+        while (summarize.length - (pinTop + systemPad) >= 4 && summarize[summarize.length - 1].role !== 'user') {
+          summarize.pop()
+        }
+        // Estimate token count of what we'll be summarizing
+        const sourceTokenCount = summarize.reduce((a, m) => { a += encode(m.content).length + 8; return a }, 0)
+  
+        const summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+        if (sourceTokenCount > 20 && summaryPrompt) {
+          // get prompt we'll be inserting after
+          const endPrompt = summarize[summarize.length - 1]
+          // Add a prompt to ask to summarize them
+          const summarizeReq = summarize.slice()
+          summarizeReq.push({
+            role: 'user',
+            content: summaryPrompt
+          } as Message)
+          // Wait for the summary completion
+          const summary = await sendRequest(summarizeReq, true)
+          if (summary.error) {
+            // Failed to some API issue. let the original caller handle it.
+            return summary
+          } else {
+            // See if we can parse the results
+            // (Make sure AI generated a good JSON response)
+            const summaryPromptContent: string = summary.choices.reduce((a, c) => {
+              if (a.length > c.message.content.length) return a
+              a = c.message.content
+              return a
+            }, '')
+            // Looks like we got our summarized messages.
+            // get ids of messages we summarized
+            const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
+            // Mark the new summaries as such
+            const summaryPrompt:Message = {
+              role: 'assistant',
+              content: summaryPromptContent,
+              uuid: uuidv4(),
+              summary: summarizedIds
+            }
+            const summaryIds = [summaryPrompt.uuid]
+            // Insert messages
+            insertMessages(chatId, endPrompt, [summaryPrompt])
+            // Disable the messages we summarized so they still show in history
+            summarize.forEach((m, i) => {
+              if (i - systemPad >= pinTop) {
+                m.summarized = summaryIds
+              }
+            })
+            saveChatStore()
+            // Re-run request with summarized prompts
+            // return { error: { message: "End for now" } } as Response
+            return await sendRequest(chat.messages, false, true)
+          }
+        } else if (!summaryPrompt) {
+          addMessage(chatId, { role: 'error', content: 'Unable to summarize. No summary prompt defined.', uuid: uuidv4() })
+        } else if (sourceTokenCount <= 20) {
+          addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough words in past content to summarize.', uuid: uuidv4() })
+        }
+      } else {
+        addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
+      }
+    }
+
     try {
       const request: Request = {
-        // Submit only the role and content of the messages, provide the previous messages as well for context
-        messages: messages
-          .map((message): Message => {
-            const { role, content } = message
-            return { role, content }
-          })
-          // Skip error messages
-          .filter((message) => message.role !== 'error'),
+        messages: filtered.map(m => { return { role: m.role, content: m.content } }) as Message[],
 
         // Provide the settings by mapping the settingsMap to key/value pairs
-        ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value
-          if (value) {
-            acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
+        ...getChatSettingList().reduce((acc, setting) => {
+          if (setting.noRequest) return acc // don't include non-request settings
+          let value = getChatSettingValueNullDefault(chatId, setting)
+          if (value === null && setting.required) value = setting.default
+          if (doingSummary && setting.key === 'max_tokens') {
+            // Override for summary
+            value = getChatSettingValueByKey(chatId, 'summarySize')
           }
+          if (value !== null) acc[setting.key] = value
           return acc
         }, {})
       }
@@ -222,37 +325,64 @@
 
     // Hide updating bar
     updating = false
+    updatingMessage = ''
+
+    if (!response.error) {
+      // tc.completions++
+      // tc.completionsTokens += response.usage.completion_tokens
+      // chat.totals.push(tc)
+      // console.log('got response:', response)
+    }
 
     return response
   }
 
-
-  const submitForm = async (recorded: boolean = false): Promise<void> => {
-    // Compose the system prompt message if there are no messages yet - disabled for now
-    /*
+  const addNewMessage = () => {
+    let inputMessage: Message
+    const lastMessage = chat.messages[chat.messages.length - 1]
+    const uuid = uuidv4()
     if (chat.messages.length === 0) {
-      const systemPrompt: Message = { role: 'system', content: 'You are a helpful assistant.' }
-      addMessage(chatId, systemPrompt)
+      inputMessage = { role: 'system', content: input.value, uuid }
+    } else if (lastMessage && lastMessage.role === 'user') {
+      inputMessage = { role: 'assistant', content: input.value, uuid }
+    } else {
+      inputMessage = { role: 'user', content: input.value, uuid }
     }
-    */
-  
-    // Compose the input message
-    const inputMessage: Message = { role: 'user', content: input.value }
     addMessage(chatId, inputMessage)
 
     // Clear the input value
     input.value = ''
-    input.blur()
+    // input.blur()
+    focusInput()
+  }
 
-    // Resize back to single line height
-    input.style.height = 'auto'
+  const submitForm = async (recorded: boolean = false, skipInput: boolean = false): Promise<void> => {
+    // Compose the system prompt message if there are no messages yet - disabled for now
+    if (updating) return
+  
+    if (!skipInput) {
+      if (input.value !== '') {
+        // Compose the input message
+        const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
+        addMessage(chatId, inputMessage)
+      }
+
+      // Clear the input value
+      input.value = ''
+      input.blur()
+  
+      // Resize back to single line height
+      input.style.height = 'auto'
+    }
+    focusInput()
 
     const response = await sendRequest(chat.messages)
 
     if (response.error) {
       addMessage(chatId, {
         role: 'error',
-        content: `Error: ${response.error.message}`
+        content: `Error: ${response.error.message}`,
+        uuid: uuidv4()
       })
     } else {
       response.choices.forEach((choice) => {
@@ -270,28 +400,30 @@
         }
       })
     }
+    focusInput()
   }
 
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Can you give me a 5 word summary of this conversation's topic?"
+      content: "Can you give me a 5 word summary of this conversation's topic?",
+      uuid: uuidv4()
     }
-    addMessage(chatId, suggestMessage)
 
-    const response = await sendRequest(chat.messages)
+    const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
+    suggestMessages.push(suggestMessage)
+
+    const response = await sendRequest(suggestMessages, true)
 
     if (response.error) {
       addMessage(chatId, {
         role: 'error',
-        content: `Error: ${response.error.message}`
+        content: `Unable to get suggested name: ${response.error.message}`,
+        uuid: uuidv4()
       })
     } else {
       response.choices.forEach((choice) => {
-        choice.message.usage = response.usage
-        addMessage(chatId, choice.message)
         chat.name = choice.message.content
-        chatsStorage.set($chatsStorage)
       })
     }
   }
@@ -324,9 +456,23 @@
     chatNameSettings.classList.remove('is-active')
   }
 
-  const showSettings = async () => {
-    settings.classList.add('is-active')
+  const updateProfileSelectOptions = () => {
+    const profileSelect = getChatSettingByKey('profile') as ChatSetting & SettingSelect
+    const defaultProfile = getProfile('')
+    profileSelect.default = defaultProfile.profile as any
+    profileSelect.options = getProfileSelect()
+  }
 
+  const showSettings = async () => {
+    // Show settings modal
+    showSettingsModal++
+
+    // Get profile options
+    updateProfileSelectOptions()
+
+    // Refresh settings modal
+    showSettingsModal++
+  
     // Load available models from OpenAI
     const allModels = (await (
       await fetch(apiBase + '/v1/models', {
@@ -339,20 +485,47 @@
     ).json()) as ResponseModels
     const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
 
+    const modelOptions:SelectOption[] = filteredModels.reduce((a, m) => {
+      const o:SelectOption = {
+        value: m,
+        text: m
+      }
+      a.push(o)
+      return a
+    }, [] as SelectOption[])
+
     // Update the models in the settings
-    modelSetting.options = filteredModels
-    settingsMap = settingsMap
+    if (modelSetting) {
+      modelSetting.options = modelOptions
+    }
+    // Refresh settings modal
+    showSettingsModal++
+
+    setTimeout(() => sizeTextElements, 100)
+  }
+
+  const sizeTextElements = () => {
+    const els = document.querySelectorAll('textarea.auto-size')
+    for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
   }
 
   const closeSettings = () => {
-    settings.classList.remove('is-active')
+    showSettingsModal = 0
+    showProfileMenu = false
+    if (chat.settings.startSession) {
+      setChatSettingValueByKey(chatId, 'startSession', false)
+      submitForm(false, true)
+    }
   }
 
   const clearSettings = () => {
-    settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
-      input.value = ''
+    settingsList.forEach(s => {
+      setChatSettingValue(chatId, s, null)
     })
+    showSettingsModal++ // Make sure the dialog updates
+    // const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
+    // saveSetting(chatId, setting, null)
+    // input.value = ''
   }
 
   const recordToggle = () => {
@@ -364,6 +537,125 @@
       recognition?.start()
     }
   }
+
+  const debounce = {}
+
+  const queueSettingValueChange = (event: Event, setting: ChatSetting) => {
+    clearTimeout(debounce[setting.key])
+    if (event.target === null) return
+    const el = (event.target as HTMLInputElement)
+    const doSet = () => {
+      switch (setting.type) {
+        case 'boolean':
+          setChatSettingValue(chatId, setting, el.checked)
+          showSettingsModal && showSettingsModal++
+          break
+        default:
+          setChatSettingValue(chatId, setting, el.value)
+      }
+      (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting) && showSettingsModal++
+    }
+    if (setting.key === 'profile' && checkSessionActivity(chatId)) {
+      askQuestion(
+        'Warning',
+        'Switching profiles will clear your current chat session.  Are you sure you want to continue?',
+        () => { doSet() }, // Yes
+        () => { el.value = getChatSettingValue(chatId, setting) }, // No
+        'is-warning'
+      )
+    } else {
+      debounce[setting.key] = setTimeout(doSet, 250)
+    }
+  }
+
+  const autoGrowInputOnEvent = (event: Event) => {
+    // Resize the textarea to fit the content - auto is important to reset the height after deleting content
+    if (event.target === null) return
+    autoGrowInput(event.target as HTMLTextAreaElement)
+  }
+
+  const autoGrowInput = (el: HTMLTextAreaElement) => {
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }
+
+  const saveProfile = () => {
+    showProfileMenu = false
+    try {
+      saveCustomProfile(chat.settings)
+    } catch (e) {
+      doNotice('Error saving profile', e.message, () => {}, 'is-danger')
+    }
+  }
+
+  const newNameForProfile = (name:string):string => {
+    const profiles = getProfileSelect()
+    const nameMap = profiles.reduce((a, p) => { a[p.text] = p; return a }, {})
+    if (!nameMap[name]) return name
+    let i:number = 1
+    let cname = name + `-${i}`
+    while (nameMap[cname]) {
+      i++
+      cname = name + `-${i}`
+    }
+    return cname
+  }
+
+  const cloneProfile = () => {
+    showProfileMenu = false
+    const clone = JSON.parse(JSON.stringify(chat.settings))
+    const name = chat.settings.profileName
+    clone.profileName = newNameForProfile(name || '')
+    clone.profile = null
+    try {
+      saveCustomProfile(clone)
+      chat.settings.profile = clone.profile
+      chat.settings.profileName = clone.profileName
+      updateProfileSelectOptions()
+      showSettingsModal && showSettingsModal++
+    } catch (e) {
+      doNotice('Error cloning profile', e.message, () => {}, 'is-danger')
+    }
+  }
+
+  const deleteProfile = () => {
+    showProfileMenu = false
+    try {
+      deleteCustomProfile(chatId, chat.settings.profile as any)
+      chat.settings.profile = globalStore.defaultProfile
+      saveChatStore()
+      setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
+      applyProfile(chatId, chat.settings.profile as any, true)
+      updateProfileSelectOptions()
+      showSettings()
+    } catch (e) {
+      doNotice('Error deleting profile', e.message, () => {}, 'is-danger')
+    }
+  }
+
+  const pinDefaultProfile = () => {
+    showProfileMenu = false
+    setGlobalSettingValueByKey('defaultProfile', chat.settings.profile)
+  }
+
+  const importProfileFromFile = (e) => {
+    const image = e.target.files[0]
+    const reader = new FileReader()
+    reader.readAsText(image)
+    reader.onload = e => {
+      const json = (e.target || {}).result as string
+      try {
+        const profile = JSON.parse(json)
+        profile.profileName = newNameForProfile(profile.profileName || '')
+        profile.profile = null
+        saveCustomProfile(profile)
+        updateProfileSelectOptions()
+        showSettingsModal && showSettingsModal++
+      } catch (e) {
+        doNotice('Unable to import profile', e.message, () => {}, 'is-danger')
+      }
+    }
+  }
 </script>
 
 <nav class="level chat-header">
@@ -371,67 +663,69 @@
     <div class="level-item">
       <p class="subtitle is-5">
         {chat.name || `Chat ${chat.id}`}
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}><Fa icon={faPenToSquare} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a>
       </p>
     </div>
   </div>
 
   <div class="level-right">
     <p class="level-item">
-      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
+      <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button>
     </p>
   </div>
 </nav>
 
-<Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
+<Messages messages={chat.messages} chatId={chatId} />
 
 {#if updating}
   <article class="message is-success assistant-message">
     <div class="message-body content">
-      <span class="is-loading" />
+      <span class="is-loading" ></span>
+      <span>{updatingMessage}</span>
     </div>
   </article>
 {/if}
 
-{#if chat.messages.length === 0}
+{#if chat.messages.length === 0 || (chat.messages.length === 1 && chat.messages[0].role === 'system')}
   <Prompts bind:input />
 {/if}
 
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
-      class="input is-info is-focused chat-input"
+      class="input is-info is-focused chat-input auto-size"
       placeholder="Type your message here..."
       rows="1"
-      on:keydown={(e) => {
+      on:keydown={e => {
         // Only send if Enter is pressed, not Shift+Enter
         if (e.key === 'Enter' && !e.shiftKey) {
           submitForm()
           e.preventDefault()
         }
       }}
-      on:input={(e) => {
-        // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-        input.style.height = 'auto'
-        input.style.height = input.scrollHeight + 'px'
-      }}
+      on:input={e => autoGrowInputOnEvent(e)}
       bind:this={input}
     />
   </p>
   <p class="control" class:is-hidden={!recognition}>
     <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="greyscale">🎤</span></button
+      ><span class="greyscale"><Fa icon={faMicrophone} /></span></button
     >
   </p>
   <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
+    <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettings}><Fa icon={faGear} /></button>
   </p>
   <p class="control">
-    <button class="button is-info" type="submit">Send</button>
+    <button title="Add message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><Fa icon={faArrowUpFromBracket} /></button>
+  </p>
+  <p class="control">
+    <button title="Send" class="button is-info" type="submit"><Fa icon={faPaperPlane} /></button>
   </p>
 </form>
+<div class="chat-focus-point" style="height.4em"></div>
 
 <svelte:window
   on:keydown={(event) => {
@@ -443,19 +737,90 @@
 />
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" bind:this={settings}>
+<div class="modal" class:is-active={showSettingsModal}>
   <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card">
+  <div class="modal-card" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
-      <p class="modal-card-title">Settings</p>
+      <p class="modal-card-title">Chat Settings</p>
+
+      <div class="dropdown is-right" class:is-active={showProfileMenu}>
+        <div class="dropdown-trigger">
+          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
+            <span><Fa icon={faEllipsisVertical}/></span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+          <div class="dropdown-content">
+            <a href={'#'} class="dropdown-item disabled" on:click|preventDefault={saveProfile}>
+              <span><Fa icon={faFloppyDisk}/></span> Save Profile
+            </a>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
+              <span><Fa icon={faClone}/></span> Clone Profile
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} 
+              class="dropdown-item"
+              on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
+            >
+              <span><Fa icon={faDownload}/></span> Export Profile
+            </a>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
+              <span><Fa icon={faUpload}/></span> Import Profile
+            </a>
+            <input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+            <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
+              <span><Fa icon={faThumbtack}/></span> Set as Default Profile
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
+              <span><Fa icon={faTrash}/></span> Delete Profile
+            </a>
+          </div>
+        </div>
+      </div>
     </header>
     <section class="modal-card-body">
-      <p class="notification is-warning">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p>
-      {#each settingsMap as setting}
+      <!-- Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p> -->
+      {#key showSettingsModal}
+      {#each settingsList as setting}
+        {#if (typeof setting.hide !== 'function') || !setting.hide(chatId)}
+        {#if setting.header}
+        <p class="notification {setting.headerClass}">
+          {@html setting.header}
+        </p>
+        {/if}
         <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label" for="settings-{setting.key}">{setting.name}</label>
+          {#if setting.type === 'boolean'}
+          <div class="field is-normal">
+            <label class="label" for="settings-{setting.key}" title="{setting.title}">
+              <input 
+              type="checkbox"
+              title="{setting.title}"
+              class="checkbox" 
+              id="settings-{setting.key}"
+              checked={getChatSettingValue(chatId, setting)} 
+              on:click={e => queueSettingValueChange(e, setting)}
+            >
+              {setting.name}
+            </label>
           </div>
+          {:else if setting.type === 'textarea'}
+          <div class="field is-normal" style="width:100%">
+            <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
+            <textarea
+              class="input is-info is-focused chat-input auto-size"
+              placeholder={setting.placeholder || ''}
+              rows="1"
+              on:input={e => autoGrowInputOnEvent(e)}
+              on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
+            >{getChatSettingValue(chatId, setting)}</textarea>
+          </div>
+          {:else}
+          <div class="field-label is-normal">
+            <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
+          </div>
+          {/if}
           <div class="field-body">
             <div class="field">
               {#if setting.type === 'number'}
@@ -465,24 +830,38 @@
                   type={setting.type}
                   title="{setting.title}"
                   id="settings-{setting.key}"
+                  value="{getChatSettingValue(chatId, setting)}"
                   min={setting.min}
                   max={setting.max}
                   step={setting.step}
                   placeholder={String(setting.default)}
+                  on:change={e => queueSettingValueChange(e, setting)}
                 />
               {:else if setting.type === 'select'}
                 <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}">
+                  <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
                     {#each setting.options as option}
-                      <option value={option} selected={option === setting.default}>{option}</option>
+                      <option value={option.value} selected={option.value === getChatSettingValue(chatId, setting)}>{option.text}</option>
                     {/each}
                   </select>
+                </div>
+              {:else if setting.type === 'text'}
+                <div class="field">
+                    <input 
+                    type="text"
+                    title="{setting.title}"
+                    class="input" 
+                    value={getChatSettingValue(chatId, setting)} 
+                    on:change={e => { queueSettingValueChange(e, setting) }}
+                  >
                 </div>
               {/if}
             </div>
           </div>
         </div>
+      {/if}
       {/each}
+      {/key}
     </section>
 
     <footer class="modal-card-foot">
@@ -491,6 +870,53 @@
     </footer>
   </div>
 </div>
+
+<!-- notice modal -->
+<div class="modal" class:is-active={!!notice}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click|preventDefault={() => { nDone(false) }}></div>
+  <div class="modal-content">
+    <article class="message {((notice && notice[2]) || '')}">
+      <div class="message-header">
+        <p>{notice && notice[0]}</p>
+        <button class="delete" aria-label="delete" on:click|preventDefault={() => { nDone(false) }}></button>
+      </div>
+      <div class="message-body">
+        {notice && notice[1]}
+      </div>
+      <footer style="padding: 1em">
+        <button class="button is-success" on:click|preventDefault={() => { nDone(true) }}>Close</button>
+      </footer>
+    </article>
+  </div>
+  <!-- <button class="modal-close is-large" aria-label="close"></button> -->
+</div>
+
+<!-- question modal -->
+<div class="modal" class:is-active={!!question}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click|preventDefault={() => { qYesNo(false) }}></div>
+  <div class="modal-content">
+    <article class="message {((question && question[2]) || '')}">
+      <div class="message-header">
+        <p>{question && question[0]}</p>
+        <button class="delete" aria-label="delete" on:click|preventDefault={() => { qYesNo(false) }}></button>
+      </div>
+      <div class="message-body">
+        {question && question[1]}
+      </div>
+      <footer style="padding: 1em">
+        <button class="button is-success" on:click|preventDefault={() => { qYesNo(true) }}>Continue</button>
+        <button class="button"on:click|preventDefault={() => { qYesNo(false) }}>Cancel</button>
+      </footer>
+    </article>
+  </div>
+  <!-- <button class="modal-close is-large" aria-label="close"></button> -->
+</div>
+
+
+
+
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
