@@ -1,15 +1,19 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, getChatSettingValueByKey } from './Storage.svelte'
+  import { deleteMessage, chatsStorage } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
-  import type { Message, Model } from './Types.svelte'
+  import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faDiagramPredecessor, faDiagramNext } from '@fortawesome/free-solid-svg-icons/index'
 
   export let message:Message
   export let chatId:number
+
+
+  $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
+  $: chatSettings = chat.settings
 
   // Marked options
   const markedownOptions = {
@@ -26,7 +30,7 @@
 
   onMount(() => {
     original = message.content
-    defaultModel = getChatSettingValueByKey(chatId, 'model')
+    defaultModel = chatSettings.model as any
     noEdit = message.summarized
   })
 

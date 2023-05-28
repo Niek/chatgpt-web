@@ -40,6 +40,7 @@
     "svelte-local-storage-store": "^0.4.0",
     "svelte-markdown": "^0.2.3",
     "svelte-spa-router": "^3.3.0",
+    "svelte-use-click-outside": "^1.0.0",
     "tslib": "^2.5.0",
     "typescript": "^5.0.4",
     "uuid": "^9.0.0",

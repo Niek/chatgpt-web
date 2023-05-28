@@ -41,26 +41,27 @@
     max_tokens?: number;
     presence_penalty?: number;
     frequency_penalty?: number;
-    logit_bias?: Record<string, any>;
+    logit_bias?: Record<string, any> | null;
     user?: string;
 
   };
 
   export type ChatSettings = {
-    profile?: string,
-    characterName?: string,
-    profileName?: string,
-    profileDescription?: string,
-    useSummarization?: boolean;
-    summaryThreshold?: number;
-    summarySize?: number;
-    pinTop?: number,
-    pinBottom?: number,
-    summaryPrompt?: string;
-    useSystemPrompt?: boolean;
-    systemPrompt?: string;
-    autoStartSession?: boolean;
-    startSession?: false;
+    profile: string,
+    characterName: string,
+    profileName: string,
+    profileDescription: string,
+    useSummarization: boolean;
+    summaryThreshold: number;
+    summarySize: number;
+    pinTop: number;
+    pinBottom: number;
+    summaryPrompt: string;
+    useSystemPrompt: boolean;
+    systemPrompt: string;
+    autoStartSession: boolean;
+    startSession: false;
+    sessionStarted: false;
     trainingPrompts?: Message[];
   } & Request;
 
@@ -111,15 +112,9 @@
 
   type SettingNumber = {
     type: 'number';
-    default: number;
     min: number;
     max: number;
     step: number;
-  };
-
-  type SettingBoolean = {
-    type: 'boolean';
-    default: boolean;
   };
 
   export type SelectOption = {
@@ -127,41 +122,40 @@
     text: string;
   };
 
+type SettingBoolean = {
+  type: 'boolean';
+};
+
   export type SettingSelect = {
     type: 'select';
-    default: string;
     options: SelectOption[];
   };
 
   export type SettingText = {
     type: 'text';
-    default: string;
   };
 
   export type SettingTextArea = {
     type: 'textarea';
     lines?: number;
-    default: string;
-    placeholder?: string;
   };
 
   export type SettingOther = {
     type: 'other';
-    default: any;
   };
 
   export type ChatSetting = {
     key: keyof ChatSettings;
     name: string;
     title: string;
-    required?: boolean; // force in request
-    noRequest?: boolean; // exclude from request
+    forceApi?: boolean; // force in api requests, even if set to default
     hidden?: boolean; // Hide from setting menus
     header?: string;
     headerClass?: string;
+    placeholder?: string;
     hide?: (number?) => boolean;
-    setFilter?: (number, ChatSetting?, any?) => any;
-    getFilter?: (number, ChatSetting?, any?) => any;
+    apiTransform?: (number, ChatSetting, any?) => any;
+    beforeChange?: (number, ChatSetting?, any?) => boolean;
     afterChange?: (number, ChatSetting?, any?) => boolean;
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther);
 

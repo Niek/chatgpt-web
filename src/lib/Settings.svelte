@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettingValue, getChatSettingValueByKey } from './Storage.svelte'
+    import { getChatSettings } from './Storage.svelte';
+    import { encode } from 'gpt-tokenizer'
 // Setting definitions
 
 import {
@@ -8,14 +9,19 @@ import {
       type ChatSetting,
       type SettingSelect,
       type GlobalSetting,
-      type GlobalSettings
+      type GlobalSettings,
+      type Request
 } from './Types.svelte'
 
 export const getChatSettingList = (): ChatSetting[] => {
       return chatSettingsList
 }
 
-export const getChatSettingByKey = (key: keyof ChatSettings): ChatSetting => {
+export const getRequestSettingList = (): ChatSetting[] => {
+      return chatSettingsList.filter(s => s.key in gptDefaults)
+}
+
+export const getChatSettingObjectByKey = (key: keyof ChatSettings): ChatSetting => {
       const result = chatSettingLookup[key]
       if (!result) console.error(`Chat Setting "${key}" not defined in Settings array.`)
       return result
@@ -25,24 +31,79 @@ export const getGlobalSettingList = (): GlobalSetting[] => {
       return globalSettingsList
 }
 
-export const getGlobalSettingByKey = (key: keyof GlobalSettings): GlobalSetting => {
+export const getGlobalSettingObjectByKey = (key: keyof GlobalSettings): GlobalSetting => {
       return globalSettingLookup[key]
+}
+
+export const getRequestDefaults = ():Request => {
+  return gptDefaults
+}
+
+export const getChatDefaults = ():ChatSettings => {
+  return defaults
+}
+
+export const getExcludeFromProfile = () => {
+  return excludeFromProfile
+}
+
+const gptDefaults: Request = Object.freeze({
+  model: 'gpt-3.5-turbo-0301',
+  messages: [],
+  temperature: 1,
+  top_p: 1,
+  n: 1,
+  stream: false,
+  stop: null,
+  max_tokens: 128,
+  presence_penalty: 0,
+  frequency_penalty: 0,
+  logit_bias: null,
+  user: undefined,
+})
+
+// Core set of defaults
+const defaults:ChatSettings = Object.freeze({
+  ...gptDefaults,
+  profile: '',
+  characterName: 'ChatGPT',
+  profileName: '',
+  profileDescription: '',
+  useSummarization: false,
+  summaryThreshold: 3000,
+  summarySize: 1000,
+  pinTop: 0,
+  pinBottom: 6,
+  summaryPrompt: '',
+  useSystemPrompt: false,
+  systemPrompt: '',
+  autoStartSession: false,
+  trainingPrompts: [],
+  // There are chat session state variables, and really don't belong here
+  // But it was easier to just put them here.
+  startSession: false, // Should the session start automatically
+  sessionStarted: false, // Has the session started (user made a first request)
+})
+
+const excludeFromProfile = {
+  messages: true,
+  startSession: true,
+  sessionStarted: true,
+  user: true,
 }
 
 const profileSetting: ChatSetting & SettingSelect = {
       key: 'profile',
       name: 'Profile',
-      default: '', // Set by Profiles
       title: 'Choose how you want your assistant to act.',
       header: 'Profile / Presets',
       headerClass: 'is-info',
       options: [], // Set by Profiles
       type: 'select',
       afterChange: (chatId, setting) => {
-        applyProfile(chatId, getChatSettingValue(chatId, setting))
+        applyProfile(chatId, '', !getChatSettings(chatId).sessionStarted)
         return true // Signal we should refresh the setting modal
       },
-      noRequest: true
 }
 
 // Settings that will not be part of the API request
@@ -51,75 +112,59 @@ const nonRequestSettings: ChatSetting[] = [
       {
         key: 'profileName',
         name: 'Profile Name',
-        default: '', // Set by Profiles
         title: 'How this profile is displayed in the select list.',
         type: 'text',
-        noRequest: true // not part of request API
         // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
         key: 'profileDescription',
         name: 'Description',
-        default: '', // Set by Profiles
         title: 'How this profile is displayed in the select list.',
         type: 'textarea',
-        noRequest: true // not part of request API
         // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
         key: 'useSystemPrompt',
         name: 'Use Profile/System Prompt',
-        default: false,
         title: 'Send a "System" prompt as the first prompt.',
         header: 'System Prompt',
         headerClass: 'is-info',
         type: 'boolean',
-        noRequest: true // not part of request API
       },
       {
         key: 'characterName',
         name: 'Character Name',
-        default: '', // Set by Profiles
         title: 'What the personality of this profile will be called.',
         type: 'text',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSystemPrompt')
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt,
       },
       {
         key: 'systemPrompt',
         name: 'System Prompt',
-        default: '', // Set by Profiles
         title: 'First prompt to send.',
         placeholder: 'Enter the first prompt to send here.',
         type: 'textarea',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSystemPrompt')
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
       {
         key: 'trainingPrompts',
         name: 'Training Prompts',
         title: 'Prompts used to train.',
-        default: null,
         type: 'other',
-        noRequest: true, // not part of request API
         hide: (chatId) => true
       },
       {
         key: 'autoStartSession',
         name: 'Auto-Start Session',
-        default: false,
         title: 'If possible, auto-start the chat session, sending a system prompt to get an initial response.',
         type: 'boolean',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSystemPrompt')
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
       {
         key: 'startSession',
         name: 'Auto-Start Trigger',
-        default: false,
         title: '',
         type: 'boolean',
-        noRequest: true, // not part of request API
         hide: (chatId) => true
       },
       {
@@ -127,83 +172,70 @@ const nonRequestSettings: ChatSetting[] = [
         name: 'Enable Auto Summarize',
         header: 'Continuous Chat - Summarization',
         headerClass: 'is-info',
-        default: false,
         title: 'When out of token space, summarize past tokens and keep going.',
         type: 'boolean',
-        noRequest: true // not part of request API
       },
       {
         key: 'summaryThreshold',
         name: 'Summary Threshold',
-        default: 3000,
         title: 'When prompt history breaks this threshold, past prompts will be summarized to create space. 0 to disable.',
         min: 0,
         max: 32000,
         step: 1,
         type: 'number',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSummarization')
+        hide: (chatId) => !getChatSettings(chatId).useSummarization!
       },
       {
         key: 'summarySize',
         name: 'Max Summary Size',
-        default: 512,
         title: 'Maximum number of tokens to use for summarization response.',
         min: 128,
         max: 2048,
         step: 1,
         type: 'number',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSummarization')
+        hide: (chatId) => !getChatSettings(chatId).useSummarization!
       },
       {
         key: 'pinTop',
         name: 'Keep First Prompts During Summary',
-        default: 0,
         title: 'When we run out of space and need to summarize prompts, the top number of prompts will not be removed after summarization.',
         min: 0,
         max: 4,
         step: 1,
         type: 'number',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSummarization')
+        hide: (chatId) => !getChatSettings(chatId).useSummarization!
 
       },
       {
         key: 'pinBottom',
         name: 'Exclude Bottom Prompts From Summary',
-        default: 6,
         title: 'When we run out of space and need to summarize prompts, do not summarize the the last number prompts you set here.',
         min: 0,
         max: 20, // Will be auto adjusted down if needs more
         step: 1,
         type: 'number',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSummarization')
+        hide: (chatId) => !getChatSettings(chatId).useSummarization!
 
       },
       {
         key: 'summaryPrompt',
         name: 'Summary Generation Prompt',
-        default: '', // Set by Profiles
         title: 'A prompt used to summarize past prompts.',
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',
-        noRequest: true, // not part of request API
-        hide: (chatId) => !getChatSettingValueByKey(chatId, 'useSummarization')
+        hide: (chatId) => !getChatSettings(chatId).useSummarization!
       }
 ]
 
 const modelSetting: ChatSetting & SettingSelect = {
       key: 'model',
       name: 'Model',
-      default: 'gpt-3.5-turbo-0301',
       title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
       header: 'Below are the settings that OpenAI allows to be changed for the API calls. See the <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.',
       headerClass: 'is-warning',
       options: [],
       type: 'select',
-      required: true
+      forceApi: true, // Need to make sure we send this
 }
 
 const chatSettingsList: ChatSetting[] = [
@@ -212,7 +244,6 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'temperature',
         name: 'Sampling Temperature',
-        default: 1,
         title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
               '\n' +
               'We generally recommend altering this or top_p but not both.',
@@ -224,7 +255,6 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'top_p',
         name: 'Nucleus Sampling',
-        default: 1,
         title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
               '\n' +
               'We generally recommend altering this or temperature but not both',
@@ -236,7 +266,6 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'n',
         name: 'Number of Messages',
-        default: 1,
         title: 'CAREFUL WITH THIS ONE: How many chat completion choices to generate for each input message. This can eat tokens.',
         min: 1,
         max: 10,
@@ -249,17 +278,15 @@ const chatSettingsList: ChatSetting[] = [
         title: 'The maximum number of tokens to generate in the completion.\n' +
               '\n' +
               'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
-        default: 128,
         min: 1,
         max: 32768,
         step: 1024,
         type: 'number',
-        required: true // Since default here is different than gpt default, will make sure we always send it
+        forceApi: true // Since default here is different than gpt default, will make sure we always send it
       },
       {
         key: 'presence_penalty',
         name: 'Presence Penalty',
-        default: 0,
         title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
         min: -2,
         max: 2,
@@ -269,12 +296,43 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'frequency_penalty',
         name: 'Frequency Penalty',
-        default: 0,
         title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.',
         min: -2,
         max: 2,
         step: 0.2,
         type: 'number'
+      },
+      {
+        // logit bias editor not implemented yet
+        key: 'logit_bias',
+        name: 'Logit Bias',
+        title: 'Allows you to adjust bias of tokens used in completion.',
+        header: `Logit Bias. See <a target="_blank" href="https://help.openai.com/en/articles/5247780-using-logit-bias-to-define-token-probability">this article</a> for more details.`,
+        type: 'other',
+        hide: () => true,
+        // transform to JSON for request, first converting word->weight pairs to token(s)->weight.
+        //  -- care should be taken to have each word key in the each record formatted in a way where they
+        //     only take one token each else you'll end up with results you probably don't want.
+        //     Generally, leading space plus common lower case word will more often result in a single token
+        //     See: https://platform.openai.com/tokenizer
+        apiTransform: (chatId, setting, val:Record<string, number>) => {
+          console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
+          if (!val) return null
+          const tokenized:Record<number, number> = Object.entries(val).reduce((a,[k,v])=>{
+            const tokens:number[] = encode(k)
+            tokens.forEach(t => {a[t] = v})
+            return a
+          }, {} as Record<number, number>)
+          return tokenized
+        },        
+      },
+      // Enable?
+      {
+        key: 'user',
+        name: 'User?',
+        title: 'Name of user?',
+        type: 'text',
+        hide: () => true,
       }
 ]
 
@@ -289,13 +347,11 @@ const globalSettingsList:GlobalSetting[] = [
       {
         key: 'lastProfile',
         name: 'Last Profile',
-        default: 'default',
         type: 'text'
       },
       {
         key: 'defaultProfile',
         name: 'Default Profile',
-        default: 'default',
         type: 'text'
       }
 ]
