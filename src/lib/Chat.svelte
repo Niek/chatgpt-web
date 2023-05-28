@@ -22,7 +22,7 @@
     updateRunningTotal
 
   } from './Storage.svelte'
-  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList } from './Settings.svelte'
+  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList, getChatDefaults } from './Settings.svelte'
   import {
     type Request,
     type Response,
@@ -36,7 +36,7 @@
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { applyProfile, getProfile, getProfileSelect, prepareSummaryPrompt } from './Profiles.svelte'
+  import { applyProfile, getProfile, getProfileSelect, prepareSummaryPrompt, getDefaultProfileKey } from './Profiles.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
@@ -85,6 +85,7 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
+  const chatDefaults = getChatDefaults()
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
@@ -447,6 +448,7 @@
   const updateProfileSelectOptions = () => {
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = getProfileSelect()
+    chatDefaults.profile = getDefaultProfileKey()
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
   }
 
@@ -575,7 +577,7 @@
   }
   
   const autoGrowInput = (el: HTMLTextAreaElement) => {
-    el.style.height = '38px'; // don't use "auto" here.  Firefox will over-size.
+    el.style.height = '38px' // don't use "auto" here.  Firefox will over-size.
     el.style.height = el.scrollHeight + 'px'
   }
 
@@ -612,8 +614,7 @@
       saveCustomProfile(clone)
       chat.settings.profile = clone.profile
       chat.settings.profileName = clone.profileName
-      updateProfileSelectOptions()
-      showSettingsModal && showSettingsModal++
+      refreshSettings()
     } catch (e) {
       window.alert('Error cloning profile: \n' + e.message)
     }
@@ -627,8 +628,7 @@
       saveChatStore()
       setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
       applyProfile(chatId, chat.settings.profile as any)
-      updateProfileSelectOptions()
-      showSettings()
+      refreshSettings()
     } catch (e) {
       window.alert('Error deleting profile: \n' + e.message)
     }
@@ -637,6 +637,7 @@
   const pinDefaultProfile = () => {
     showProfileMenu = false
     setGlobalSettingValueByKey('defaultProfile', chat.settings.profile)
+    refreshSettings()
   }
 
   const importProfileFromFile = (e) => {
@@ -650,8 +651,7 @@
         profile.profileName = newNameForProfile(profile.profileName || '')
         profile.profile = null
         saveCustomProfile(profile)
-        updateProfileSelectOptions()
-        showSettingsModal && showSettingsModal++
+        refreshSettings()
       } catch (e) {
         window.alert('Unable to import profile: \n' + e.message)
       }
@@ -903,7 +903,7 @@
                 <div class="select">
                   <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
                     {#each setting.options as option}
-                      <option value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
+                      <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
                     {/each}
                   </select>
                 </div>
@@ -974,13 +974,10 @@
   .running-total-container {
     min-height:2em;
     padding-bottom:.6em;
-    padding-left: 1.9em;
+    /* padding-left: 1.9em; */
     margin-bottom:-2.6em
   }
   .running-totals {
     opacity: 0.5;
-  }
-  .chat-input {
-    /* padding:0; */
   }
 </style>

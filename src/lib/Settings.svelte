@@ -47,7 +47,7 @@ export const getExcludeFromProfile = () => {
   return excludeFromProfile
 }
 
-const gptDefaults: Request = Object.freeze({
+const gptDefaults = {
   model: 'gpt-3.5-turbo-0301',
   messages: [],
   temperature: 1,
@@ -60,10 +60,10 @@ const gptDefaults: Request = Object.freeze({
   frequency_penalty: 0,
   logit_bias: null,
   user: undefined
-})
+}
 
 // Core set of defaults
-const defaults:ChatSettings = Object.freeze({
+const defaults:ChatSettings = {
   ...gptDefaults,
   profile: '',
   characterName: 'ChatGPT',
@@ -83,7 +83,7 @@ const defaults:ChatSettings = Object.freeze({
   // But it was easier to just put them here.
   startSession: false, // Should the session start automatically
   sessionStarted: false // Has the session started (user made a first request)
-})
+}
 
 const excludeFromProfile = {
   messages: true,

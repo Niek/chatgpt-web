@@ -33,6 +33,13 @@ export const getProfileSelect = ():SelectOption[] => {
       }, [] as SelectOption[])
 }
 
+export const getDefaultProfileKey = ():string => {
+      const allProfiles = getProfiles()
+      return (allProfiles[getGlobalSettings().defaultProfile || ''] ||
+            profiles[defaultProfile] ||
+            profiles[Object.keys(profiles)[0]]).profile
+}
+
 export const getProfile = (key:string):ChatSettings => {
       const allProfiles = getProfiles()
       const profile = allProfiles[key] ||
