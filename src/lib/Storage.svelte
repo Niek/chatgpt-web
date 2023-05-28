@@ -30,7 +30,9 @@
       name: `Chat ${chatId}`,
       settings: {} as ChatSettings,
       messages: [],
-      usage: {} as Record<Model, Usage>
+      usage: {} as Record<Model, Usage>,
+      startSession: false,
+      sessionStarted: false,
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
@@ -90,6 +92,8 @@
       const usageMap:Record<Model, Usage> = {}
       chat.usage = usageMap
     }
+    if (chat.startSession === undefined) chat.startSession = false
+    if (chat.sessionStarted === undefined) chat.sessionStarted = !!chat.messages.find(m => m.role === 'user')
     chatsStorage.set(chats)
   }
   

@@ -124,12 +124,13 @@
     } else {
       console.log('Speech recognition not supported')
     }
-    if (chatSettings.startSession) {
+    if (chat.startSession) {
       const profile = getProfile('') // get default profile
       applyProfile(chatId, profile.profile as any)
-      if (chatSettings.startSession) {
-        setChatSettingValueByKey(chatId, 'startSession', false)
-        // Auto start the session out of band
+      if (chat.startSession) {
+        chat.startSession = false
+        saveChatStore()
+        // Auto start the session
         setTimeout(() => { submitForm(false, true) }, 0)
       }
     }
@@ -349,7 +350,8 @@
     if (updating) return
   
     if (!skipInput) {
-      setChatSettingValueByKey(chatId, 'sessionStarted', true)
+      chat.sessionStarted = true
+      saveChatStore()
       if (input.value !== '') {
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
@@ -505,9 +507,10 @@
   const closeSettings = () => {
     showSettingsModal = 0
     showProfileMenu = false
-    if (chat.settings.startSession) {
-      setChatSettingValueByKey(chatId, 'startSession', false)
-      submitForm(false, true)
+    if (chat.startSession) {
+        chat.startSession = false
+        saveChatStore()
+        submitForm(false, true)
     }
   }
 
@@ -556,7 +559,7 @@
         window.alert('Unable to change:\n' + e.message)
       }
     }
-    if (setting.key === 'profile' && chatSettings.sessionStarted &&
+    if (setting.key === 'profile' && chat.sessionStarted &&
       (getProfile(el.value).characterName !== chatSettings.characterName)) {
       const val = chatSettings[setting.key]
       if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {

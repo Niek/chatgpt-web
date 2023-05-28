@@ -58,8 +58,6 @@
     useSystemPrompt: boolean;
     systemPrompt: string;
     autoStartSession: boolean;
-    startSession: false;
-    sessionStarted: false;
     trainingPrompts?: Message[];
   } & Request;
 
@@ -69,6 +67,8 @@
     messages: Message[];
     usage: Record<Model, Usage>;
     settings: ChatSettings;
+    startSession: boolean;
+    sessionStarted: boolean;
   };
 
   type ResponseOK = {

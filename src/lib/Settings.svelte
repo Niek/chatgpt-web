@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettings } from './Storage.svelte'
+    import { getChat, getChatSettings } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
 // Setting definitions
 
@@ -79,10 +79,6 @@ const defaults:ChatSettings = {
   systemPrompt: '',
   autoStartSession: false,
   trainingPrompts: [],
-  // There are chat session state variables, and really don't belong here
-  // But it was easier to just put them here.
-  startSession: false, // Should the session start automatically
-  sessionStarted: false // Has the session started (user made a first request)
 }
 
 const excludeFromProfile = {
@@ -101,7 +97,7 @@ const profileSetting: ChatSetting & SettingSelect = {
       options: [], // Set by Profiles
       type: 'select',
       afterChange: (chatId, setting) => {
-        applyProfile(chatId, '', !getChatSettings(chatId).sessionStarted)
+        applyProfile(chatId, '', !getChat(chatId).sessionStarted)
         return true // Signal we should refresh the setting modal
       }
 }
@@ -159,13 +155,6 @@ const nonRequestSettings: ChatSetting[] = [
         title: 'If possible, auto-start the chat session, sending a system prompt to get an initial response.',
         type: 'boolean',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
-      },
-      {
-        key: 'startSession',
-        name: 'Auto-Start Trigger',
-        title: '',
-        type: 'boolean',
-        hide: (chatId) => true
       },
       {
         key: 'useSummarization',
