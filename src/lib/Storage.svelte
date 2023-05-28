@@ -77,7 +77,7 @@
     }
     Object.entries(getChatDefaults()).forEach(([k, v]) => {
       const val = chat.settings[k]
-      chat.settings[k] = (val === undefined || val === null ? v : chat.settings[k]) as any
+      chat.settings[k] = (val === undefined || val === null ? v : chat.settings[k])
     })
     // make sure old chat messages have UUID
     chat.messages.forEach((m) => {
