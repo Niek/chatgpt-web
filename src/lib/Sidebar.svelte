@@ -53,9 +53,9 @@
         <ul> -->
           {#each sortedChats as chat}
             <li>
-              <a style="position: relative" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
+              <a class="chat-menu-item" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
                 <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}><Fa icon={faTrash} /></a>
-                {chat.name || `Chat ${chat.id}`}
+                <span>{chat.name || `Chat ${chat.id}`}</span>
               </a>
             </li>
           {/each}
@@ -125,3 +125,21 @@
     </li>
   </ul>
 </aside>
+
+<style>
+  .chat-menu-item {
+    position: relative;
+  }
+  .chat-menu-item span {
+    display: block;
+    white-space:nowrap;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 90%, rgba(0,0,0,0));
+    mask-image: linear-gradient(to right, rgba(0,0,0,1) 90%, rgba(0,0,0,0));
+  }
+  .chat-menu-item .delete-button {
+    position: absolute;
+    right: .4em;
+    z-index: 200;
+  }
+</style>
