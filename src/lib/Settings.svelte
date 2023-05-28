@@ -305,7 +305,7 @@ const chatSettingsList: ChatSetting[] = [
         //     Generally, leading space plus common lower case word will more often result in a single token
         //     See: https://platform.openai.com/tokenizer
         apiTransform: (chatId, setting, val:Record<string, number>) => {
-          console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
+          // console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
           const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
             const tokens:number[] = encode(k)
