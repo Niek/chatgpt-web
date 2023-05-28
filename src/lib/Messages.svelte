@@ -5,7 +5,7 @@
   import EditMessage from './EditMessage.svelte'
 
   export let messages : Message[]
-  export let chatId
+  export let chatId: number
   
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings

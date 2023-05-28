@@ -67,7 +67,7 @@
   }
 
   // Make sure a chat's settings are set with current values or defaults
-  export const updateChatSettings = (chatId) => {
+  export const updateChatSettings = (chatId:number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     if (!chat.settings) {
