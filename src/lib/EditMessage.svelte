@@ -34,11 +34,11 @@
     noEdit = !!message.summarized
   })
 
-  const edit = (uuid:string) => {
+  const edit = () => {
     if (noEdit) return
     editing = true
     setTimeout(() => {
-      const el = document.getElementById(uuid)
+      const el = document.getElementById('edit-' + message.uuid)
       el && el.focus()
     }, 0)
   }
@@ -81,6 +81,17 @@
     } else {
       console.error("Can't find element with message ID", uuid)
     }
+  }
+
+  // Double click for mobile support
+  let lastTap: number = 0
+  function editOnDoubleTap () {
+    const now: number = new Date().getTime()
+    const timesince: number = now - lastTap
+    if ((timesince < 400) && (timesince > 0)) {
+      edit()
+    }
+    lastTap = new Date().getTime()
   }
   
 </script>
@@ -135,12 +146,15 @@
     </div>
     {#if editing && !noEdit}
       <form class="message-edit" on:submit|preventDefault={update} on:keydown={keydown}>
-        <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable on:input={update} on:blur={exit} />
+        <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
+        on:input={update} on:blur={exit} />
       </form>
     {:else}
       <div 
         class="message-display" 
-          on:dblclick|preventDefault={() => edit('edit-' + message.uuid)}
+         
+        on:touchend={editOnDoubleTap}
+          on:dblclick|preventDefault={() => edit()}
         >
         <SvelteMarkdown 
           source={message.content} 
