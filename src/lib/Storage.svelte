@@ -32,7 +32,7 @@
       messages: [],
       usage: {} as Record<Model, Usage>,
       startSession: false,
-      sessionStarted: false,
+      sessionStarted: false
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start

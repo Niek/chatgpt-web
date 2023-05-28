@@ -78,7 +78,7 @@ const defaults:ChatSettings = {
   useSystemPrompt: false,
   systemPrompt: '',
   autoStartSession: false,
-  trainingPrompts: [],
+  trainingPrompts: []
 }
 
 const excludeFromProfile = {

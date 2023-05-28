@@ -10,7 +10,6 @@
     clearMessages,
     copyChat,
     getChatSettingValueNullDefault,
-    setChatSettingValueByKey,
     saveCustomProfile,
     deleteCustomProfile,
     setGlobalSettingValueByKey,
@@ -508,9 +507,9 @@
     showSettingsModal = 0
     showProfileMenu = false
     if (chat.startSession) {
-        chat.startSession = false
-        saveChatStore()
-        submitForm(false, true)
+      chat.startSession = false
+      saveChatStore()
+      submitForm(false, true)
     }
   }
 
