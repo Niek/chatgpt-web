@@ -85,7 +85,7 @@
 
   // Double click for mobile support
   let lastTap: number = 0
-  function editOnDoubleTap () {
+  const editOnDoubleTap = () => {
     const now: number = new Date().getTime()
     const timesince: number = now - lastTap
     if ((timesince < 400) && (timesince > 0)) {
