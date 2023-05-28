@@ -134,8 +134,8 @@
     display: block;
     white-space:nowrap;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 90%, rgba(0,0,0,0));
-    mask-image: linear-gradient(to right, rgba(0,0,0,1) 90%, rgba(0,0,0,0));
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
+    mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
   }
   .chat-menu-item .delete-button {
     position: absolute;
