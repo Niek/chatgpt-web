@@ -16,7 +16,7 @@
   $: chatSettings = chat.settings
 
   // Marked options
-  const markedownOptions = {
+  const markdownOptions = {
     gfm: true, // Use GitHub Flavored Markdown
     breaks: true, // Enable line breaks in markdown
     mangle: false // Do not mangle email addresses
@@ -24,21 +24,21 @@
 
   const dispatch = createEventDispatcher()
   let editing = false
-  let original
+  let original:string
   let defaultModel:Model
-  let noEdit
+  let noEdit:boolean
 
   onMount(() => {
     original = message.content
     defaultModel = chatSettings.model as any
-    noEdit = message.summarized
+    noEdit = !!message.summarized
   })
 
-  const edit = (msgid) => {
+  const edit = (uuid:string) => {
     if (noEdit) return
     editing = true
     setTimeout(() => {
-      const el = document.getElementById(msgid)
+      const el = document.getElementById(uuid)
       el && el.focus()
     }, 0)
   }
@@ -55,12 +55,12 @@
     }
   }
 
-  function exit () {
+  const exit = () => {
     doChange()
     editing = false
   }
 
-  function keydown (event) {
+  const keydown = (event:KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.preventDefault()
       message.content = original
@@ -144,7 +144,7 @@
         >
         <SvelteMarkdown 
           source={message.content} 
-          options={markedownOptions} 
+          options={markdownOptions} 
           renderers={{ code: Code, html: Code }}
         />
     </div>
