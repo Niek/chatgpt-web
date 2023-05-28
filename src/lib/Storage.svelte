@@ -2,13 +2,15 @@
   import { persisted } from 'svelte-local-storage-store'
   import { get } from 'svelte/store'
   import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting } from './Types.svelte'
-  import { getChatSettingByKey, getGlobalSettingByKey } from './Settings.svelte'
+  import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
-  import { isStaticProfile } from './Profiles.svelte'
+  import { applyProfile, getProfile, isStaticProfile } from './Profiles.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const globalStorage = persisted('global', {} as GlobalSettings)
   export const apiKeyStorage = persisted('apiKey', '' as string)
+
+  const chatDefaults = getChatDefaults()
 
   export const newChatID = (): number => {
     const chats = get(chatsStorage)
@@ -30,6 +32,8 @@
       messages: []
     })
     chatsStorage.set(chats)
+    // Apply defaults and prepare it to start
+    applyProfile(chatId,'', true)
     return chatId
   }
 
@@ -59,9 +63,41 @@
     return chatId
   }
 
-  export const getChat = (chatId: number):Chat => {
+  // Make sure all chat settings are set with current values or defaults
+  export const updateChatSettings = (chatId) => {
     const chats = get(chatsStorage)
-    return chats.find((chat) => chat.id === chatId) as Chat
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    if (!chat.settings) {
+      chat.settings = {} as ChatSettings
+    }
+    Object.entries(getChatDefaults()).forEach(([k,v]) => {
+      const val = chat.settings[k]
+      chat.settings[k] = (val === undefined || val === null ? v : chat.settings[k]) as any
+    })
+    // make sure old chat messages have UUID
+    chat.messages.forEach((m) => {
+      m.uuid = m.uuid || uuidv4()
+    })
+    chatsStorage.set(chats)
+  }
+  
+  // Reset all setting to current profile defaults
+  export const resetChatSettings = (chatId, resetAll:boolean = false) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const profile = getProfile(chat.settings.profile)
+    const exclude = getExcludeFromProfile()
+    if (resetAll) {
+      // Reset to base defaults first, then apply profile
+      Object.entries(getChatDefaults()).forEach(([k,v]) => {
+        chat.settings[k] = v
+      })
+    }
+    Object.entries(profile).forEach(([k,v]) => {
+      if (exclude[k]) return
+      chat.settings[k] = v
+    })
+    chatsStorage.set(chats)
   }
 
   export const clearChats = () => {
@@ -70,6 +106,16 @@
   export const saveChatStore = () => {
     const chats = get(chatsStorage)
     chatsStorage.set(chats)
+  }
+
+  export const getChat = (chatId: number):Chat => {
+    const chats = get(chatsStorage)
+    return chats.find((chat) => chat.id === chatId) as Chat
+  }
+
+  export const getChatSettings = (chatId: number):ChatSettings => {
+    const chats = get(chatsStorage)
+    return (chats.find((chat) => chat.id === chatId) as Chat).settings
   }
 
   export const addMessage = (chatId: number, message: Message) => {
@@ -134,23 +180,20 @@
       i++
       cname = chat.name + `-${i}`
     }
+    const chatCopy = JSON.parse(JSON.stringify(chat))
 
-    // Find the max chatId
-    const newId = newChatID()
+    // Set the ID
+    chatCopy.id = newChatID()
 
     // Add a new chat
-    chats.push({
-      id: newId,
-      name: cname,
-      settings: JSON.parse(JSON.stringify(chat.settings)),
-      messages: JSON.parse(JSON.stringify(chat.messages))
-    })
+    chats.push(chatCopy)
+    
     // chatsStorage
     chatsStorage.set(chats)
   }
 
-  export const cleanSettingValue = (chatId, setting:(GlobalSetting | ChatSetting), value: any) => {
-    switch (setting.type) {
+  export const cleanSettingValue = (type:string, value: any) => {
+    switch (type) {
       case 'number':
         value = parseFloat(value)
         if (isNaN(value)) { value = null }
@@ -163,48 +206,29 @@
     }
   }
   
-  export const setGlobalSettingValueByKey = (key: keyof GlobalSettings, value) => {
-    return setGlobalSettingValue(getGlobalSettingByKey(key), value)
-  }
-
-  export const setGlobalSettingValue = (setting: GlobalSetting, value) => {
-    const store = get(globalStorage)
-    store[setting.key] = cleanSettingValue(0, setting, value)
-    globalStorage.set(store)
-  }
-  
   export const setChatSettingValueByKey = (chatId: number, key: keyof ChatSettings, value) => {
-    return setChatSettingValue(chatId, getChatSettingByKey(key), value)
+    const setting = getChatSettingObjectByKey(key)
+    if (setting) return setChatSettingValue(chatId, setting, value)
+    if (!(key in chatDefaults)) throw new Error('Invalid chat setting: ' + key)
+    const d = chatDefaults[key]
+    if (d === null || d === undefined) throw new Error('Unable to determine setting type for "' 
+      + key +' from default of "' + d + '"')
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    let settings = chat.settings as any
+    settings[key] = cleanSettingValue(typeof d, value)
   }
 
   export const setChatSettingValue = (chatId: number, setting: ChatSetting, value) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let settings:ChatSettings = chat.settings
+    let settings = chat.settings as any
     if (!settings) {
       settings = {} as ChatSettings
       chat.settings = settings
     }
-    if (typeof setting.setFilter === 'function') value = setting.setFilter(chatId, setting, value)
-    settings[setting.key] = cleanSettingValue(chatId, setting, value)
+    settings[setting.key] = cleanSettingValue(setting.type, value)
     chatsStorage.set(chats)
-  }
-
-  export const getGlobalSettingValueNullDefault = (setting: GlobalSetting) => {
-    const store = get(globalStorage)
-    let value = store && store[setting.key] as any
-    value = (value === undefined) ? null : value
-    return value
-  }
-
-  export const getGlobalSettingValue = (setting: GlobalSetting) => {
-    let value = getGlobalSettingValueNullDefault(setting)
-    if (value === null) value = setting.default
-    return value as any
-  }
-
-  export const getGlobalSettingValueByKey = (key: keyof GlobalSettings) => {
-    return getGlobalSettingValue(getGlobalSettingByKey(key))
   }
 
   export const getChatSettingValueNullDefault = (chatId: number, setting: ChatSetting):any => {
@@ -212,19 +236,22 @@
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     let value = chat.settings && chat.settings[setting.key]
     value = (value === undefined) ? null : value
-    if (value === setting.default) value = null
-    if (typeof setting.getFilter === 'function') value = setting.getFilter(chatId, setting, value)
+    if (!setting.forceApi && value === chatDefaults[setting.key]) value = null
     return value
   }
-
-  export const getChatSettingValue = (chatId: number, setting: ChatSetting):any => {
-    let value = getChatSettingValueNullDefault(chatId, setting)
-    if (value === null) value = setting.default
-    return value
+  
+  export const setGlobalSettingValueByKey = (key: keyof GlobalSettings, value) => {
+    return setGlobalSettingValue(getGlobalSettingObjectByKey(key), value)
   }
 
-  export const getChatSettingValueByKey = (chatId: number, key: keyof ChatSettings):any => {
-    return getChatSettingValue(chatId, getChatSettingByKey(key)) as any
+  export const setGlobalSettingValue = (setting: GlobalSetting, value) => {
+    const store = get(globalStorage)
+    store[setting.key] = cleanSettingValue(setting.type, value)
+    globalStorage.set(store)
+  }
+
+  export const getGlobalSettings = ():GlobalSettings => {
+    return get(globalStorage)
   }
 
   export const getCustomProfiles = ():Record<string, ChatSettings> => {
@@ -269,7 +296,11 @@
     if (!profile.characterName || profile.characterName.length < 3) {
       throw new Error('Your profile\'s character needs a valid name.')
     }
-    profiles[profile.profile as string] = JSON.parse(JSON.stringify(profile)) // Always store a copy
+    const clone =JSON.parse(JSON.stringify(profile)) // Always store a copy
+    Object.keys(getExcludeFromProfile()).forEach(k=>{
+      delete clone[k]
+    })
+    profiles[profile.profile as string] = clone
     globalStorage.set(store)
   }
   

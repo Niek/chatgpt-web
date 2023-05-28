@@ -9,16 +9,17 @@
     insertMessages,
     clearMessages,
     copyChat,
-    getChatSettingValue,
-    getChatSettingValueByKey,
-    setChatSettingValue,
     getChatSettingValueNullDefault,
     setChatSettingValueByKey,
     saveCustomProfile,
     deleteCustomProfile,
-    setGlobalSettingValueByKey
+    setGlobalSettingValueByKey,
+    updateChatSettings,
+    resetChatSettings,
+    setChatSettingValue,
+    addChatFromJSON,
   } from './Storage.svelte'
-  import { getChatSettingByKey, getChatSettingList } from './Settings.svelte'
+  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList } from './Settings.svelte'
   import {
     type Request,
     type Response,
@@ -33,7 +34,7 @@
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { applyProfile, checkSessionActivity, getProfile, getProfileSelect, prepareSummaryPrompt } from './Profiles.svelte'
+  import { applyProfile, getProfile, getProfileSelect, prepareSummaryPrompt } from './Profiles.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import { replace } from 'svelte-spa-router'
@@ -51,11 +52,14 @@
     faFloppyDisk,
     faThumbtack,
     faDownload,
-    faUpload
+    faUpload,
+    faEraser,
+    faRotateRight,
   } from '@fortawesome/free-solid-svg-icons/index'
   import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
-  import { exportProfileAsJSON } from './Export.svelte'
+  import { exportChatAsJSON, exportProfileAsJSON } from './Export.svelte'
+  import { clickOutside } from 'svelte-use-click-outside'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -70,26 +74,22 @@
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
+  let chatFileInput
   let profileFileInput
   let showSettingsModal = 0
   let showProfileMenu = false
+  let showChatMenu = false
 
   const settingsList = getChatSettingList()
-  const modelSetting = getChatSettingByKey('model') as ChatSetting & SettingSelect
+  const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
+  $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
   onMount(async () => {
-    // Sanitize old save
-    if (!chat.settings) chat.settings = {} as ChatSettings
-    // make sure old chat has UUID
-    if (chat && chat.messages && chat.messages[0] && !chat.messages[0].uuid) {
-      chat.messages.forEach((m) => {
-        m.uuid = uuidv4()
-      })
-      saveChatStore()
-    }
+    // Make sure chat object is ready to go
+    updateChatSettings(chatId)
 
     // Focus the input on mount
     focusInput()
@@ -120,11 +120,12 @@
     } else {
       console.log('Speech recognition not supported')
     }
-    if (!chat.settings.profile) {
+    if (chatSettings.startSession) {
       const profile = getProfile('') // get default profile
       applyProfile(chatId, profile.profile as any)
-      if (getChatSettingValueByKey(chatId, 'startSession')) {
+      if (chatSettings.startSession) {
         setChatSettingValueByKey(chatId, 'startSession', false)
+        // Auto start the session out of band
         setTimeout(() => { submitForm(false, true) }, 0)
       }
     }
@@ -160,15 +161,15 @@
       return a
     }, 0)
 
-    if (getChatSettingValueByKey(chatId, 'useSummarization') &&
+    if (chatSettings.useSummarization &&
           !withSummary && !doingSummary &&
-          (promptTokenCount > getChatSettingValueByKey(chatId, 'summaryThreshold'))) {
+          promptTokenCount > chatSettings.summaryThreshold) {
       // Too many tokens -- well need to sumarize some past ones else we'll run out of space
       // Get a block of past prompts we'll summarize
-      let pinTop = getChatSettingValueByKey(chatId, 'pinTop')
-      const tp = getChatSettingValueByKey(chatId, 'trainingPrompts')
-      pinTop = Math.max(pinTop, tp || 0)
-      let pinBottom = getChatSettingValueByKey(chatId, 'pinBottom')
+      let pinTop = chatSettings.pinTop
+      const tp = chatSettings.trainingPrompts
+      pinTop = Math.max(pinTop, tp ? 1 : 0)
+      let pinBottom = chatSettings.pinBottom
       const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
       const mlen = filtered.length - systemPad // always keep system prompt
       let diff = mlen - (pinTop + pinBottom)
@@ -258,13 +259,15 @@
         messages: filtered.map(m => { return { role: m.role, content: m.content } }) as Message[],
 
         // Provide the settings by mapping the settingsMap to key/value pairs
-        ...getChatSettingList().reduce((acc, setting) => {
-          if (setting.noRequest) return acc // don't include non-request settings
+        ...getRequestSettingList().reduce((acc, setting) => {
           let value = getChatSettingValueNullDefault(chatId, setting)
-          if (value === null && setting.required) value = setting.default
           if (doingSummary && setting.key === 'max_tokens') {
             // Override for summary
-            value = getChatSettingValueByKey(chatId, 'summarySize')
+            // TODO: Auto adjust this above to make sure it doesn't go over avail token space
+            value = chatSettings.summarySize
+          }
+          if (typeof setting.apiTransform === 'function') {
+            value = setting.apiTransform(chatId, setting, value)
           }
           if (value !== null) acc[setting.key] = value
           return acc
@@ -344,6 +347,7 @@
     if (updating) return
   
     if (!skipInput) {
+      setChatSettingValueByKey(chatId, 'sessionStarted', true)
       if (input.value !== '') {
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
@@ -440,10 +444,13 @@
   }
 
   const updateProfileSelectOptions = () => {
-    const profileSelect = getChatSettingByKey('profile') as ChatSetting & SettingSelect
-    const defaultProfile = getProfile('')
-    profileSelect.default = defaultProfile.profile as any
+    const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = getProfileSelect()
+    // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
+  }
+
+  const refreshSettings = async () => {
+    showSettingsModal && showSettings()
   }
 
   const showSettings = async () => {
@@ -502,13 +509,8 @@
   }
 
   const clearSettings = () => {
-    settingsList.forEach(s => {
-      setChatSettingValue(chatId, s, null)
-    })
+    resetChatSettings(chatId)
     showSettingsModal++ // Make sure the dialog updates
-    // const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
-    // saveSetting(chatId, setting, null)
-    // input.value = ''
   }
 
   const recordToggle = () => {
@@ -526,22 +528,34 @@
   const queueSettingValueChange = (event: Event, setting: ChatSetting) => {
     clearTimeout(debounce[setting.key])
     if (event.target === null) return
+    const val = chatSettings[setting.key]
     const el = (event.target as HTMLInputElement)
     const doSet = () => {
+      try {
+        (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) 
+          && refreshSettings()
+      } catch (e) {
+        alert('Unable to change:\n' + e.message)
+      }
       switch (setting.type) {
         case 'boolean':
           setChatSettingValue(chatId, setting, el.checked)
-          showSettingsModal && showSettingsModal++
+          refreshSettings()
           break
         default:
           setChatSettingValue(chatId, setting, el.value)
       }
-      (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting) 
-        && showSettingsModal && showSettingsModal++
+      try {
+        (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key]) 
+          && refreshSettings()
+      } catch (e) {
+        setChatSettingValue(chatId, setting, val)
+        alert('Unable to change:\n' + e.message)
+      }
     }
-    if (setting.key === 'profile' && checkSessionActivity(chatId) 
-      && (getProfile(el.value).characterName !== getChatSettingValueByKey(chatId,'characterName'))) {
-      const val = getChatSettingValue(chatId, setting)
+    if (setting.key === 'profile' && chatSettings.sessionStarted
+      && (getProfile(el.value).characterName !== chatSettings.characterName)) {
+      const val = chatSettings[setting.key]
       if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {
         doSet()
       } else {
@@ -568,6 +582,7 @@
     showProfileMenu = false
     try {
       saveCustomProfile(chat.settings)
+      refreshSettings()
     } catch (e) {
       alert('Error saving profile: \n' + e.message)
     }
@@ -607,7 +622,7 @@
     showProfileMenu = false
     try {
       deleteCustomProfile(chatId, chat.settings.profile as any)
-      chat.settings.profile = globalStore.defaultProfile
+      chat.settings.profile = globalStore.defaultProfile || ''
       saveChatStore()
       setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
       applyProfile(chatId, chat.settings.profile as any)
@@ -641,28 +656,78 @@
       }
     }
   }
+
+  const importChatFromFile = (e) => {
+    const image = e.target.files[0]
+    const reader = new FileReader()
+    reader.readAsText(image)
+    reader.onload = e => {
+      const json = (e.target || {}).result as string
+      addChatFromJSON(json)
+    }
+  }
 </script>
 
 <nav class="level chat-header">
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
-        {chat.name || `Chat ${chat.id}`}
+        <span>{chat.name || `Chat ${chat.id}`}</span>
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}><Fa icon={faPenToSquare} /></a>
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a>
+        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
+        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
       </p>
     </div>
   </div>
 
   <div class="level-right">
-    <p class="level-item">
-      {#if chat.settings.autoStartSession && chat.settings.systemPrompt && chat.settings.useSystemPrompt}
-        
-      {/if}
-      <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button>
-    </p>
+    <div class="level-item">
+      
+      <div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={()=>{showChatMenu=false}}>
+        <div class="dropdown-trigger">
+          <button class="button" aria-haspopup="true" 
+            aria-controls="dropdown-menu3" 
+            on:click|preventDefault|stopPropagation={() => { showChatMenu = !showChatMenu }}
+            >
+            <span><Fa icon={faEllipsisVertical}/></span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+          <div class="dropdown-content">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false;showSettings() }}>
+              <span><Fa icon={faGear}/></span> Settings
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false;copyChat(chatId) }}>
+              <span><Fa icon={faClone}/></span> Clone Chat
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} 
+              class="dropdown-item"
+              on:click|preventDefault={() => { showChatMenu = false; exportChatAsJSON(chatId) }}
+            >
+              <span><Fa icon={faDownload}/></span> Save Chat
+            </a>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; chatFileInput.click() }}>
+              <span><Fa icon={faUpload}/></span> Load Chat
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{applyProfile(chatId, '', true);closeSettings()}}>
+              <span><Fa icon={faRotateRight}/></span> Restart Chat
+            </a>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{showChatMenu = false;clearMessages(chatId)}}>
+              <span><Fa icon={faEraser}/></span> Clear Chat Messages
+            </a>
+            <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{showChatMenu = false;deleteChat()}}>
+              <span><Fa icon={faTrash}/></span> Delete Chat
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
+    </div>
   </div>
 </nav>
 
@@ -720,6 +785,7 @@
     if (event.key === 'Escape') {
       closeSettings()
       closeChatNameSettings()
+      showChatMenu = false
     }
   }}
 />
@@ -755,7 +821,6 @@
             <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
               <span><Fa icon={faUpload}/></span> Import Profile
             </a>
-            <input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
             <hr class="dropdown-divider">
             <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
               <span><Fa icon={faThumbtack}/></span> Set as Default Profile
@@ -787,7 +852,7 @@
               title="{setting.title}"
               class="checkbox" 
               id="settings-{setting.key}"
-              checked={getChatSettingValue(chatId, setting)} 
+              checked={!!chatSettings[setting.key]} 
               on:click={e => queueSettingValueChange(e, setting)}
             >
               {setting.name}
@@ -802,7 +867,7 @@
               rows="1"
               on:input={e => autoGrowInputOnEvent(e)}
               on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
-            >{getChatSettingValue(chatId, setting)}</textarea>
+            >{chatSettings[setting.key]}</textarea>
           </div>
           {:else}
           <div class="field-label is-normal">
@@ -818,18 +883,18 @@
                   type={setting.type}
                   title="{setting.title}"
                   id="settings-{setting.key}"
-                  value="{getChatSettingValue(chatId, setting)}"
+                  value={chatSettings[setting.key]}
                   min={setting.min}
                   max={setting.max}
                   step={setting.step}
-                  placeholder={String(setting.default)}
+                  placeholder={String(setting.placeholder)}
                   on:change={e => queueSettingValueChange(e, setting)}
                 />
               {:else if setting.type === 'select'}
                 <div class="select">
                   <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
                     {#each setting.options as option}
-                      <option value={option.value} selected={option.value === getChatSettingValue(chatId, setting)}>{option.text}</option>
+                      <option value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
                     {/each}
                   </select>
                 </div>
@@ -839,7 +904,7 @@
                     type="text"
                     title="{setting.title}"
                     class="input" 
-                    value={getChatSettingValue(chatId, setting)} 
+                    value={chatSettings[setting.key]} 
                     on:change={e => { queueSettingValueChange(e, setting) }}
                   >
                 </div>
@@ -858,6 +923,10 @@
     </footer>
   </div>
 </div>
+
+
+<input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
