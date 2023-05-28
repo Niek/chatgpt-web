@@ -151,10 +151,10 @@ type SettingBoolean = {
     header?: string;
     headerClass?: string;
     placeholder?: string;
-    hide?: (number?) => boolean;
-    apiTransform?: (number, ChatSetting, any?) => any;
-    beforeChange?: (number, ChatSetting?, any?) => boolean;
-    afterChange?: (number, ChatSetting?, any?) => boolean;
+    hide?: (chatId:number) => boolean;
+    apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
+    beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
+    afterChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther);
 
   export type GlobalSetting = {
