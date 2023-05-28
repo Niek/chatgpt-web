@@ -573,9 +573,9 @@
     if (event.target === null) return
     autoGrowInput(event.target as HTMLTextAreaElement)
   }
-
+  
   const autoGrowInput = (el: HTMLTextAreaElement) => {
-    el.style.height = 'auto'
+    el.style.height = '38px'; // don't use "auto" here.  Firefox will over-size.
     el.style.height = el.scrollHeight + 'px'
   }
 
@@ -979,5 +979,8 @@
   }
   .running-totals {
     opacity: 0.5;
+  }
+  .chat-input {
+    /* padding:0; */
   }
 </style>
