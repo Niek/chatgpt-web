@@ -30,7 +30,7 @@
       name: `Chat ${chatId}`,
       settings: {} as ChatSettings,
       messages: [],
-      usage:{} as Record<Model,Usage>,
+      usage: {} as Record<Model, Usage>
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
@@ -83,11 +83,11 @@
     })
     // Make sure the usage totals object is set
     // (some earlier versions of this had different structures)
-    const hasUsage = chat.usage && !Array.isArray(chat.usage) 
-      && typeof chat.usage === 'object' 
-      && Object.values(chat.usage).find(v=>'prompt_tokens' in v)
+    const hasUsage = chat.usage && !Array.isArray(chat.usage) &&
+      typeof chat.usage === 'object' &&
+      Object.values(chat.usage).find(v => 'prompt_tokens' in v)
     if (!hasUsage) {
-      const usageMap:Record<Model,Usage> = {}
+      const usageMap:Record<Model, Usage> = {}
       chat.usage = usageMap
     }
     chatsStorage.set(chats)
@@ -138,8 +138,8 @@
       total = {
         prompt_tokens: 0,
         completion_tokens: 0,
-        total_tokens: 0,
-      } 
+        total_tokens: 0
+      }
       chat.usage[model] = total
     }
     total.completion_tokens += usage.completion_tokens

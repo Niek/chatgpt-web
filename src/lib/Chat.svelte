@@ -62,7 +62,7 @@
   import { v4 as uuidv4 } from 'uuid'
   import { exportChatAsJSON, exportProfileAsJSON } from './Export.svelte'
   import { clickOutside } from 'svelte-use-click-outside'
-    import { getPrice } from './Stats.svelte';
+  import { getPrice } from './Stats.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -94,7 +94,6 @@
   updateChatSettings(chatId)
 
   onMount(async () => {
-
     // Focus the input on mount
     focusInput()
 
@@ -782,7 +781,7 @@
 </form>
 <!-- a target to scroll to -->
 <div class="chat-focus-point running-total-container">
-  {#each Object.entries(chat.usage||{}) as [model, usage]}
+  {#each Object.entries(chat.usage || {}) as [model, usage]}
   <p class="is-size-7 running-totals">
     <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
     tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>

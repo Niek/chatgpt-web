@@ -175,12 +175,6 @@
     min-width: 100px;
     min-height: 30px;
   }
-  a.message-display {
-    display: block;
-    text-decoration: none !important;
-    min-width: 100px;
-    min-height: 30px;
-  }
   .button-pack {
     display: none;
     position: absolute;
