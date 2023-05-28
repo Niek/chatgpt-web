@@ -49,8 +49,8 @@
     {#if sortedChats.length === 0}
       <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
     {:else}
-      <li>
-        <ul>
+      <!-- <li>
+        <ul> -->
           {#each sortedChats as chat}
             <li>
               <a style="position: relative" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
@@ -59,8 +59,8 @@
               </a>
             </li>
           {/each}
-        </ul>
-      </li>
+        <!-- </ul>
+      </li> -->
     {/if}
   </ul>
   <p class="menu-label">Actions</p>
