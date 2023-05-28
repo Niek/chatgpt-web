@@ -1,8 +1,7 @@
 <script context="module" lang="ts">
-    import copy from 'copy-to-clipboard';
     import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
 // Profile definitions
-import { addMessage, clearMessages, getChatSettings, getCustomProfiles, getGlobalSettings, getMessages, resetChatSettings, setChatSettingValue, setChatSettingValueByKey, setGlobalSettingValueByKey } from './Storage.svelte'
+import { addMessage, clearMessages, getChatSettings, getCustomProfiles, getGlobalSettings, resetChatSettings, setChatSettingValueByKey, setGlobalSettingValueByKey } from './Storage.svelte'
 import type { Message, SelectOption, ChatSettings } from './Types.svelte'
     import { v4 as uuidv4 } from 'uuid'
 
@@ -37,11 +36,11 @@ export const getProfileSelect = ():SelectOption[] => {
 export const getProfile = (key:string):ChatSettings => {
       const allProfiles = getProfiles()
       const profile = allProfiles[key] ||
-      allProfiles[getGlobalSettings().defaultProfile||''] ||
+      allProfiles[getGlobalSettings().defaultProfile || ''] ||
       profiles[defaultProfile] ||
       profiles[Object.keys(profiles)[0]]
-      const clone = JSON.parse(JSON.stringify(profile)) // Always return a copy 
-      Object.keys(getExcludeFromProfile()).forEach(k=>{
+      const clone = JSON.parse(JSON.stringify(profile)) // Always return a copy
+      Object.keys(getExcludeFromProfile()).forEach(k => {
         delete clone[k]
       })
       return clone

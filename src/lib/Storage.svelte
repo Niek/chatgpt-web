@@ -33,7 +33,7 @@
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
-    applyProfile(chatId,'', true)
+    applyProfile(chatId, '', true)
     return chatId
   }
 
@@ -70,7 +70,7 @@
     if (!chat.settings) {
       chat.settings = {} as ChatSettings
     }
-    Object.entries(getChatDefaults()).forEach(([k,v]) => {
+    Object.entries(getChatDefaults()).forEach(([k, v]) => {
       const val = chat.settings[k]
       chat.settings[k] = (val === undefined || val === null ? v : chat.settings[k]) as any
     })
@@ -89,11 +89,11 @@
     const exclude = getExcludeFromProfile()
     if (resetAll) {
       // Reset to base defaults first, then apply profile
-      Object.entries(getChatDefaults()).forEach(([k,v]) => {
+      Object.entries(getChatDefaults()).forEach(([k, v]) => {
         chat.settings[k] = v
       })
     }
-    Object.entries(profile).forEach(([k,v]) => {
+    Object.entries(profile).forEach(([k, v]) => {
       if (exclude[k]) return
       chat.settings[k] = v
     })
@@ -187,7 +187,7 @@
 
     // Add a new chat
     chats.push(chatCopy)
-    
+  
     // chatsStorage
     chatsStorage.set(chats)
   }
@@ -211,11 +211,13 @@
     if (setting) return setChatSettingValue(chatId, setting, value)
     if (!(key in chatDefaults)) throw new Error('Invalid chat setting: ' + key)
     const d = chatDefaults[key]
-    if (d === null || d === undefined) throw new Error('Unable to determine setting type for "' 
-      + key +' from default of "' + d + '"')
+    if (d === null || d === undefined) {
+      throw new Error('Unable to determine setting type for "' +
+      key + ' from default of "' + d + '"')
+    }
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let settings = chat.settings as any
+    const settings = chat.settings as any
     settings[key] = cleanSettingValue(typeof d, value)
   }
 
@@ -296,8 +298,8 @@
     if (!profile.characterName || profile.characterName.length < 3) {
       throw new Error('Your profile\'s character needs a valid name.')
     }
-    const clone =JSON.parse(JSON.stringify(profile)) // Always store a copy
-    Object.keys(getExcludeFromProfile()).forEach(k=>{
+    const clone = JSON.parse(JSON.stringify(profile)) // Always store a copy
+    Object.keys(getExcludeFromProfile()).forEach(k => {
       delete clone[k]
     })
     profiles[profile.profile as string] = clone

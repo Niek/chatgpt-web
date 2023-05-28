@@ -17,7 +17,7 @@
     updateChatSettings,
     resetChatSettings,
     setChatSettingValue,
-    addChatFromJSON,
+    addChatFromJSON
   } from './Storage.svelte'
   import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList } from './Settings.svelte'
   import {
@@ -29,8 +29,7 @@
     type SettingSelect,
     type Chat,
     type SelectOption,
-    supportedModels,
-    type ChatSettings
+    supportedModels
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -54,7 +53,7 @@
     faDownload,
     faUpload,
     faEraser,
-    faRotateRight,
+    faRotateRight
   } from '@fortawesome/free-solid-svg-icons/index'
   import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
@@ -532,10 +531,10 @@
     const el = (event.target as HTMLInputElement)
     const doSet = () => {
       try {
-        (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) 
-          && refreshSettings()
+        (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) &&
+          refreshSettings()
       } catch (e) {
-        alert('Unable to change:\n' + e.message)
+        window.alert('Unable to change:\n' + e.message)
       }
       switch (setting.type) {
         case 'boolean':
@@ -546,15 +545,15 @@
           setChatSettingValue(chatId, setting, el.value)
       }
       try {
-        (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key]) 
-          && refreshSettings()
+        (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key]) &&
+          refreshSettings()
       } catch (e) {
         setChatSettingValue(chatId, setting, val)
-        alert('Unable to change:\n' + e.message)
+        window.alert('Unable to change:\n' + e.message)
       }
     }
-    if (setting.key === 'profile' && chatSettings.sessionStarted
-      && (getProfile(el.value).characterName !== chatSettings.characterName)) {
+    if (setting.key === 'profile' && chatSettings.sessionStarted &&
+      (getProfile(el.value).characterName !== chatSettings.characterName)) {
       const val = chatSettings[setting.key]
       if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {
         doSet()
@@ -584,7 +583,7 @@
       saveCustomProfile(chat.settings)
       refreshSettings()
     } catch (e) {
-      alert('Error saving profile: \n' + e.message)
+      window.alert('Error saving profile: \n' + e.message)
     }
   }
 
@@ -614,7 +613,7 @@
       updateProfileSelectOptions()
       showSettingsModal && showSettingsModal++
     } catch (e) {
-      alert('Error cloning profile: \n' + e.message)
+      window.alert('Error cloning profile: \n' + e.message)
     }
   }
 
@@ -629,7 +628,7 @@
       updateProfileSelectOptions()
       showSettings()
     } catch (e) {
-      alert('Error deleting profile: \n' + e.message)
+      window.alert('Error deleting profile: \n' + e.message)
     }
   }
 
@@ -652,7 +651,7 @@
         updateProfileSelectOptions()
         showSettingsModal && showSettingsModal++
       } catch (e) {
-        alert('Unable to import profile: \n' + e.message)
+        window.alert('Unable to import profile: \n' + e.message)
       }
     }
   }
@@ -684,7 +683,7 @@
   <div class="level-right">
     <div class="level-item">
       
-      <div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={()=>{showChatMenu=false}}>
+      <div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
         <div class="dropdown-trigger">
           <button class="button" aria-haspopup="true" 
             aria-controls="dropdown-menu3" 
@@ -695,11 +694,11 @@
         </div>
         <div class="dropdown-menu" id="dropdown-menu3" role="menu">
           <div class="dropdown-content">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false;showSettings() }}>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; showSettings() }}>
               <span><Fa icon={faGear}/></span> Settings
             </a>
             <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false;copyChat(chatId) }}>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; copyChat(chatId) }}>
               <span><Fa icon={faClone}/></span> Clone Chat
             </a>
             <hr class="dropdown-divider">
@@ -713,14 +712,14 @@
               <span><Fa icon={faUpload}/></span> Load Chat
             </a>
             <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{applyProfile(chatId, '', true);closeSettings()}}>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { applyProfile(chatId, '', true); closeSettings() }}>
               <span><Fa icon={faRotateRight}/></span> Restart Chat
             </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{showChatMenu = false;clearMessages(chatId)}}>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; clearMessages(chatId) }}>
               <span><Fa icon={faEraser}/></span> Clear Chat Messages
             </a>
             <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={()=>{showChatMenu = false;deleteChat()}}>
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; deleteChat() }}>
               <span><Fa icon={faTrash}/></span> Delete Chat
             </a>
           </div>

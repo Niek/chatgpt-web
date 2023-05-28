@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettings } from './Storage.svelte';
+    import { getChatSettings } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
 // Setting definitions
 
@@ -59,7 +59,7 @@ const gptDefaults: Request = Object.freeze({
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
-  user: undefined,
+  user: undefined
 })
 
 // Core set of defaults
@@ -82,14 +82,14 @@ const defaults:ChatSettings = Object.freeze({
   // There are chat session state variables, and really don't belong here
   // But it was easier to just put them here.
   startSession: false, // Should the session start automatically
-  sessionStarted: false, // Has the session started (user made a first request)
+  sessionStarted: false // Has the session started (user made a first request)
 })
 
 const excludeFromProfile = {
   messages: true,
   startSession: true,
   sessionStarted: true,
-  user: true,
+  user: true
 }
 
 const profileSetting: ChatSetting & SettingSelect = {
@@ -103,7 +103,7 @@ const profileSetting: ChatSetting & SettingSelect = {
       afterChange: (chatId, setting) => {
         applyProfile(chatId, '', !getChatSettings(chatId).sessionStarted)
         return true // Signal we should refresh the setting modal
-      },
+      }
 }
 
 // Settings that will not be part of the API request
@@ -113,14 +113,14 @@ const nonRequestSettings: ChatSetting[] = [
         key: 'profileName',
         name: 'Profile Name',
         title: 'How this profile is displayed in the select list.',
-        type: 'text',
+        type: 'text'
         // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
         key: 'profileDescription',
         name: 'Description',
         title: 'How this profile is displayed in the select list.',
-        type: 'textarea',
+        type: 'textarea'
         // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
@@ -129,14 +129,14 @@ const nonRequestSettings: ChatSetting[] = [
         title: 'Send a "System" prompt as the first prompt.',
         header: 'System Prompt',
         headerClass: 'is-info',
-        type: 'boolean',
+        type: 'boolean'
       },
       {
         key: 'characterName',
         name: 'Character Name',
         title: 'What the personality of this profile will be called.',
         type: 'text',
-        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt,
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
       {
         key: 'systemPrompt',
@@ -173,7 +173,7 @@ const nonRequestSettings: ChatSetting[] = [
         header: 'Continuous Chat - Summarization',
         headerClass: 'is-info',
         title: 'When out of token space, summarize past tokens and keep going.',
-        type: 'boolean',
+        type: 'boolean'
       },
       {
         key: 'summaryThreshold',
@@ -235,7 +235,7 @@ const modelSetting: ChatSetting & SettingSelect = {
       headerClass: 'is-warning',
       options: [],
       type: 'select',
-      forceApi: true, // Need to make sure we send this
+      forceApi: true // Need to make sure we send this
 }
 
 const chatSettingsList: ChatSetting[] = [
@@ -307,7 +307,7 @@ const chatSettingsList: ChatSetting[] = [
         key: 'logit_bias',
         name: 'Logit Bias',
         title: 'Allows you to adjust bias of tokens used in completion.',
-        header: `Logit Bias. See <a target="_blank" href="https://help.openai.com/en/articles/5247780-using-logit-bias-to-define-token-probability">this article</a> for more details.`,
+        header: 'Logit Bias. See <a target="_blank" href="https://help.openai.com/en/articles/5247780-using-logit-bias-to-define-token-probability">this article</a> for more details.',
         type: 'other',
         hide: () => true,
         // transform to JSON for request, first converting word->weight pairs to token(s)->weight.
@@ -318,13 +318,13 @@ const chatSettingsList: ChatSetting[] = [
         apiTransform: (chatId, setting, val:Record<string, number>) => {
           console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
-          const tokenized:Record<number, number> = Object.entries(val).reduce((a,[k,v])=>{
+          const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
             const tokens:number[] = encode(k)
-            tokens.forEach(t => {a[t] = v})
+            tokens.forEach(t => { a[t] = v })
             return a
           }, {} as Record<number, number>)
           return tokenized
-        },        
+        }
       },
       // Enable?
       {
@@ -332,7 +332,7 @@ const chatSettingsList: ChatSetting[] = [
         name: 'User?',
         title: 'Name of user?',
         type: 'text',
-        hide: () => true,
+        hide: () => true
       }
 ]
 
