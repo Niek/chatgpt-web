@@ -299,7 +299,7 @@ const chatSettingsList: ChatSetting[] = [
         header: 'Logit Bias. See <a target="_blank" href="https://help.openai.com/en/articles/5247780-using-logit-bias-to-define-token-probability">this article</a> for more details.',
         type: 'other',
         hide: () => true,
-        // transform to JSON for request, first converting word->weight pairs to token(s)->weight.
+        // transform to word->weight pairs to token(s)->weight.
         //  -- care should be taken to have each word key in the each record formatted in a way where they
         //     only take one token each else you'll end up with results you probably don't want.
         //     Generally, leading space plus common lower case word will more often result in a single token
