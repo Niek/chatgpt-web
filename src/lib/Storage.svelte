@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
   import { get } from 'svelte/store'
-  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting } from './Types.svelte'
+  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
   import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
   import { applyProfile, getProfile, isStaticProfile } from './Profiles.svelte'
@@ -29,7 +29,8 @@
       id: chatId,
       name: `Chat ${chatId}`,
       settings: {} as ChatSettings,
-      messages: []
+      messages: [],
+      usage:{} as Record<Model,Usage>,
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
@@ -60,10 +61,12 @@
     // Add a new chat
     chats.push(chat)
     chatsStorage.set(chats)
+    // make sure it's up-to-date
+    updateChatSettings(chatId)
     return chatId
   }
 
-  // Make sure all chat settings are set with current values or defaults
+  // Make sure a chat's settings are set with current values or defaults
   export const updateChatSettings = (chatId) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -78,6 +81,15 @@
     chat.messages.forEach((m) => {
       m.uuid = m.uuid || uuidv4()
     })
+    // Make sure the usage totals object is set
+    // (some earlier versions of this had different structures)
+    const hasUsage = chat.usage && !Array.isArray(chat.usage) 
+      && typeof chat.usage === 'object' 
+      && Object.values(chat.usage).find(v=>'prompt_tokens' in v)
+    if (!hasUsage) {
+      const usageMap:Record<Model,Usage> = {}
+      chat.usage = usageMap
+    }
     chatsStorage.set(chats)
   }
   
@@ -116,6 +128,24 @@
   export const getChatSettings = (chatId: number):ChatSettings => {
     const chats = get(chatsStorage)
     return (chats.find((chat) => chat.id === chatId) as Chat).settings
+  }
+
+  export const updateRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    let total:Usage = chat.usage[model]
+    if (!total) {
+      total = {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+      } 
+      chat.usage[model] = total
+    }
+    total.completion_tokens += usage.completion_tokens
+    total.prompt_tokens += usage.prompt_tokens
+    total.total_tokens += usage.total_tokens
+    chatsStorage.set(chats)
   }
 
   export const addMessage = (chatId: number, message: Message) => {

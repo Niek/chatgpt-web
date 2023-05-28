@@ -17,7 +17,10 @@
     updateChatSettings,
     resetChatSettings,
     setChatSettingValue,
-    addChatFromJSON
+    addChatFromJSON,
+
+    updateRunningTotal
+
   } from './Storage.svelte'
   import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList } from './Settings.svelte'
   import {
@@ -59,6 +62,7 @@
   import { v4 as uuidv4 } from 'uuid'
   import { exportChatAsJSON, exportProfileAsJSON } from './Export.svelte'
   import { clickOutside } from 'svelte-use-click-outside'
+    import { getPrice } from './Stats.svelte';
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -86,9 +90,10 @@
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
+  // Make sure chat object is ready to go
+  updateChatSettings(chatId)
+
   onMount(async () => {
-    // Make sure chat object is ready to go
-    updateChatSettings(chatId)
 
     // Focus the input on mount
     focusInput()
@@ -147,7 +152,6 @@
   const sendRequest = async (messages: Message[], doingSummary?:boolean, withSummary?:boolean): Promise<Response> => {
     // Show updating bar
     updating = true
-    updatingMessage = ''
 
     let response: Response
 
@@ -207,6 +211,7 @@
             content: summaryPrompt
           } as Message)
           // Wait for the summary completion
+          updatingMessage = 'Building Summary...'
           const summary = await sendRequest(summarizeReq, true)
           if (summary.error) {
             // Failed to some API issue. let the original caller handle it.
@@ -241,6 +246,7 @@
             saveChatStore()
             // Re-run request with summarized prompts
             // return { error: { message: "End for now" } } as Response
+            updatingMessage = 'Continuing...'
             return await sendRequest(chat.messages, false, true)
           }
         } else if (!summaryPrompt) {
@@ -313,10 +319,7 @@
     updatingMessage = ''
 
     if (!response.error) {
-      // tc.completions++
-      // tc.completionsTokens += response.usage.completion_tokens
-      // chat.totals.push(tc)
-      // console.log('got response:', response)
+      updateRunningTotal(chatId, response.usage, response.model)
     }
 
     return response
@@ -777,7 +780,15 @@
     <button title="Send" class="button is-info" type="submit"><Fa icon={faPaperPlane} /></button>
   </p>
 </form>
-<div class="chat-focus-point" style="height.4em"></div>
+<!-- a target to scroll to -->
+<div class="chat-focus-point running-total-container">
+  {#each Object.entries(chat.usage||{}) as [model, usage]}
+  <p class="is-size-7 running-totals">
+    <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+    tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
+  </p>
+  {/each}
+</div>
 
 <svelte:window
   on:keydown={(event) => {
@@ -959,3 +970,15 @@
   </div>
 </form>
 <!-- end -->
+
+<style>
+  .running-total-container {
+    min-height:2em;
+    padding-bottom:.6em;
+    padding-left: 1.9em;
+    margin-bottom:-2.6em
+  }
+  .running-totals {
+    opacity: 0.5;
+  }
+</style>

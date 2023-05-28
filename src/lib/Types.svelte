@@ -15,8 +15,6 @@
     completion_tokens: number;
     prompt_tokens: number;
     total_tokens: number;
-    total: number;
-    model?: Model;
   };
 
   export type Message = {
@@ -69,7 +67,7 @@
     id: number;
     name: string;
     messages: Message[];
-    usage?: Usage[];
+    usage: Record<Model, Usage>;
     settings: ChatSettings;
   };
 

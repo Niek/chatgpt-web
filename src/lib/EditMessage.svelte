@@ -82,6 +82,7 @@
       console.error("Can't find element with message ID", uuid)
     }
   }
+  
 </script>
 
 {#key message.uuid}
@@ -137,19 +138,22 @@
         <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable on:input={update} on:blur={exit} />
       </form>
     {:else}
-      <a href={'#'} class="message-display" on:click|preventDefault={() => {}} on:dblclick|preventDefault={() => edit('edit-' + message.uuid)}>
+      <div 
+        class="message-display" 
+          on:dblclick|preventDefault={() => edit('edit-' + message.uuid)}
+        >
         <SvelteMarkdown 
           source={message.content} 
           options={markedownOptions} 
           renderers={{ code: Code, html: Code }}
         />
-      </a>
+    </div>
     {/if}
     {#if message.role === 'system'}
-      <p class="is-size-7">System Prompt</p>
+      <p class="is-size-7 message-note">System Prompt</p>
     {:else if message.usage}
-      <p class="is-size-7">
-        This message was generated on <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+      <p class="is-size-7 message-note">
+        <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
         tokens ~= <span class="has-text-weight-bold">${getPrice(message.usage, message.model || defaultModel).toFixed(6)}</span>
       </p>
     {/if}
@@ -158,6 +162,11 @@
 {/key}
 
 <style>
+  .message-note {
+    padding-top: .6em;
+    margin-bottom: -0.6em;
+    opacity: 0.5;
+  }
   .message-edit {
     display: block;
   }

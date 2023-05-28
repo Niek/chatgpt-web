@@ -29,21 +29,4 @@
     return ((tokens.prompt_tokens * t[0]) + (tokens.completion_tokens * t[1]))
   }
 
-  export const totalUse = (totals: Usage[]): Usage => {
-    const r = {
-      completion_tokens: 0,
-      prompt_tokens: 0,
-      total_tokens: 0,
-      total: 0
-    } as Usage
-
-    (totals || ([] as Usage[])).forEach((t) => {
-      r.total += getPrice(t, t.model as any)
-      r.completion_tokens += t.completion_tokens
-      r.prompt_tokens += t.prompt_tokens
-      r.total_tokens += t.prompt_tokens
-    })
-
-    return r
-  }
 </script>
