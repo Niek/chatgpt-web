@@ -2,7 +2,7 @@
   import { get } from 'svelte/store'
   import type { Chat } from './Types.svelte'
   import { chatsStorage } from './Storage.svelte'
-    import { getExcludeFromProfile } from './Settings.svelte';
+  import { getExcludeFromProfile } from './Settings.svelte'
 
   export const exportAsMarkdown = (chatId: number) => {
     const chats = get(chatsStorage)
