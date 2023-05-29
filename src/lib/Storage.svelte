@@ -182,7 +182,7 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const index = chat.messages.findIndex((m) => m.uuid === uuid)
-    const found = chat.messages.filter((m) => m.uuid === uuid)
+    // const found = chat.messages.filter((m) => m.uuid === uuid)
     if (index < 0) {
       console.error(`Unable to find and delete message with ID: ${uuid}`)
       return

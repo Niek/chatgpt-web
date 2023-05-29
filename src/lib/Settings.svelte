@@ -10,8 +10,11 @@ import {
       type SettingSelect,
       type GlobalSetting,
       type GlobalSettings,
-      type Request
+      type Request,
+      type Model
 } from './Types.svelte'
+
+export const defaultModel:Model = 'gpt-3.5-turbo-0301'
 
 export const getChatSettingList = (): ChatSetting[] => {
       return chatSettingsList
@@ -48,7 +51,7 @@ export const getExcludeFromProfile = () => {
 }
 
 const gptDefaults = {
-  model: 'gpt-3.5-turbo-0301',
+  model: defaultModel,
   messages: [],
   temperature: 1,
   top_p: 1,

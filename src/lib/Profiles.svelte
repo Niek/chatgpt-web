@@ -14,7 +14,7 @@ export const isStaticProfile = (key:string):boolean => {
 }
 
 const getProfiles = ():Record<string, ChatSettings> => {
-      const result:Record<string, ChatSettings> = Object.entries(profiles
+      const result = Object.entries(profiles
       ).reduce((a, [k, v]) => {
         a[k] = v
         return a
@@ -60,10 +60,10 @@ export const prepareProfilePrompt = (chatId:number) => {
       return currentProfilePrompt.replaceAll('[[CHARACTER_NAME]]', characterName)
 }
 
-export const prepareSummaryPrompt = (chatId:number, promptsSize:number) => {
+export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxTokens:number|undefined = undefined) => {
       const settings = getChatSettings(chatId)
       const characterName = settings.characterName || 'ChatGPT'
-      let maxTokens:number = settings.summarySize
+      maxTokens = maxTokens || settings.summarySize
       maxTokens = Math.min(Math.floor(promptsSize / 4), maxTokens) // Make sure we're shrinking by at least a 4th
       const currentSummaryPrompt = settings.summaryPrompt
       return currentSummaryPrompt
@@ -72,7 +72,7 @@ export const prepareSummaryPrompt = (chatId:number, promptsSize:number) => {
 }
 
 // Apply currently selected profile
-export const applyProfile = (chatId:number, key?:string, resetChat:boolean = false) => {
+export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
   const settings = getChatSettings(chatId)
   const profile = getProfile(key || settings.profile)
   resetChatSettings(chatId, resetChat) // Fully reset

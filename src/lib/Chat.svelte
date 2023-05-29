@@ -17,11 +17,9 @@
     resetChatSettings,
     setChatSettingValue,
     addChatFromJSON,
-
     updateRunningTotal
-
   } from './Storage.svelte'
-  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList, getChatDefaults } from './Settings.svelte'
+  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList, getChatDefaults, defaultModel } from './Settings.svelte'
   import {
     type Request,
     type Response,
@@ -31,7 +29,10 @@
     type SettingSelect,
     type Chat,
     type SelectOption,
-    supportedModels
+    supportedModels,
+
+    type Usage
+
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -57,11 +58,11 @@
     faEraser,
     faRotateRight
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { encode } from 'gpt-tokenizer'
+  // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { exportChatAsJSON, exportProfileAsJSON } from './Export.svelte'
   import { clickOutside } from 'svelte-use-click-outside'
-  import { getPrice } from './Stats.svelte'
+  import { countPromptTokens, getMaxModelPrompt, getPrice } from './Stats.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -149,9 +150,12 @@
   }
 
   // Send API request
-  const sendRequest = async (messages: Message[], doingSummary?:boolean, withSummary?:boolean): Promise<Response> => {
+  const sendRequest = async (messages: Message[], summaryTarget:number|undefined = undefined, withSummary:boolean = false): Promise<Response> => {
     // Show updating bar
     updating = true
+
+    const model = chat.settings.model || defaultModel
+    const maxTokens = getMaxModelPrompt(model) // max tokens for model
 
     let response: Response
 
@@ -159,17 +163,14 @@
     const filtered = messages.filter((message) => message.role !== 'error' && message.content && !message.summarized)
   
     // Get an estimate of the total prompt size we're sending
-    const promptTokenCount:number = filtered.reduce((a, m) => {
-      // Not sure how OpenAI formats it, but this seems to get close to the right counts
-      // Sure would be nice to know
-      a += encode('## ' + m.role + ' ##:\r\n\r\n' + m.content + '\r\n\r\n\r\n').length
-      return a
-    }, 0) + 3
+    const promptTokenCount:number = countPromptTokens(filtered, model)
+  
+    let summarySize = chatSettings.summarySize
 
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
     if (chatSettings.useSummarization &&
-          !withSummary && !doingSummary &&
+          !withSummary && !summaryTarget &&
           promptTokenCount > chatSettings.summaryThreshold) {
       // Too many tokens -- well need to sumarize some past ones else we'll run out of space
       // Get a block of past prompts we'll summarize
@@ -197,37 +198,69 @@
         // Reduce to prompts we'll send in for summary
         // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
         const summarize = filtered.slice(0, filtered.length - pinBottom)
+        // Estimate token count of what we'll be summarizing
+        let sourceTokenCount = countPromptTokens(summarize, model)
+        // build summary prompt message
+        let summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+        const summaryMessage = {
+          role: 'user',
+          content: summaryPrompt
+        } as Message
+        // get an estimate of how many tokens this request + max completions could be
+        let summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
+        // reduce summary size to make sure we're not requesting a summary larger than our prompts
+        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        // Make sure our prompt + completion request isn't too large
+        while (summarize.length - (pinTop + systemPad) >= 3 && summaryPromptSize + summarySize > maxTokens && summarySize >= 4) {
+          summarize.pop()
+          sourceTokenCount = countPromptTokens(summarize, model)
+          summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
+          summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        }
+        // See if we have to adjust our max summarySize
+        if (summaryPromptSize + summarySize > maxTokens) {
+          summarySize = maxTokens - summaryPromptSize
+        }
         // Always try to end the prompts being summarized with a user prompt.  Seems to work better.
         while (summarize.length - (pinTop + systemPad) >= 4 && summarize[summarize.length - 1].role !== 'user') {
           summarize.pop()
         }
-        // Estimate token count of what we'll be summarizing
-        const sourceTokenCount = summarize.reduce((a, m) => { a += encode(m.content).length + 8; return a }, 0)
-  
-        const summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
-        if (sourceTokenCount > 20 && summaryPrompt) {
+        // update with actual
+        sourceTokenCount = countPromptTokens(summarize, model)
+        summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        summaryMessage.content = summaryPrompt
+        if (sourceTokenCount > 20 && summaryPrompt && summarySize > 4) {
           // get prompt we'll be inserting after
           const endPrompt = summarize[summarize.length - 1]
           // Add a prompt to ask to summarize them
           const summarizeReq = summarize.slice()
-          summarizeReq.push({
-            role: 'user',
-            content: summaryPrompt
-          } as Message)
+          summarizeReq.push(summaryMessage)
+          summaryPromptSize = countPromptTokens(summarizeReq, model)
+
           // Wait for the summary completion
           updatingMessage = 'Building Summary...'
-          const summary = await sendRequest(summarizeReq, true)
+          const summary = await sendRequest(summarizeReq, summarySize)
           if (summary.error) {
             // Failed to some API issue. let the original caller handle it.
             return summary
           } else {
-            // See if we can parse the results
-            // (Make sure AI generated a good JSON response)
+            // Get response
             const summaryPromptContent: string = summary.choices.reduce((a, c) => {
               if (a.length > c.message.content.length) return a
               a = c.message.content
               return a
             }, '')
+
+            // Get use stats for response
+            const summaryUse = summary.choices.reduce((a, c) => {
+              const u = c.message.usage as Usage
+              a.completion_tokens += u.completion_tokens
+              a.prompt_tokens += u.prompt_tokens
+              a.total_tokens += u.total_tokens
+              return a
+            }, {prompt_tokens: 0,completion_tokens: 0,total_tokens: 0} as Usage)
+
             // Looks like we got our summarized messages.
             // get ids of messages we summarized
             const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
@@ -236,7 +269,9 @@
               role: 'assistant',
               content: summaryPromptContent,
               uuid: uuidv4(),
-              summary: summarizedIds
+              summary: summarizedIds,
+              usage: summaryUse,
+              model: model,
             }
             const summaryIds = [summaryPrompt.uuid]
             // Insert messages
@@ -251,7 +286,7 @@
             // Re-run request with summarized prompts
             // return { error: { message: "End for now" } } as Response
             updatingMessage = 'Continuing...'
-            return await sendRequest(chat.messages, false, true)
+            return await sendRequest(chat.messages, undefined, true)
           }
         } else if (!summaryPrompt) {
           addMessage(chatId, { role: 'error', content: 'Unable to summarize. No summary prompt defined.', uuid: uuidv4() })
@@ -270,13 +305,13 @@
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...getRequestSettingList().reduce((acc, setting) => {
           let value = getChatSettingValueNullDefault(chatId, setting)
-          if (doingSummary && setting.key === 'max_tokens') {
-            // Override for summary
-            // TODO: Auto adjust this above to make sure it doesn't go over avail token space
-            value = chatSettings.summarySize
-          }
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
+          }
+          if (summaryTarget) {
+            // requesting summary. do overrides
+            if (setting.key === 'max_tokens') value = summaryTarget // only as large as we need for summary
+            if (setting.key === 'n') value = 1 // never more than one completion
           }
           if (value !== null) acc[setting.key] = value
           return acc
@@ -323,7 +358,14 @@
     updatingMessage = ''
 
     if (!response.error) {
+      // Add response counts to usage totals
       updateRunningTotal(chatId, response.usage, response.model)
+      // const completionTokenCount:number = response.choices.reduce((a, c) => {
+      //   // unlike the prompts, token count of the completion is just the completion.
+      //   a += encode(c.message.content).length
+      //   return a
+      // }, 0)
+      // console.log('estimated response token count', completionTokenCount)
     }
 
     return response
@@ -407,7 +449,7 @@
     const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
 
-    const response = await sendRequest(suggestMessages, true)
+    const response = await sendRequest(suggestMessages, 20)
 
     if (response.error) {
       addMessage(chatId, {
