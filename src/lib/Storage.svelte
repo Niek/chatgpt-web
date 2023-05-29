@@ -188,7 +188,7 @@
     const message = getMessage(chat, uuid)
     if (message && message.summarized) throw new Error('Unable to delete summarized message')
     if (message && message.summary) { // messages we summarized
-      message.summary.forEach(sid=>{
+      message.summary.forEach(sid => {
         const m = getMessage(chat, sid)
         if (m) {
           delete m.summarized // unbind to this summary

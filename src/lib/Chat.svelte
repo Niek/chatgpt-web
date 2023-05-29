@@ -29,10 +29,7 @@
     type SettingSelect,
     type Chat,
     type SelectOption,
-    supportedModels,
-
-    type Usage
-
+    supportedModels
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -262,7 +259,7 @@
               uuid: uuidv4(),
               summary: summarizedIds,
               usage: summary.usage,
-              model: model,
+              model
             }
             const summaryIds = [summaryPrompt.uuid]
             // Insert messages

@@ -46,26 +46,25 @@
   const checkDelete = () => {
     if (message.summarized) {
       // is in a summary, so we're summarized
-      window.alert(`Sorry, you can't delete a summarized message`)
+      window.alert('Sorry, you can\'t delete a summarized message')
       return
     }
     if (message.summary) {
       // We're linked to messages we're a summary of
-      if (window.confirm("Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.")) {
+      if (window.confirm('Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.')) {
         try {
           deleteSummaryMessage(chatId, message.uuid)
-        } catch(e) {
-          alert('Unable to delete summary:\n'+e.message)
+        } catch (e) {
+          window.alert('Unable to delete summary:\n' + e.message)
         }
       }
       return
     }
     try {
       deleteMessage(chatId, message.uuid)
-    } catch(e) {
-      alert('Unable to delete:\n'+e.message)
+    } catch (e) {
+      window.alert('Unable to delete:\n' + e.message)
     }
-    
   }
 
   let dbnc
