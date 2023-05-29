@@ -243,6 +243,8 @@
 
     // Set the ID
     chatCopy.id = newChatID()
+    // Set new name
+    chatCopy.name = cname
 
     // Add a new chat
     chats.push(chatCopy)
