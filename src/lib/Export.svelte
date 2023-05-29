@@ -2,6 +2,7 @@
   import { get } from 'svelte/store'
   import type { Chat } from './Types.svelte'
   import { chatsStorage } from './Storage.svelte'
+    import { getExcludeFromProfile } from './Settings.svelte';
 
   export const exportAsMarkdown = (chatId: number) => {
     const chats = get(chatsStorage)
@@ -43,12 +44,15 @@
   export const exportProfileAsJSON = (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const profile = chat.settings
-    const exportContent = JSON.stringify(profile)
+    const clone = JSON.parse(JSON.stringify(chat.settings)) // Clone it
+    Object.keys(getExcludeFromProfile()).forEach(k => {
+      delete clone[k]
+    })
+    const exportContent = JSON.stringify(clone)
     const blob = new Blob([exportContent], { type: 'text/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.download = `${profile.profileName}.json`
+    a.download = `${clone.profileName}.json`
     a.href = url
     document.body.appendChild(a)
     a.click()
