@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
 // Profile definitions
-import { addMessage, clearMessages, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, resetChatSettings, saveChatStore, setChatSettingValueByKey, setGlobalSettingValueByKey } from './Storage.svelte'
+import { addMessage, clearMessages, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, resetChatSettings, saveChatStore, setGlobalSettingValueByKey } from './Storage.svelte'
 import type { Message, SelectOption, ChatSettings } from './Types.svelte'
     import { v4 as uuidv4 } from 'uuid'
 

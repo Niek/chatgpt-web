@@ -162,7 +162,7 @@
     const promptTokenCount:number = filtered.reduce((a, m) => {
       // Not sure how OpenAI formats it, but this seems to get close to the right counts
       // Sure would be nice to know
-      a += encode('## ' + m.role + " ##:\r\n\r\n" + m.content + "\r\n\r\n\r\n").length
+      a += encode('## ' + m.role + ' ##:\r\n\r\n' + m.content + '\r\n\r\n\r\n').length
       return a
     }, 0) + 3
 
