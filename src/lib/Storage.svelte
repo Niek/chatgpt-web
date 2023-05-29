@@ -187,7 +187,7 @@
       console.error(`Unable to find and delete message with ID: ${uuid}`)
       return
     }
-    console.warn(`Deleting message with ID: ${uuid}`, found, index)
+    // console.warn(`Deleting message with ID: ${uuid}`, found, index)
     chat.messages.splice(index, 1) // remove item
     chatsStorage.set(chats)
   }
