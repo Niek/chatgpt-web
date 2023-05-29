@@ -32,7 +32,7 @@
   .dropdown-item .menu-icon {
     padding-right: .5em;
   }
-  .dropdown-menu {
+  .dropdown-menu .dropdown-content {
     max-height: calc(100vh - 60px);
     overflow-y: auto;
   }
