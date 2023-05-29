@@ -33,7 +33,8 @@
     padding-right: .5em;
   }
   .dropdown-menu {
-    max-height: calc(100vh - 60px);;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
   }
 }
 
