@@ -1,16 +1,16 @@
 <script lang="ts">
   import { params, replace } from 'svelte-spa-router'
 
-  import { apiKeyStorage, chatsStorage, clearChats, deleteChat, addChatFromJSON } from './Storage.svelte'
-  import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
+  import { apiKeyStorage, chatsStorage, deleteChat } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faSquarePlus, faTrash, faKey, faDownload, faUpload, faFileExport } from '@fortawesome/free-solid-svg-icons/index'
+  import { faSquarePlus, faTrash, faKey } from '@fortawesome/free-solid-svg-icons/index'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
+  
 
-  function delChat (chatId) {
+  function delChat (chatId:number) {
     if (activeChatId === chatId) {
     // Find the max chatId other than the current one
       const newChatId = sortedChats.reduce((maxId, chat) => {
@@ -30,17 +30,17 @@
     }
   }
 
-  let fileinput
+  // let fileinput
 
-  const onFileSelected = (e) => {
-    const image = e.target.files[0]
-    const reader = new FileReader()
-    reader.readAsText(image)
-    reader.onload = e => {
-      const json = (e.target || {}).result as string
-      addChatFromJSON(json)
-    }
-  }
+  // const onFileSelected = (e) => {
+  //   const image = e.target.files[0]
+  //   const reader = new FileReader()
+  //   reader.readAsText(image)
+  //   reader.onload = e => {
+  //     const json = (e.target || {}).result as string
+  //     addChatFromJSON(json)
+  //   }
+  // }
 </script>
 
 <aside class="menu">
@@ -65,17 +65,20 @@
   </ul>
   <p class="menu-label">Actions</p>
   <ul class="menu-list">
+    {#if !$apiKeyStorage}
     <li>
       <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
         ><span class="greyscale mr-2"><Fa icon={faKey} /></span> API key</a
       >
     </li>
+    {:else}
     <li>
       <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
         ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</a
       >
     </li>
-    <li>
+    {/if}
+    <!-- <li>
       <a class="panel-block"
         href="{'#/'}"
         class:is-disabled={!$apiKeyStorage}
@@ -113,8 +116,8 @@
         >
       </li>
         
-    {/if}
-    <li>
+    {/if} -->
+    <!-- <li>
       <a
         href={'#/'}
         class="panel-block"
@@ -122,7 +125,7 @@
         on:click|preventDefault={() => { fileinput.click() }}><span class="greyscale mr-2"><Fa icon={faUpload} /></span> Load chat</a
       >
       <input style="display:none" type="file" accept=".json" on:change={(e) => onFileSelected(e)} bind:this={fileinput} >
-    </li>
+    </li> -->
   </ul>
 </aside>
 

@@ -4,62 +4,40 @@
     saveChatStore,
     apiKeyStorage,
     chatsStorage,
-    globalStorage,
     addMessage,
     insertMessages,
-    clearMessages,
-    copyChat,
     getChatSettingValueNullDefault,
-    saveCustomProfile,
-    deleteCustomProfile,
-    setGlobalSettingValueByKey,
     updateChatSettings,
-    resetChatSettings,
-    setChatSettingValue,
-    addChatFromJSON,
-    updateRunningTotal
+    updateRunningTotal,
+    checkStateChange,
+    showSetChatSettings
   } from './Storage.svelte'
-  import { getChatSettingObjectByKey, getChatSettingList, getRequestSettingList, getChatDefaults, defaultModel } from './Settings.svelte'
+  import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
     type Request,
     type Response,
     type Message,
-    type ChatSetting,
-    type ResponseModels,
-    type SettingSelect,
-    type Chat,
-    type SelectOption,
-    supportedModels
+    type Chat
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { applyProfile, getProfile, getProfileSelect, prepareSummaryPrompt, getDefaultProfileKey } from './Profiles.svelte'
+  import { applyProfile, getProfile, prepareSummaryPrompt } from './Profiles.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
-  import { replace } from 'svelte-spa-router'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
     faArrowUpFromBracket,
     faPaperPlane,
     faGear,
     faPenToSquare,
-    faTrash,
     faMicrophone,
-    faLightbulb,
-    faClone,
-    faEllipsisVertical,
-    faFloppyDisk,
-    faThumbtack,
-    faDownload,
-    faUpload,
-    faEraser,
-    faRotateRight
+    faLightbulb
   } from '@fortawesome/free-solid-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
-  import { exportChatAsJSON, exportProfileAsJSON } from './Export.svelte'
-  import { clickOutside } from 'svelte-use-click-outside'
   import { countPromptTokens, getMaxModelPrompt, getPrice } from './Stats.svelte'
+  import { autoGrowInputOnEvent, sizeTextElements } from './Util.svelte'
+  import ChatSettingsModal from './ChatSettingsModal.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -74,19 +52,33 @@
   let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
-  let chatFileInput
-  let profileFileInput
-  let showSettingsModal = 0
-  let showProfileMenu = false
-  let showChatMenu = false
-
-  const settingsList = getChatSettingList()
-  const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
-  const chatDefaults = getChatDefaults()
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
-  $: globalStore = $globalStorage
+  let showSettingsModal
+
+  let scDelay
+  const onStateChange = (...args:any) => {
+    clearTimeout(scDelay)
+    setTimeout(() => {
+      if (chat.startSession) {
+        const profile = getProfile('') // get default profile
+        applyProfile(chatId, profile.profile as any)
+        if (chat.startSession) {
+          chat.startSession = false
+          saveChatStore()
+          // Auto start the session
+          submitForm(false, true)
+        }
+      }
+      if ($showSetChatSettings) {
+        $showSetChatSettings = false
+        showSettingsModal()
+      }
+    })
+  }
+  
+  $: onStateChange($checkStateChange, $showSetChatSettings)
 
   // Make sure chat object is ready to go
   updateChatSettings(chatId)
@@ -452,14 +444,6 @@
     }
   }
 
-  const deleteChat = () => {
-    if (window.confirm('Are you sure you want to delete this chat?')) {
-      replace('/').then(() => {
-        chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId))
-      })
-    }
-  }
-
   const showChatNameSettings = () => {
     chatNameSettings.classList.add('is-active');
     (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
@@ -480,78 +464,6 @@
     chatNameSettings.classList.remove('is-active')
   }
 
-  const updateProfileSelectOptions = () => {
-    const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
-    profileSelect.options = getProfileSelect()
-    chatDefaults.profile = getDefaultProfileKey()
-    // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
-  }
-
-  const refreshSettings = async () => {
-    showSettingsModal && showSettings()
-  }
-
-  const showSettings = async () => {
-    // Show settings modal
-    showSettingsModal++
-
-    // Get profile options
-    updateProfileSelectOptions()
-
-    // Refresh settings modal
-    showSettingsModal++
-  
-    // Load available models from OpenAI
-    const allModels = (await (
-      await fetch(apiBase + '/v1/models', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    ).json()) as ResponseModels
-    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
-
-    const modelOptions:SelectOption[] = filteredModels.reduce((a, m) => {
-      const o:SelectOption = {
-        value: m,
-        text: m
-      }
-      a.push(o)
-      return a
-    }, [] as SelectOption[])
-
-    // Update the models in the settings
-    if (modelSetting) {
-      modelSetting.options = modelOptions
-    }
-    // Refresh settings modal
-    showSettingsModal++
-
-    setTimeout(() => sizeTextElements, 100)
-  }
-
-  const sizeTextElements = () => {
-    const els = document.querySelectorAll('textarea.auto-size')
-    for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
-  }
-
-  const closeSettings = () => {
-    showSettingsModal = 0
-    showProfileMenu = false
-    if (chat.startSession) {
-      chat.startSession = false
-      saveChatStore()
-      submitForm(false, true)
-    }
-  }
-
-  const clearSettings = () => {
-    resetChatSettings(chatId)
-    showSettingsModal++ // Make sure the dialog updates
-  }
-
   const recordToggle = () => {
     // Check if already recording - if so, stop - else start
     if (recording) {
@@ -562,147 +474,6 @@
     }
   }
 
-  const debounce = {}
-
-  const queueSettingValueChange = (event: Event, setting: ChatSetting) => {
-    clearTimeout(debounce[setting.key])
-    if (event.target === null) return
-    const val = chatSettings[setting.key]
-    const el = (event.target as HTMLInputElement)
-    const doSet = () => {
-      try {
-        (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) &&
-          refreshSettings()
-      } catch (e) {
-        window.alert('Unable to change:\n' + e.message)
-      }
-      switch (setting.type) {
-        case 'boolean':
-          setChatSettingValue(chatId, setting, el.checked)
-          refreshSettings()
-          break
-        default:
-          setChatSettingValue(chatId, setting, el.value)
-      }
-      try {
-        (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key]) &&
-          refreshSettings()
-      } catch (e) {
-        setChatSettingValue(chatId, setting, val)
-        window.alert('Unable to change:\n' + e.message)
-      }
-    }
-    if (setting.key === 'profile' && chat.sessionStarted &&
-      (getProfile(el.value).characterName !== chatSettings.characterName)) {
-      const val = chatSettings[setting.key]
-      if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {
-        doSet()
-      } else {
-        // roll-back
-        setChatSettingValue(chatId, setting, val)
-        // refresh setting modal, if open
-        showSettingsModal && showSettingsModal++
-      }
-    }
-    debounce[setting.key] = setTimeout(doSet, 250)
-  }
-  const autoGrowInputOnEvent = (event: Event) => {
-    // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-    if (event.target === null) return
-    autoGrowInput(event.target as HTMLTextAreaElement)
-  }
-  
-  const autoGrowInput = (el: HTMLTextAreaElement) => {
-    el.style.height = '38px' // don't use "auto" here.  Firefox will over-size.
-    el.style.height = el.scrollHeight + 'px'
-  }
-
-  const saveProfile = () => {
-    showProfileMenu = false
-    try {
-      saveCustomProfile(chat.settings)
-      refreshSettings()
-    } catch (e) {
-      window.alert('Error saving profile: \n' + e.message)
-    }
-  }
-
-  const newNameForProfile = (name:string):string => {
-    const profiles = getProfileSelect()
-    const nameMap = profiles.reduce((a, p) => { a[p.text] = p; return a }, {})
-    if (!nameMap[name]) return name
-    let i:number = 1
-    let cname = name + `-${i}`
-    while (nameMap[cname]) {
-      i++
-      cname = name + `-${i}`
-    }
-    return cname
-  }
-
-  const cloneProfile = () => {
-    showProfileMenu = false
-    const clone = JSON.parse(JSON.stringify(chat.settings))
-    const name = chat.settings.profileName
-    clone.profileName = newNameForProfile(name || '')
-    clone.profile = null
-    try {
-      saveCustomProfile(clone)
-      chat.settings.profile = clone.profile
-      chat.settings.profileName = clone.profileName
-      refreshSettings()
-    } catch (e) {
-      window.alert('Error cloning profile: \n' + e.message)
-    }
-  }
-
-  const deleteProfile = () => {
-    showProfileMenu = false
-    try {
-      deleteCustomProfile(chatId, chat.settings.profile as any)
-      chat.settings.profile = globalStore.defaultProfile || ''
-      saveChatStore()
-      setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
-      applyProfile(chatId, chat.settings.profile as any)
-      refreshSettings()
-    } catch (e) {
-      window.alert('Error deleting profile: \n' + e.message)
-    }
-  }
-
-  const pinDefaultProfile = () => {
-    showProfileMenu = false
-    setGlobalSettingValueByKey('defaultProfile', chat.settings.profile)
-    refreshSettings()
-  }
-
-  const importProfileFromFile = (e) => {
-    const image = e.target.files[0]
-    const reader = new FileReader()
-    reader.readAsText(image)
-    reader.onload = e => {
-      const json = (e.target || {}).result as string
-      try {
-        const profile = JSON.parse(json)
-        profile.profileName = newNameForProfile(profile.profileName || '')
-        profile.profile = null
-        saveCustomProfile(profile)
-        refreshSettings()
-      } catch (e) {
-        window.alert('Unable to import profile: \n' + e.message)
-      }
-    }
-  }
-
-  const importChatFromFile = (e) => {
-    const image = e.target.files[0]
-    const reader = new FileReader()
-    reader.readAsText(image)
-    reader.onload = e => {
-      const json = (e.target || {}).result as string
-      addChatFromJSON(json)
-    }
-  }
 </script>
 
 <nav class="level chat-header">
@@ -720,49 +491,6 @@
 
   <div class="level-right">
     <div class="level-item">
-      
-      <div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
-        <div class="dropdown-trigger">
-          <button class="button" aria-haspopup="true" 
-            aria-controls="dropdown-menu3" 
-            on:click|preventDefault|stopPropagation={() => { showChatMenu = !showChatMenu }}
-            >
-            <span><Fa icon={faEllipsisVertical}/></span>
-          </button>
-        </div>
-        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-          <div class="dropdown-content">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; showSettings() }}>
-              <span><Fa icon={faGear}/></span> Settings
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; copyChat(chatId) }}>
-              <span><Fa icon={faClone}/></span> Clone Chat
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} 
-              class="dropdown-item"
-              on:click|preventDefault={() => { showChatMenu = false; exportChatAsJSON(chatId) }}
-            >
-              <span><Fa icon={faDownload}/></span> Save Chat
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; chatFileInput.click() }}>
-              <span><Fa icon={faUpload}/></span> Load Chat
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { applyProfile(chatId, '', true); closeSettings() }}>
-              <span><Fa icon={faRotateRight}/></span> Restart Chat
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; clearMessages(chatId) }}>
-              <span><Fa icon={faEraser}/></span> Clear Chat Messages
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showChatMenu = false; deleteChat() }}>
-              <span><Fa icon={faTrash}/></span> Delete Chat
-            </a>
-          </div>
-        </div>
-      </div>
       <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
     </div>
   </div>
@@ -806,7 +534,7 @@
     >
   </p>
   <p class="control">
-    <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettings}><Fa icon={faGear} /></button>
+    <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><Fa icon={faGear} /></button>
   </p>
   <p class="control">
     <button title="Add message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><Fa icon={faArrowUpFromBracket} /></button>
@@ -825,153 +553,7 @@
   {/each}
 </div>
 
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      closeSettings()
-      closeChatNameSettings()
-      showChatMenu = false
-    }
-  }}
-/>
-
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" class:is-active={showSettingsModal}>
-  <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card" on:click={() => { showProfileMenu = false }}>
-    <header class="modal-card-head">
-      <p class="modal-card-title">Chat Settings</p>
-
-      <div class="dropdown is-right" class:is-active={showProfileMenu}>
-        <div class="dropdown-trigger">
-          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
-            <span><Fa icon={faEllipsisVertical}/></span>
-          </button>
-        </div>
-        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-          <div class="dropdown-content">
-            <a href={'#'} class="dropdown-item disabled" on:click|preventDefault={saveProfile}>
-              <span><Fa icon={faFloppyDisk}/></span> Save Profile
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
-              <span><Fa icon={faClone}/></span> Clone Profile
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} 
-              class="dropdown-item"
-              on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
-            >
-              <span><Fa icon={faDownload}/></span> Export Profile
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
-              <span><Fa icon={faUpload}/></span> Import Profile
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
-              <span><Fa icon={faThumbtack}/></span> Set as Default Profile
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
-              <span><Fa icon={faTrash}/></span> Delete Profile
-            </a>
-          </div>
-        </div>
-      </div>
-    </header>
-    <section class="modal-card-body">
-      <!-- Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p> -->
-      {#key showSettingsModal}
-      {#each settingsList as setting}
-        {#if (typeof setting.hide !== 'function') || !setting.hide(chatId)}
-        {#if setting.header}
-        <p class="notification {setting.headerClass}">
-          {@html setting.header}
-        </p>
-        {/if}
-        <div class="field is-horizontal">
-          {#if setting.type === 'boolean'}
-          <div class="field is-normal">
-            <label class="label" for="settings-{setting.key}" title="{setting.title}">
-              <input 
-              type="checkbox"
-              title="{setting.title}"
-              class="checkbox" 
-              id="settings-{setting.key}"
-              checked={!!chatSettings[setting.key]} 
-              on:click={e => queueSettingValueChange(e, setting)}
-            >
-              {setting.name}
-            </label>
-          </div>
-          {:else if setting.type === 'textarea'}
-          <div class="field is-normal" style="width:100%">
-            <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
-            <textarea
-              class="input is-info is-focused chat-input auto-size"
-              placeholder={setting.placeholder || ''}
-              rows="1"
-              on:input={e => autoGrowInputOnEvent(e)}
-              on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
-            >{chatSettings[setting.key]}</textarea>
-          </div>
-          {:else}
-          <div class="field-label is-normal">
-            <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
-          </div>
-          {/if}
-          <div class="field-body">
-            <div class="field">
-              {#if setting.type === 'number'}
-                <input
-                  class="input"
-                  inputmode="decimal"
-                  type={setting.type}
-                  title="{setting.title}"
-                  id="settings-{setting.key}"
-                  value={chatSettings[setting.key]}
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  placeholder={String(setting.placeholder)}
-                  on:change={e => queueSettingValueChange(e, setting)}
-                />
-              {:else if setting.type === 'select'}
-                <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
-                    {#each setting.options as option}
-                      <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
-                    {/each}
-                  </select>
-                </div>
-              {:else if setting.type === 'text'}
-                <div class="field">
-                    <input 
-                    type="text"
-                    title="{setting.title}"
-                    class="input" 
-                    value={chatSettings[setting.key]} 
-                    on:change={e => { queueSettingValueChange(e, setting) }}
-                  >
-                </div>
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/if}
-      {/each}
-      {/key}
-    </section>
-
-    <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
-      <button class="button" on:click={clearSettings}>Clear settings</button>
-    </footer>
-  </div>
-</div>
-
-
-<input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
-<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
 
 <!-- rename modal -->
 <form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
@@ -1006,14 +588,19 @@
 </form>
 <!-- end -->
 
+<svelte:window
+  on:keydown={(event) => {
+    if (event.key === 'Escape') {
+      closeChatNameSettings()
+    }
+  }}
+/>
+
 <style>
   .running-total-container {
     min-height:2em;
     padding-bottom:.6em;
     /* padding-left: 1.9em; */
     margin-bottom:-2.6em
-  }
-  .running-totals {
-    opacity: 0.5;
   }
 </style>

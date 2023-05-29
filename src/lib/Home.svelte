@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { apiKeyStorage } from './Storage.svelte'
+import { apiKeyStorage } from './Storage.svelte'
 
-  $: apiKey = $apiKeyStorage
+$: apiKey = $apiKeyStorage
+
 </script>
 
 <article class="message">

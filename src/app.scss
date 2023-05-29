@@ -17,16 +17,34 @@
   section.section {
     flex-grow: 1;
   }
+  
+  .chat-option-menu.navbar-item {
+    margin-left: auto;
+  }
+
+  /* temp. fix to keep navbar from getting huge on small screen devices 
+      if the right menu is put in the proper navbar-end container */
+  .navbar-brand {
+    /* margin-right: 0; */
+    width: 100%;
+  }
+
+  .dropdown-item .menu-icon {
+    padding-right: .5em;
+  }
+  .dropdown-menu {
+    max-height: calc(100vh - 60px);;
+  }
+}
+
+.is-disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: .65;
 }
 
 .rotate {
   animation: rotating 10s linear infinite;
-}
-
-a.is-disabled {
-  pointer-events: none;
-  cursor: default;
-  opacity: 0.5;
 }
 
 .greyscale {
@@ -100,7 +118,16 @@ $modal-content-width: 1000px;
 $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove this once a new version of bulma-prefers-dark is released
 @import "/node_modules/bulma-prefers-dark/build/bulma-prefers-dark.sass";
 
+/* For the message notes on light mode */
+.message-note, .running-totals {
+  opacity: 0.7;
+}
+
 @media (prefers-color-scheme: dark) {
+  /* For the message notes on dark mode */
+  .message-note, .running-totals {
+    opacity: 0.5;
+  }
   .modal-card-body {
     // remove this once https: //github.com/jloh/bulma-prefers-dark/pull/90 is merged and released
    background-color: $background-dark;

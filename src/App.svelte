@@ -37,10 +37,11 @@
 
     '*': Home
   }
+  document.body.classList.add('has-navbar-fixed-top')
 </script>
 
-<Navbar />
 
+<Navbar />
 <section class="section">
   <div class="container is-fullhd">
     <div class="columns">

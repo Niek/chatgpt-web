@@ -7,6 +7,7 @@
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faDiagramPredecessor, faDiagramNext } from '@fortawesome/free-solid-svg-icons/index'
+  import { scrollIntoViewWithOffset } from './Util.svelte'
 
   export let message:Message
   export let chatId:number
@@ -102,7 +103,7 @@
     }
     const el = document.getElementById('message-' + uuid)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
+      scrollIntoViewWithOffset(el, 60)
     } else {
       console.error("Can't find element with message ID", uuid)
     }
@@ -205,7 +206,6 @@
   .message-note {
     padding-top: .6em;
     margin-bottom: -0.6em;
-    opacity: 0.5;
   }
   .message-edit {
     display: block;

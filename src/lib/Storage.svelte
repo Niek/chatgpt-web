@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
-  import { get } from 'svelte/store'
+  import { get, writable } from 'svelte/store'
   import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
   import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
@@ -9,6 +9,9 @@
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const globalStorage = persisted('global', {} as GlobalSettings)
   export const apiKeyStorage = persisted('apiKey', '' as string)
+  export let checkStateChange = writable(0) // Trigger for Chat
+  export let showSetChatSettings = writable(false) //
+
 
   const chatDefaults = getChatDefaults()
 
