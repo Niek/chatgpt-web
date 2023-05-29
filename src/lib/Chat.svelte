@@ -160,9 +160,13 @@
   
     // Get an estimate of the total prompt size we're sending
     const promptTokenCount:number = filtered.reduce((a, m) => {
-      a += encode(m.content).length + 8 // + 8, always seems to under count by around 8
+      // Not sure how OpenAI formats it, but this seems to get close to the right counts
+      // Sure would be nice to know
+      a += encode('## ' + m.role + " ##:\r\n\r\n" + m.content + "\r\n\r\n\r\n").length
       return a
-    }, 0)
+    }, 0) + 3
+
+    // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
     if (chatSettings.useSummarization &&
           !withSummary && !doingSummary &&
