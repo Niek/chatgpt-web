@@ -166,6 +166,10 @@
     return chat.messages
   }
 
+  const getMessage = (chat: Chat, uuid:string):Message|undefined => {
+    return chat.messages.find((m) => m.uuid === uuid)
+  }
+
   export const insertMessages = (chatId: number, insertAfter: Message, newMessages: Message[]) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -178,10 +182,31 @@
     chatsStorage.set(chats)
   }
 
+  export const deleteSummaryMessage = (chatId: number, uuid: string) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const message = getMessage(chat, uuid)
+    if (message && message.summarized) throw new Error('Unable to delete summarized message')
+    if (message && message.summary) { // messages we summarized
+      message.summary.forEach(sid=>{
+        const m = getMessage(chat, sid)
+        if (m) {
+          delete m.summarized // unbind to this summary
+        }
+      })
+      delete message.summary
+    }
+    chatsStorage.set(chats)
+    deleteMessage(chatId, uuid)
+  }
+
   export const deleteMessage = (chatId: number, uuid: string) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const index = chat.messages.findIndex((m) => m.uuid === uuid)
+    const message = getMessage(chat, uuid)
+    if (message && message.summarized) throw new Error('Unable to delete summarized message')
+    if (message && message.summary) throw new Error('Unable to directly delete message summary')
     // const found = chat.messages.filter((m) => m.uuid === uuid)
     if (index < 0) {
       console.error(`Unable to find and delete message with ID: ${uuid}`)

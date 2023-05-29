@@ -1,7 +1,7 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage } from './Storage.svelte'
+  import { deleteMessage, chatsStorage, deleteSummaryMessage } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
@@ -43,6 +43,31 @@
     }, 0)
   }
 
+  const checkDelete = () => {
+    if (message.summarized) {
+      // is in a summary, so we're summarized
+      window.alert(`Sorry, you can't delete a summarized message`)
+      return
+    }
+    if (message.summary) {
+      // We're linked to messages we're a summary of
+      if (window.confirm("Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.")) {
+        try {
+          deleteSummaryMessage(chatId, message.uuid)
+        } catch(e) {
+          alert('Unable to delete summary:\n'+e.message)
+        }
+      }
+      return
+    }
+    try {
+      deleteMessage(chatId, message.uuid)
+    } catch(e) {
+      alert('Unable to delete:\n'+e.message)
+    }
+    
+  }
+
   let dbnc
   const update = () => {
     clearTimeout(dbnc)
@@ -67,6 +92,7 @@
       editing = false
     }
   }
+
   const scrollToMessage = (uuid:string | string[] | undefined) => {
     if (Array.isArray(uuid)) {
       uuid = uuid[0]
@@ -110,21 +136,10 @@
 >
   <div class="message-body content">
     <div class="greyscale is-pulled-right ml-2 button-pack">
-    {#if !message.summarized && !message.summary}
+    {#if message.summarized}
     <a
       href={'#'}
-      class=" delButton"
-      on:click|preventDefault={() => {
-        // messages.splice(i, 1)
-        deleteMessage(chatId, message.uuid)
-      }}
-    >
-    <Fa icon={faTrash} />
-    </a>
-    {:else if message.summarized}
-    <a
-      href={'#'}
-      class="delButton"
+      class="msg-summary-button"
       on:click|preventDefault={() => {
         scrollToMessage(message.summarized)
       }}
@@ -135,12 +150,24 @@
     {#if message.summary}
     <a
       href={'#'}
-      class="delButton"
+      class="msg-summarized-button"
       on:click|preventDefault={() => {
         scrollToMessage(message.summary)
       }}
     >
     <Fa icon={faDiagramPredecessor} />
+    </a>
+    {/if}
+    {#if !message.summarized}
+    <a
+      href={'#'}
+      class=" msg-delete-button"
+      on:click|preventDefault={() => {
+        // messages.splice(i, 1)
+        checkDelete()
+      }}
+    >
+    <Fa icon={faTrash} />
     </a>
     {/if}
     </div>
