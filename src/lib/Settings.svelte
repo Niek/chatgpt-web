@@ -83,8 +83,6 @@ const defaults:ChatSettings = {
 
 const excludeFromProfile = {
   messages: true,
-  startSession: true,
-  sessionStarted: true,
   user: true
 }
 
