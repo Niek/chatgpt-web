@@ -96,7 +96,7 @@
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) showChatMenu = false; deleteChat() }}>
         <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Chat
       </a>
-      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) showChatMenu = false; confirmClearChats() }}>
+      <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) showChatMenu = false; confirmClearChats() }}>
         <span class="menu-icon"><Fa icon={faTrashCan}/></span> Delete ALL Chats
       </a>
       <hr class="dropdown-divider">
