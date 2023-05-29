@@ -252,15 +252,6 @@
               return a
             }, '')
 
-            // Get use stats for response
-            const summaryUse = summary.choices.reduce((a, c) => {
-              const u = c.message.usage as Usage
-              a.completion_tokens += u.completion_tokens
-              a.prompt_tokens += u.prompt_tokens
-              a.total_tokens += u.total_tokens
-              return a
-            }, {prompt_tokens: 0,completion_tokens: 0,total_tokens: 0} as Usage)
-
             // Looks like we got our summarized messages.
             // get ids of messages we summarized
             const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
@@ -270,7 +261,7 @@
               content: summaryPromptContent,
               uuid: uuidv4(),
               summary: summarizedIds,
-              usage: summaryUse,
+              usage: summary.usage,
               model: model,
             }
             const summaryIds = [summaryPrompt.uuid]
