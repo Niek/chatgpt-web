@@ -12,7 +12,6 @@
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
 
-
   const chatDefaults = getChatDefaults()
 
   export const newChatID = (): number => {
@@ -312,7 +311,7 @@
 
   export const setGlobalSettingValue = (setting: GlobalSetting, value) => {
     const store = get(globalStorage)
-    store[setting.key] = cleanSettingValue(setting.type, value)
+    store[setting.key as any] = cleanSettingValue(setting.type, value)
     globalStorage.set(store)
   }
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   // Iterate messages
   import type { Message, Chat } from './Types.svelte'
-  import { chatsStorage } from './Storage.svelte'
+  import { chatsStorage, globalStorage } from './Storage.svelte'
   import EditMessage from './EditMessage.svelte'
 
   export let messages : Message[]
@@ -13,7 +13,7 @@
 </script>
 
 {#each messages as message, i}
-  {#if !(i === 0 && message.role === 'system' && !chatSettings.useSystemPrompt)}
+  {#if !(message.summarized && $globalStorage.hideSummarized) && !(i === 0 && message.role === 'system' && !chatSettings.useSystemPrompt)}
   <EditMessage bind:message={message} chatId={chatId} />
   {/if}
 {/each}

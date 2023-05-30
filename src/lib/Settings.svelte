@@ -343,6 +343,11 @@ const globalSettingsList:GlobalSetting[] = [
         key: 'defaultProfile',
         name: 'Default Profile',
         type: 'text'
+      },
+      {
+        key: 'hideSummarized',
+        name: 'Hide Summarized Messages',
+        type: 'boolean'
       }
 ]
 

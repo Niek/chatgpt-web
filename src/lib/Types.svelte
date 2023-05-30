@@ -104,8 +104,9 @@
 
   export type GlobalSettings = {
     profiles: Record<string, ChatSettings>;
-    lastProfile?: string,
-    defaultProfile?: string,
+    lastProfile?: string;
+    defaultProfile?: string;
+    hideSummarized?: boolean;
   };
 
   type SettingNumber = {

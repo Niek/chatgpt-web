@@ -12,9 +12,11 @@
     faSquarePlus,
     faKey,
     faFileExport,
-    faTrashCan
+    faTrashCan,
+    faEye,
+    faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, showSetChatSettings } from './Storage.svelte'
+  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { applyProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
@@ -65,6 +67,11 @@
     $checkStateChange++ // signal chat page to start profile
   }
 
+  const toggleHideSummarized = () => {
+    close()
+    setGlobalSettingValueByKey('hideSummarized', !$globalStorage.hideSummarized)
+  }
+
 </script>
 
 <div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
@@ -111,6 +118,14 @@
       </a>
       <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) confirmClearChats() }}>
         <span class="menu-icon"><Fa icon={faTrashCan}/></span> Delete ALL Chats
+      </a>
+      <hr class="dropdown-divider">
+      <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) toggleHideSummarized() }}>
+        {#if $globalStorage.hideSummarized}
+        <span class="menu-icon"><Fa icon={faEye}/></span> Show Summarized Messages
+        {:else}
+        <span class="menu-icon"><Fa icon={faEyeSlash}/></span> Hide Summarized Messages
+        {/if}
       </a>
       <hr class="dropdown-divider">
       <a href={'#/'} class="dropdown-item">
