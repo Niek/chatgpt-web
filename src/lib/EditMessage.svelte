@@ -270,8 +270,12 @@
   }
   .message-editor {
     white-space: pre-wrap;
-    min-width: 100px;
+    min-width: 60px;
     min-height: 30px;
+  }
+  .message-display {
+    min-width: 60px;
+    min-height: 1.3em;
   }
   .button-pack .button {
     display: block;
