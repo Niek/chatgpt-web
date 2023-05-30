@@ -264,7 +264,7 @@
               class="dropdown-item"
               on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
             >
-              <span class="menu-icon"><Fa icon={faDownload}/></span> Save Profile JSON
+              <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Profile JSON
             </a>
             <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
               <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON

@@ -97,7 +97,7 @@
       </a>
       <hr class="dropdown-divider">
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { close(); exportChatAsJSON(chatId) }}>
-        <span class="menu-icon"><Fa icon={faDownload}/></span> Save Chat JSON
+        <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Chat JSON
       </a>
       <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) close(); chatFileInput.click() }}>
         <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Chat JSON
