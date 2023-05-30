@@ -96,6 +96,13 @@
         <span class="menu-icon"><Fa icon={faClone}/></span> Clone Chat
       </a>
       <hr class="dropdown-divider">
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) restartChatSession() }}>
+        <span class="menu-icon"><Fa icon={faRotateRight}/></span> Restart Chat Session
+      </a>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); clearMessages(chatId) }}>
+        <span class="menu-icon"><Fa icon={faEraser}/></span> Clear Chat Messages
+      </a>
+      <hr class="dropdown-divider">
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { close(); exportChatAsJSON(chatId) }}>
         <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Chat JSON
       </a>
@@ -104,13 +111,6 @@
       </a>
       <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) close(); exportAsMarkdown(chatId) }}>
         <span class="menu-icon"><Fa icon={faFileExport}/></span> Export Chat Markdown
-      </a>
-      <hr class="dropdown-divider">
-      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) restartChatSession() }}>
-        <span class="menu-icon"><Fa icon={faRotateRight}/></span> Restart Chat Session
-      </a>
-      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); clearMessages(chatId) }}>
-        <span class="menu-icon"><Fa icon={faEraser}/></span> Clear Chat Messages
       </a>
       <hr class="dropdown-divider">
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); deleteChat() }}>

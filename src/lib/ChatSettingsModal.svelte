@@ -26,6 +26,7 @@
     faUpload
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
+  import { afterUpdate } from 'svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -44,6 +45,10 @@
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
+
+  afterUpdate(() => {
+    sizeTextElements()
+  })
   
   const closeSettings = () => {
     showProfileMenu = false
@@ -164,7 +169,7 @@
     // Refresh settings modal
     showSettingsModal++
 
-    setTimeout(() => sizeTextElements, 100)
+    setTimeout(() => sizeTextElements(), 0)
   }
 
   const debounce = {}
@@ -260,6 +265,10 @@
               <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
             </a>
             <hr class="dropdown-divider">
+            <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
+              <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
+            </a>
+            <hr class="dropdown-divider">
             <a href={'#'} 
               class="dropdown-item"
               on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
@@ -268,10 +277,6 @@
             </a>
             <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
               <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
-              <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
             </a>
             <hr class="dropdown-divider">
             <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
