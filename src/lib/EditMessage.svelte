@@ -1,12 +1,12 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage, deleteSummaryMessage } from './Storage.svelte'
+  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane } from '@fortawesome/free-solid-svg-icons/index'
   import { scrollIntoViewWithOffset } from './Util.svelte'
 
   export let message:Message
@@ -44,30 +44,6 @@
     }, 0)
   }
 
-  const checkDelete = () => {
-    if (message.summarized) {
-      // is in a summary, so we're summarized
-      window.alert('Sorry, you can\'t delete a summarized message')
-      return
-    }
-    if (message.summary) {
-      // We're linked to messages we're a summary of
-      if (window.confirm('Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.')) {
-        try {
-          deleteSummaryMessage(chatId, message.uuid)
-        } catch (e) {
-          window.alert('Unable to delete summary:\n' + e.message)
-        }
-      }
-      return
-    }
-    try {
-      deleteMessage(chatId, message.uuid)
-    } catch (e) {
-      window.alert('Unable to delete:\n' + e.message)
-    }
-  }
-
   let dbnc
   const update = () => {
     clearTimeout(dbnc)
@@ -103,7 +79,7 @@
     }
     const el = document.getElementById('message-' + uuid)
     if (el) {
-      scrollIntoViewWithOffset(el, 60)
+      scrollIntoViewWithOffset(el, 80)
     } else {
       console.error("Can't find element with message ID", uuid)
     }
@@ -119,7 +95,66 @@
     }
     lastTap = new Date().getTime()
   }
-  
+
+  let waitingForDeleteConfirm:any = 0
+
+  const checkDelete = () => {
+    clearTimeout(waitingForTruncateConfirm); waitingForTruncateConfirm = 0
+    if (!waitingForDeleteConfirm) {
+      // wait a second for another click to avoid accidental deletes
+      waitingForDeleteConfirm = setTimeout(() => { waitingForDeleteConfirm = 0 }, 1000)
+      return
+    }
+    clearTimeout(waitingForDeleteConfirm)
+    waitingForDeleteConfirm = 0
+    if (message.summarized) {
+      // is in a summary, so we're summarized
+      window.alert('Sorry, you can\'t delete a summarized message')
+      return
+    }
+    if (message.summary) {
+      // We're linked to messages we're a summary of
+      if (window.confirm('Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.')) {
+        try {
+          deleteSummaryMessage(chatId, message.uuid)
+        } catch (e) {
+          window.alert('Unable to delete summary:\n' + e.message)
+        }
+      }
+      return
+    }
+    try {
+      deleteMessage(chatId, message.uuid)
+    } catch (e) {
+      window.alert('Unable to delete:\n' + e.message)
+    }
+  }
+
+
+  let waitingForTruncateConfirm:any = 0
+
+  const checkTruncate = () => {
+    clearTimeout(waitingForDeleteConfirm); waitingForDeleteConfirm = 0
+    if (!waitingForTruncateConfirm) {
+      // wait a second for another click to avoid accidental deletes
+      waitingForTruncateConfirm = setTimeout(() => { waitingForTruncateConfirm = 0 }, 1000)
+      return
+    }
+    clearTimeout(waitingForTruncateConfirm)
+    waitingForTruncateConfirm = 0
+    if (message.summarized) {
+      // is in a summary, so we're summarized
+      window.alert('Sorry, you can\'t truncate a summarized message')
+      return
+    }
+    try {
+      truncateFromMessage(chatId, message.uuid)
+      $submitExitingPromptsNow = true
+    } catch (e) {
+      window.alert('Unable to delete:\n' + e.message)
+    }
+  }
+
 </script>
 
 {#key message.uuid}
@@ -136,39 +171,61 @@
   class:editing={editing}
 >
   <div class="message-body content">
-    <div class="greyscale is-pulled-right ml-2 button-pack">
+    <div class="button-pack">
     {#if message.summarized}
     <a
       href={'#'}
-      class="msg-summary-button"
+      title="Jump to summary"
+      class="msg-summary-button button is-small is-info"
       on:click|preventDefault={() => {
         scrollToMessage(message.summarized)
       }}
     >
-    <Fa icon={faDiagramNext} />
+    <span class="icon"><Fa icon={faDiagramNext} /></span>
     </a>
     {/if}
     {#if message.summary}
     <a
       href={'#'}
-      class="msg-summarized-button"
+      title="Jump to summarized"
+      class="msg-summarized-button button is-small is-info"
       on:click|preventDefault={() => {
         scrollToMessage(message.summary)
       }}
     >
-    <Fa icon={faDiagramPredecessor} />
+    <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
     </a>
     {/if}
     {#if !message.summarized}
     <a
       href={'#'}
-      class=" msg-delete-button"
+      title="Delete this message"
+      class=" msg-delete-button button is-small is-warning"
       on:click|preventDefault={() => {
-        // messages.splice(i, 1)
         checkDelete()
       }}
     >
-    <Fa icon={faTrash} />
+    {#if waitingForDeleteConfirm}
+    <span class="icon"><Fa icon={faCircleCheck} /></span>
+    {:else}
+    <span class="icon"><Fa icon={faTrash} /></span>
+    {/if}
+    </a>
+    {/if}
+    {#if !message.summarized}
+    <a
+      href={'#'}
+      title="Truncate all and submit"
+      class=" msg-delete-button button is-small is-danger"
+      on:click|preventDefault={() => {
+        checkTruncate()
+      }}
+    >
+    {#if waitingForTruncateConfirm}
+    <span class="icon"><Fa icon={faCircleCheck} /></span>
+    {:else}
+    <span class="icon"><Fa icon={faPaperPlane} /></span>
+    {/if}
     </a>
     {/if}
     </div>
@@ -216,17 +273,25 @@
     min-width: 100px;
     min-height: 30px;
   }
+  .button-pack .button {
+    display: block;
+    margin: 4px;
+    border-radius: 10px;
+    opacity: .8;
+  }
+  .button-pack .button:hover {
+    opacity: 1;
+  }
   .button-pack {
     display: none;
     position: absolute;
-    right: 10px;
-    top: 2px;
+    right: -20px;
+    top: -20px;
     text-decoration: none;
   }
   .assistant-message .button-pack {    
     right: auto;
-    left: 5px;
-    top: 2px;
+    left: -20px;
   }
   .message {
     position: relative;

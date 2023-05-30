@@ -54,11 +54,6 @@
     showProfileMenu = false
     $checkStateChange++
     showSettingsModal = 0
-    // if (chat.startSession) {
-    //   chat.startSession = false
-    //   saveChatStore()
-    //   // submitForm(false, true)
-    // }
   }
 
   const clearSettings = () => {

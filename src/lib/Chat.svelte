@@ -10,7 +10,8 @@
     updateChatSettings,
     updateRunningTotal,
     checkStateChange,
-    showSetChatSettings
+    showSetChatSettings,
+    submitExitingPromptsNow
   } from './Storage.svelte'
   import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
@@ -75,10 +76,14 @@
         $showSetChatSettings = false
         showSettingsModal()
       }
+      if ($submitExitingPromptsNow) {
+        $submitExitingPromptsNow = false
+        submitForm(false, true)
+      }
     })
   }
   
-  $: onStateChange($checkStateChange, $showSetChatSettings)
+  $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow)
 
   // Make sure chat object is ready to go
   updateChatSettings(chatId)

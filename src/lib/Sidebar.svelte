@@ -9,17 +9,6 @@
 
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
   
-  // let fileinput
-
-  // const onFileSelected = (e) => {
-  //   const image = e.target.files[0]
-  //   const reader = new FileReader()
-  //   reader.readAsText(image)
-  //   reader.onload = e => {
-  //     const json = (e.target || {}).result as string
-  //     addChatFromJSON(json)
-  //   }
-  // }
 </script>
 
 <aside class="menu">
@@ -48,53 +37,5 @@
       >
     </li>
     {/if}
-    <!-- <li>
-      <a class="panel-block"
-        href="{'#/'}"
-        class:is-disabled={!$apiKeyStorage}
-        on:click|preventDefault={() => {
-          const confirmDelete = window.confirm('Are you sure you want to delete all your chats?')
-          if (confirmDelete) {
-            replace('#/').then(() => clearChats())
-          }
-        }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear chats</a
-      >
-    </li>
-    {#if activeChatId}
-      <li>
-        <a
-          href={'#/'}
-          class="panel-block"
-          class:is-disabled={!apiKeyStorage}
-          on:click|preventDefault={() => {
-            if (activeChatId) {
-              exportAsMarkdown(activeChatId)
-            }
-          }}><span class="greyscale mr-2"><Fa icon={faFileExport} /></span> Export chat</a
-        >
-      </li>
-      <li>
-        <a
-          href={'#/'}
-          class="panel-block"
-          class:is-disabled={!apiKeyStorage}
-          on:click|preventDefault={() => {
-            if (activeChatId) {
-              exportChatAsJSON(activeChatId)
-            }
-          }}><span class="greyscale mr-2"><Fa icon={faDownload} /></span> Save chat</a
-        >
-      </li>
-        
-    {/if} -->
-    <!-- <li>
-      <a
-        href={'#/'}
-        class="panel-block"
-        class:is-disabled={!apiKeyStorage}
-        on:click|preventDefault={() => { fileinput.click() }}><span class="greyscale mr-2"><Fa icon={faUpload} /></span> Load chat</a
-      >
-      <input style="display:none" type="file" accept=".json" on:change={(e) => onFileSelected(e)} bind:this={fileinput} >
-    </li> -->
   </ul>
 </aside>

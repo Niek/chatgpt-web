@@ -11,6 +11,7 @@
   export const apiKeyStorage = persisted('apiKey', '' as string)
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
+  export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
 
   const chatDefaults = getChatDefaults()
 
@@ -216,6 +217,20 @@
     }
     // console.warn(`Deleting message with ID: ${uuid}`, found, index)
     chat.messages.splice(index, 1) // remove item
+    chatsStorage.set(chats)
+  }
+
+  export const truncateFromMessage = (chatId: number, uuid: string) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const index = chat.messages.findIndex((m) => m.uuid === uuid)
+    const message = getMessage(chat, uuid)
+    if (message && message.summarized) throw new Error('Unable to truncate from a summarized message')
+    // const found = chat.messages.filter((m) => m.uuid === uuid)
+    if (index < 0) {
+      throw new Error(`Unable to find message with ID: ${uuid}`)
+    }
+    chat.messages.splice(index + 1) // remove every item after
     chatsStorage.set(chats)
   }
 
