@@ -179,3 +179,19 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
     width: 100%;
   }
 }
+
+.chat-menu-item {
+  position: relative;
+}
+.chat-menu-item span {
+  display: block;
+  white-space:nowrap;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
+  mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
+}
+.chat-menu-item .delete-button {
+  position: absolute;
+  right: .4em;
+  z-index: 200;
+}

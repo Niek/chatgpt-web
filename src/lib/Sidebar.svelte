@@ -1,35 +1,14 @@
 <script lang="ts">
-  import { params, replace } from 'svelte-spa-router'
-
-  import { apiKeyStorage, chatsStorage, deleteChat } from './Storage.svelte'
+  import { params } from 'svelte-spa-router'
+  import ChatMenuItem from './ChatMenuItem.svelte'
+  import { apiKeyStorage, chatsStorage } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faSquarePlus, faTrash, faKey } from '@fortawesome/free-solid-svg-icons/index'
+  import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
   
-
-  function delChat (chatId:number) {
-    if (activeChatId === chatId) {
-    // Find the max chatId other than the current one
-      const newChatId = sortedChats.reduce((maxId, chat) => {
-        if (chat.id === chatId) return maxId
-        return Math.max(maxId, chat.id)
-      }, 0)
-
-      if (!newChatId) {
-        // No other chats, clear all and go to home
-        replace('/').then(() => { deleteChat(chatId) })
-      } else {
-        // Delete the current chat and go to the max chatId
-        replace(`/chat/${newChatId}`).then(() => { deleteChat(chatId) })
-      }
-    } else {
-      deleteChat(chatId)
-    }
-  }
-
   // let fileinput
 
   // const onFileSelected = (e) => {
@@ -49,18 +28,9 @@
     {#if sortedChats.length === 0}
       <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
     {:else}
-      <!-- <li>
-        <ul> -->
-          {#each sortedChats as chat}
-            <li>
-              <a class="chat-menu-item" href={`#/chat/${chat.id}`} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
-                <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat(chat.id)}><Fa icon={faTrash} /></a>
-                <span>{chat.name || `Chat ${chat.id}`}</span>
-              </a>
-            </li>
-          {/each}
-        <!-- </ul>
-      </li> -->
+      {#each sortedChats as chat, i}
+      <ChatMenuItem activeChatId={activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
+      {/each}
     {/if}
   </ul>
   <p class="menu-label">Actions</p>
@@ -128,21 +98,3 @@
     </li> -->
   </ul>
 </aside>
-
-<style>
-  .chat-menu-item {
-    position: relative;
-  }
-  .chat-menu-item span {
-    display: block;
-    white-space:nowrap;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
-    mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
-  }
-  .chat-menu-item .delete-button {
-    position: absolute;
-    right: .4em;
-    z-index: 200;
-  }
-</style>

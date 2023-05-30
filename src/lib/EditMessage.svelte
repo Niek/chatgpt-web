@@ -133,6 +133,7 @@
   class:user-message={message.role === 'user' || message.role === 'system'}
   class:assistant-message={message.role === 'error' || message.role === 'assistant'}
   class:summarized={message.summarized} 
+  class:editing={editing}
 >
   <div class="message-body content">
     <div class="greyscale is-pulled-right ml-2 button-pack">
