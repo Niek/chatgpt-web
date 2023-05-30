@@ -128,7 +128,7 @@
         {/if}
       </a>
       <hr class="dropdown-divider">
-      <a href={'#/'} class="dropdown-item">
+      <a href={'#/'} class="dropdown-item" on:click={close}>
         <span><Fa icon={faKey}/></span> API Key
       </a>
     </div>
