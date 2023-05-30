@@ -481,6 +481,7 @@
 
 </script>
 
+<div class="chat-content">
 <nav class="level chat-header">
   <div class="level-left">
     <div class="level-item">
@@ -515,7 +516,10 @@
 {#if chat.messages.length === 0 || (chat.messages.length === 1 && chat.messages[0].role === 'system')}
   <Prompts bind:input />
 {/if}
-
+</div>
+<div class="lower-mask"/>
+<div class="chat-focus-point"></div>
+<div class="prompt-input-container">
 <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
   <p class="control is-expanded">
     <textarea
@@ -549,13 +553,14 @@
   </p>
 </form>
 <!-- a target to scroll to -->
-<div class="chat-focus-point running-total-container">
+<div class="running-total-container">
   {#each Object.entries(chat.usage || {}) as [model, usage]}
   <p class="is-size-7 running-totals">
     <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
     tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
   </p>
   {/each}
+</div>
 </div>
 
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
@@ -600,12 +605,3 @@
     }
   }}
 />
-
-<style>
-  .running-total-container {
-    min-height:2em;
-    padding-bottom:.6em;
-    /* padding-left: 1.9em; */
-    margin-bottom:-2.6em
-  }
-</style>

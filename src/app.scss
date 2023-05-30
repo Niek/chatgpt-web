@@ -17,25 +17,6 @@
   section.section {
     flex-grow: 1;
   }
-  
-  .chat-option-menu.navbar-item {
-    margin-left: auto;
-  }
-
-  /* temp. fix to keep navbar from getting huge on small screen devices 
-      if the right menu is put in the proper navbar-end container */
-  .navbar-brand {
-    /* margin-right: 0; */
-    width: 100%;
-  }
-
-  .dropdown-item .menu-icon {
-    padding-right: .5em;
-  }
-  .dropdown-menu .dropdown-content {
-    max-height: calc(100vh - 60px);
-    overflow-y: auto;
-  }
 }
 
 .is-disabled {
@@ -180,6 +161,27 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
 }
 
+/* Bulma layout hacks */
+
+.chat-option-menu.navbar-item {
+  margin-left: auto;
+}
+
+/* temp. fix to keep navbar from getting huge on small screen devices 
+    if the right menu is put in the proper navbar-end container */
+.navbar-brand {
+  /* margin-right: 0; */
+  width: 100%;
+}
+
+.dropdown-item .menu-icon {
+  padding-right: .5em;
+}
+.dropdown-menu .dropdown-content {
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
 .chat-menu-item {
   position: relative;
 }
@@ -195,3 +197,125 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   right: .4em;
   z-index: 200;
 }
+
+/* Overrides for main layout  */
+
+section.section {
+  padding: 0px;
+}
+
+aside.menu.main-menu {
+  position: fixed;
+  width: 20%;
+  padding-right: 20px;
+  top: 0px;
+  bottom:0px;
+}
+
+aside.menu.main-menu .menu-expanse {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  background-color: hsla(0, 0%, 60%, 0.208); 
+  box-shadow: 5px 0px 1px hsla(0, 0%, 60%, 0.208);
+}
+
+.menu-expanse
+.menu-label, .menu-expanse
+.menu-list {
+  flex: 0 1 auto;
+}
+
+.menu-expanse
+.menu-expansion-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.default-text {
+  color: hsl(0, 0%, 21%) !important;
+}
+
+html {
+  --scrollbarBG: $body-background-color;
+  --thumbBG: #999999;
+}
+
+.lower-mask {
+  display: block;
+  position: fixed;
+  bottom: 0px;
+  height: 100px;
+  width: 100%;
+  background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  html {
+    --thumbBG: #3f3f3f;
+  }
+  .default-text {
+    color: rgb(181, 181, 181) !important;
+  }
+  .lower-mask {
+    background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#17181c 54.73%);
+  }
+  aside.menu.main-menu .menu-expanse {
+    background-color: hsla(0, 0%, 19%, 0.371); 
+    box-shadow: 5px 0px 1px hsla(0, 0%, 19%, 0.371);
+  }
+}
+*::-webkit-scrollbar {
+  width: 11px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--scrollbarBG);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--thumbBG) ;
+  border-radius: 6px;
+  border: 3px solid var(--scrollbarBG);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+}
+
+.chat-content {
+  padding-left: 20px;
+  padding-top: 40px;
+  padding-right: 40px;
+  padding-bottom: 120px;
+}
+
+.chat-focus-point {
+  width:100%;
+  height: 1px;
+  margin-bottom: -.75rem;;
+}
+
+.prompt-input-container {
+  position: fixed;
+  bottom: 0px;
+  width: 80%;
+  padding: 0px 40px 10px 40px;
+}
+
+.running-total-container {
+  min-height:2em;
+  // padding-bottom:.6em;
+  // /* padding-left: 1.9em; */
+  // margin-bottom:- 1em
+}
+
+.side-actions {
+  margin: 5px;
+}
+
+.main-menu .gpt-logo .icon {
+  display: inline-block;
+  margin-top: 8px;
+  margin-left: 8px;
+}
+

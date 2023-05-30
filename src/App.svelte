@@ -10,13 +10,6 @@
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
 
-  // Check if the API key is passed in as a "key" query parameter - if so, save it
-  // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
-  const urlParams: URLSearchParams = new URLSearchParams($querystring)
-  if (urlParams.has('key')) {
-    apiKeyStorage.set(urlParams.get('key') as string)
-  }
-
   // The definition of the routes with some conditions
   const routes = {
     '/': Home,
@@ -37,11 +30,11 @@
 
     '*': Home
   }
-  document.body.classList.add('has-navbar-fixed-top')
+  // document.body.classList.add('something')
 </script>
 
 
-<Navbar />
+<!-- <Navbar /> -->
 <section class="section">
   <div class="container is-fullhd">
     <div class="columns">
@@ -57,4 +50,4 @@
   </div>
 </section>
 
-<Footer />
+<!-- <Footer /> -->

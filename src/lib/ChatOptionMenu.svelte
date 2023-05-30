@@ -4,7 +4,8 @@
     faGear,
     faTrash,
     faClone,
-    faEllipsisVertical,
+    // faEllipsisVertical,
+    faEllipsis,
     faDownload,
     faUpload,
     faEraser,
@@ -23,9 +24,10 @@
   import { clickOutside } from 'svelte-use-click-outside'
 
   export let chatId
-  export const show = () => {
-    showChatMenu = true
+  export const show = (showHide:boolean = true) => {
+    showChatMenu = showHide
   }
+  export let style: string = 'is-right'
 
   let showChatMenu = false
   let chatFileInput
@@ -74,13 +76,13 @@
 
 </script>
 
-<div class="dropdown is-right" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
+<div class="dropdown {style}" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
   <div class="dropdown-trigger">
-    <button class="button" aria-haspopup="true" 
+    <button class="button is-ghost default-text" aria-haspopup="true" 
       aria-controls="dropdown-menu3" 
       on:click|preventDefault|stopPropagation={() => { showChatMenu = !showChatMenu }}
       >
-      <span><Fa icon={faEllipsisVertical}/></span>
+      <span class="icon "><Fa icon={faEllipsis}/></span>
     </button>
   </div>
   <div class="dropdown-menu" id="dropdown-menu3" role="menu">
