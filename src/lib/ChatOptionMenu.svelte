@@ -17,7 +17,7 @@
     faEye,
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings } from './Storage.svelte'
+  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { applyProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
@@ -60,6 +60,7 @@
   }
 
   const close = () => {
+    $pinMainMenu = false
     showChatMenu = false
   }
 
@@ -91,7 +92,7 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={'#/chat/new'} class="dropdown-item">
+      <a href={'#/chat/new'} on:click={() => close()} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>
