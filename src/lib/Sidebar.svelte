@@ -1,11 +1,12 @@
 <script lang="ts">
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
-  import { apiKeyStorage, chatsStorage } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, pinMainMenu } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte';
   import logo from '../assets/logo.svg'
+  import { clickOutside } from 'svelte-use-click-outside';
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
@@ -13,12 +14,12 @@
   
 </script>
 
-<aside class="menu main-menu">
+<aside class="menu main-menu" class:pinned={$pinMainMenu} use:clickOutside={() => { $pinMainMenu = false }}>
   <div class="menu-expanse">
-      <div class="menu-label gpt-logo navbar-brand">
+      <div class="gpt-logo navbar-brand">
         <a class="navbar-item" href={'#/'}>
-          <img src={logo} alt="ChatGPT-web" width="28" height="28" />
-          <p class="ml-2 is-size-4 has-text-weight-bold">ChatGPT-web</p>
+          <img src={logo} alt="ChatGPT-web" width="24" height="24" />
+          <p class="ml-2 is-size-5 has-text-weight-bold">ChatGPT-web</p>
         </a>
       </div>
     <ul class="menu-list menu-expansion-list">

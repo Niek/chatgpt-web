@@ -131,7 +131,7 @@
       </a>
       <hr class="dropdown-divider">
       <a href={'#/'} class="dropdown-item" on:click={close}>
-        <span><Fa icon={faKey}/></span> API Key
+        <span class="menu-icon"><Fa icon={faKey}/></span> API Key
       </a>
     </div>
   </div>

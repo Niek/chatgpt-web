@@ -1,3 +1,81 @@
+html {
+  /* Scrollbar */
+  --scrollbarBG: transparent;
+  --thumbBG: hsl(0, 0%, 60%); /* scollbar color light */
+  /* Back-ground */
+  --BgColorDark: hsl(228, 10%, 10%);
+  --BgColorLight: hsl(0, 0%, 100%);
+  // --BgColorSidebarDark: rgb(28, 30, 36);
+  --BgColorSidebarDark: rgb(16, 17, 22);
+  --BgColorSidebarLight: hsla(0, 0%, 93%, 0.354);
+  
+  /* Sizes */
+  --sidebarTop: 0px;
+  --sidebarWidth: max(300px, 20%);
+  --mainContentWidth: calc(100% - var(--sidebarWidth));
+  
+  --sectionPaddingTop: 0px;
+
+  --chatContentPaddingTop: 20px;
+  --chatContentPaddingRight: 40px;
+  --chatContentPaddingBottom: 120px;
+  --chatContentPaddingLeft: 40px;
+  
+  --chatInputPaddingTop: 0px;
+  --chatInputPaddingRight: 60px;
+  --chatInputPaddingBottom: 10px;
+  --chatInputPaddingLeft: 60px;
+}
+
+.navbar {
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    --thumbBG: #3f3f3f; /* scrollbar color dark */
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  html {
+    --sidebarWidth: max(250px, 20%);
+ 
+    --chatContentPaddingTop: 50px;
+    --chatContentPaddingRight: 20px;
+    --chatContentPaddingLeft: 20px;
+    
+    --chatInputPaddingRight: 30px;
+    --chatInputPaddingLeft: 30px;
+  }
+  
+}
+
+@media only screen and (max-width: 768px) {
+  .navbar {
+    display: block !important;
+  }
+  html {
+    --BgColorSidebarLight: hsl(210, 12%, 97%);
+    // --BgColorSidebarDark: rgb(22, 24, 30);
+    --sidebarWidth: max(300px, 20%);
+    --mainContentWidth: calc(100%);
+    --sidebarTop: 56px;
+    --chatInputPaddingRight: 20px;
+    --chatInputPaddingLeft: 20px;
+  }
+  .main-menu .gpt-logo {
+    display: none;
+  }
+  .main-menu .level-right {
+    display: flex;
+  }
+  .main-menu .level-item {
+    margin-bottom: inherit !important;
+  }
+}
+
+
 @keyframes rotating {
   from {
     transform: rotate(0deg);
@@ -155,8 +233,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .dropdown.is-fullwidth {
   display: flex;
 
-  .dropdown-trigger,
-  .dropdown-menu {
+.dropdown-trigger, .dropdown-menu {
     width: 100%;
   }
 }
@@ -182,6 +259,18 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   overflow-y: auto;
 }
 
+@media only screen and (max-width: 768px) {
+  .main-menu .dropdown-menu .dropdown-content {
+    max-height: calc(100vh - 112px);
+  }
+  .main-menu {
+    display: none;
+  }
+  .main-menu.pinned {
+    display: block;
+  }
+}
+
 .chat-menu-item {
   position: relative;
 }
@@ -200,15 +289,25 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 
 /* Overrides for main layout  */
 
+.column.side-bar-column {
+  width: var(--sidebarWidth);
+}
+
+.column.main-content-column {
+  width: var(--mainContentWidth)
+}
+
 section.section {
   padding: 0px;
+  padding-top: var(--sectionPaddingTop);
 }
 
 aside.menu.main-menu {
+  z-index:1;
   position: fixed;
-  width: 20%;
+  width: var(--sidebarWidth);
   padding-right: 20px;
-  top: 0px;
+  top: var(--sidebarTop);
   bottom:0px;
 }
 
@@ -216,8 +315,8 @@ aside.menu.main-menu .menu-expanse {
   display: flex;
   flex-flow: column;
   height: 100%;
-  background-color: hsla(0, 0%, 60%, 0.208); 
-  box-shadow: 5px 0px 1px hsla(0, 0%, 60%, 0.208);
+  background-color: var(--BgColorSidebarLight); 
+  box-shadow: 5px 0px 0px var(--BgColorSidebarLight);
 }
 
 .menu-expanse
@@ -236,34 +335,26 @@ aside.menu.main-menu .menu-expanse {
   color: hsl(0, 0%, 21%) !important;
 }
 
-html {
-  --scrollbarBG: $body-background-color;
-  --thumbBG: #999999;
-}
-
 .lower-mask {
   display: block;
   position: fixed;
   bottom: 0px;
   height: 100px;
   width: 100%;
-  background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%);
+  background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%, var(--BgColorLight) 54.73%);
 }
 
 
 @media (prefers-color-scheme: dark) {
-  html {
-    --thumbBG: #3f3f3f;
-  }
   .default-text {
     color: rgb(181, 181, 181) !important;
   }
   .lower-mask {
-    background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#17181c 54.73%);
+    background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%, var(--BgColorDark) 54.73%);
   }
   aside.menu.main-menu .menu-expanse {
-    background-color: hsla(0, 0%, 19%, 0.371); 
-    box-shadow: 5px 0px 1px hsla(0, 0%, 19%, 0.371);
+    background-color: var(--BgColorSidebarDark); 
+    box-shadow: 5px 0px 0px var(--BgColorSidebarDark);
   }
 }
 *::-webkit-scrollbar {
@@ -283,23 +374,32 @@ html {
 }
 
 .chat-content {
-  padding-left: 20px;
-  padding-top: 40px;
-  padding-right: 40px;
-  padding-bottom: 120px;
+  padding: 
+    var(--chatContentPaddingTop) 
+    var(--chatContentPaddingRight)
+    var(--chatContentPaddingBottom)
+    var(--chatContentPaddingLeft) ;
 }
 
 .chat-focus-point {
-  width:100%;
+  width: 100%;
   height: 1px;
-  margin-bottom: -.75rem;;
+  /* Bulma does something strange where scrolling to the end of the body
+   or html doesn't actually scroll to the bottom of the page 
+   this -.75rem, then scroll to the bottom of this works, but I don't like it.*/
+  margin-bottom: -.75rem;
 }
 
 .prompt-input-container {
   position: fixed;
   bottom: 0px;
-  width: 80%;
-  padding: 0px 40px 10px 40px;
+  width: var(--mainContentWidth);
+  
+  padding: 
+    var(--chatInputPaddingTop) 
+    var(--chatInputPaddingRight)
+    var(--chatInputPaddingBottom)
+    var(--chatInputPaddingLeft);
 }
 
 .running-total-container {
@@ -318,4 +418,6 @@ html {
   margin-top: 8px;
   margin-left: 8px;
 }
+
+
 

@@ -34,14 +34,14 @@
 </script>
 
 
-<!-- <Navbar /> -->
+<Navbar />
 <section class="section">
   <div class="container is-fullhd">
     <div class="columns">
-      <div class="column is-one-fifth">
+      <div class="column is-one-fifth side-bar-column">
         <Sidebar />
       </div>
-      <div class="column is-four-fifths" id="content">
+      <div class="column is-four-fifths main-content-column" id="content">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
