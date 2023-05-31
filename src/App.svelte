@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Router, { location, querystring, replace } from 'svelte-spa-router'
+  import Router, { location, replace } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
 
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
-  import Footer from './lib/Footer.svelte'
+  // import Footer from './lib/Footer.svelte'
   import Home from './lib/Home.svelte'
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'

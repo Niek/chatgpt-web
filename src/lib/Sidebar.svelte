@@ -4,9 +4,9 @@
   import { apiKeyStorage, chatsStorage, pinMainMenu } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
-  import ChatOptionMenu from './ChatOptionMenu.svelte';
+  import ChatOptionMenu from './ChatOptionMenu.svelte'
   import logo from '../assets/logo.svg'
-  import { clickOutside } from 'svelte-use-click-outside';
+  import { clickOutside } from 'svelte-use-click-outside'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
