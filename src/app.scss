@@ -339,7 +339,7 @@ aside.menu.main-menu .menu-expanse {
   display: block;
   position: fixed;
   bottom: 0px;
-  height: 100px;
+  height: var(--chatContentPaddingBottom) ;
   width: 100%;
   background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%, var(--BgColorLight) 54.73%);
 }
