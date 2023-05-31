@@ -34,6 +34,9 @@
     faMicrophone,
     faLightbulb
   } from '@fortawesome/free-solid-svg-icons/index'
+  import {
+    faGithub
+  } from '@fortawesome/free-brands-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { countPromptTokens, getMaxModelPrompt, getPrice } from './Stats.svelte'
@@ -520,48 +523,59 @@
 <div class="lower-mask"/>
 <div class="chat-focus-point"></div>
 <div class="prompt-input-container">
-<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
-  <p class="control is-expanded">
-    <textarea
-      class="input is-info is-focused chat-input auto-size"
-      placeholder="Type your message here..."
-      rows="1"
-      on:keydown={e => {
-        // Only send if Enter is pressed, not Shift+Enter
-        if (e.key === 'Enter' && !e.shiftKey) {
-          submitForm()
-          e.preventDefault()
-        }
-      }}
-      on:input={e => autoGrowInputOnEvent(e)}
-      bind:this={input}
-    />
-  </p>
-  <p class="control" class:is-hidden={!recognition}>
-    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="greyscale"><Fa icon={faMicrophone} /></span></button
-    >
-  </p>
-  <p class="control">
-    <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><Fa icon={faGear} /></button>
-  </p>
-  <p class="control">
-    <button title="Add message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><Fa icon={faArrowUpFromBracket} /></button>
-  </p>
-  <p class="control">
-    <button title="Send" class="button is-info" type="submit"><Fa icon={faPaperPlane} /></button>
-  </p>
-</form>
-<!-- a target to scroll to -->
-<div class="running-total-container">
-  {#each Object.entries(chat.usage || {}) as [model, usage]}
-  <p class="is-size-7 running-totals">
-    <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
-    tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
-  </p>
-  {/each}
+  <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
+    <p class="control is-expanded">
+      <textarea
+        class="input is-info is-focused chat-input auto-size"
+        placeholder="Type your message here..."
+        rows="1"
+        on:keydown={e => {
+          // Only send if Enter is pressed, not Shift+Enter
+          if (e.key === 'Enter' && !e.shiftKey) {
+            submitForm()
+            e.preventDefault()
+          }
+        }}
+        on:input={e => autoGrowInputOnEvent(e)}
+        bind:this={input}
+      />
+    </p>
+    <p class="control" class:is-hidden={!recognition}>
+      <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+        ><span class="greyscale"><Fa icon={faMicrophone} /></span></button
+      >
+    </p>
+    <p class="control">
+      <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><Fa icon={faGear} /></button>
+    </p>
+    <p class="control">
+      <button title="Add message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><Fa icon={faArrowUpFromBracket} /></button>
+    </p>
+    <p class="control">
+      <button title="Send" class="button is-info" type="submit"><Fa icon={faPaperPlane} /></button>
+    </p>
+  </form>
+  <!-- a target to scroll to -->
+  <div class="content has-text-centered running-total-container">
+    {#each Object.entries(chat.usage || {}) as [model, usage]}
+    <p class="is-size-7 running-totals">
+      <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+      tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
+    </p>
+    {/each}
+  </div>
+  <div class="content has-text-centered credit-footer">
+    <p>
+      <strong>ChatGPT-web</strong>
+      by
+      <a target="_blank" href="https://niekvandermaas.nl/">Niek van der Maas</a>
+      &mdash;
+      <a target="_blank" href="https://github.com/Niek/chatgpt-web"><span class="icon"><Fa icon="{faGithub}"/></span></a>
+    </p>
+  </div>
 </div>
-</div>
+
+
 
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
 

@@ -402,11 +402,15 @@ aside.menu.main-menu .menu-expanse {
     var(--chatInputPaddingLeft);
 }
 
-.running-total-container {
-  min-height:2em;
+.content.running-total-container {
+  min-height:1em;
   // padding-bottom:.6em;
   // /* padding-left: 1.9em; */
-  // margin-bottom:- 1em
+  margin-bottom: .5em;
+}
+
+.content.credit-footer {
+  margin-bottom: 1em;
 }
 
 .side-actions {
