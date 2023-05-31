@@ -569,8 +569,7 @@
       <strong>ChatGPT-web</strong>
       by
       <a target="_blank" href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      &mdash;
-      <a target="_blank" href="https://github.com/Niek/chatgpt-web"><span class="icon"><Fa icon="{faGithub}"/></span></a>
+      <a target="_blank"class="ml-4" href="https://github.com/Niek/chatgpt-web"><span style="position:absolute" class="icon default-text"><Fa size="2x" icon="{faGithub}"/></span></a>
     </p>
   </div>
 </div>
