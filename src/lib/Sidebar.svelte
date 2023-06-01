@@ -33,25 +33,24 @@
     </ul>
     <!-- <p class="menu-label">Actions</p> -->
     <ul class="menu-list">
-      {#if !$apiKeyStorage}
-      <li>
-        <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage} class:is-active={!activeChatId}
-          ><span class="icon"><Fa icon={faKey} /></span> API key</a
-        >
-      </li>
-      {:else}
       <li>
         <div class="level-right side-actions">
+          {#if !$apiKeyStorage}
+          <div class="level-item">
+            <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage}
+              ><span class="greyscale mr-2"><Fa icon={faKey} /></span> API key</a
+            ></div>
+          {:else}
           <div class="level-item">
             <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
               ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</a
             ></div>
+          {/if}
           <div class="level-item">
             <ChatOptionMenu bind:chatId={activeChatId} style="is-right is-up" />
           </div>
         </div>
       </li>
-      {/if}
     </ul>
   </div>
 </aside>
