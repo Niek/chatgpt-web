@@ -59,6 +59,12 @@ html {
   
 }
 
+@media only screen and (max-width: 900px) and (min-width: 769px) {
+  .chat-menu-item .chat-icon {
+    display: none;
+  }  
+}
+
 @media only screen and (max-width: 768px) {
   .navbar {
     display: block !important;
@@ -213,6 +219,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 /* Delete button on side menu chat name */
+
 .menu-list {
   a:hover {
     .delete-button {
@@ -220,7 +227,16 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
       background-color: initial;
     }
   }
+  .delete-button {
+    opacity: .8;
+  }
+  
+  .delete-button:hover {
+    opacity: 1;
+  }
 }
+
+
 
 /* Loading chat messages */
 .is-loading {
@@ -277,7 +293,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .chat-menu-item {
   position: relative;
 }
-.chat-menu-item span {
+.chat-menu-item .chat-item-name {
   display: block;
   white-space:nowrap;
   overflow: hidden;
@@ -429,6 +445,7 @@ aside.menu.main-menu .menu-expanse {
     }
   }
 }
+
 @media only screen and (max-width: 340px) {
   .section-footer {
     .author {
@@ -436,7 +453,6 @@ aside.menu.main-menu .menu-expanse {
     }
   }
 }
-
 
 .content.running-total-container {
   min-height:1em;

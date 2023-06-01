@@ -4,6 +4,7 @@
   import { apiKeyStorage, deleteChat, pinMainMenu } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faCircleCheck } from '@fortawesome/free-solid-svg-icons/index'
+  import { faMessage } from '@fortawesome/free-regular-svg-icons/index'
 
   export let chat:Chat
   export let activeChatId:number|undefined
@@ -39,10 +40,10 @@
 <li>
   <a class="chat-menu-item" href={`#/chat/${chat.id}`} on:click={() => { $pinMainMenu = false }} class:is-waiting={waitingForConfirm} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}>
     {#if waitingForConfirm}
-    <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>
+    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>
     {:else}
-    <a class="is-pulled-right is-hidden px-1 py-0 greyscale has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faTrash} /></a>
+    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faTrash} /></a>
     {/if}
-    <span>{chat.name || `Chat ${chat.id}`}</span>
+    <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
   </a>
 </li>
