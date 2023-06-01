@@ -34,14 +34,12 @@
     faMicrophone,
     faLightbulb
   } from '@fortawesome/free-solid-svg-icons/index'
-  import {
-    faGithub
-  } from '@fortawesome/free-brands-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { countPromptTokens, getMaxModelPrompt, getPrice } from './Stats.svelte'
   import { autoGrowInputOnEvent, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
+  import Footer from './Footer.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -143,7 +141,7 @@
   // Scroll to the bottom of the chat on update
   const focusInput = () => {
     input.focus()
-    setTimeout(() => document.querySelector('.chat-focus-point')?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0)
+    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0)
   }
 
   // Send API request
@@ -520,10 +518,7 @@
   <Prompts bind:input />
 {/if}
 </div>
-<div class="lower-mask"/>
-<div class="lower-mask2"/>
-<div class="chat-focus-point"></div>
-<div class="prompt-input-container">
+<Footer class="prompt-input-container" strongMask={true}>
   <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
     <p class="control is-expanded">
       <textarea
@@ -565,16 +560,7 @@
     </p>
     {/each}
   </div>
-  <div class="content has-text-centered credit-footer">
-    <p>
-      <strong>ChatGPT-web</strong>
-      by
-      <a target="_blank" href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      <a target="_blank"class="ml-4" href="https://github.com/Niek/chatgpt-web"><span style="position:absolute" class="icon default-text"><Fa size="2x" icon="{faGithub}"/></span></a>
-    </p>
-  </div>
-</div>
-
+</Footer>
 
 
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />

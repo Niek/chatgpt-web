@@ -35,19 +35,19 @@
 
 
 <Navbar />
-<section class="section root-section">
-  <div class="container is-fullhd">
-    <div class="columns">
-      <div class="column is-one-fifth side-bar-column">
+<!-- <section class="section root-section"> -->
+  <!-- <div class="container is-fullhd"> -->
+    <!-- <div class="columns"> -->
+      <div class="side-bar-column">
         <Sidebar />
       </div>
-      <div class="column is-four-fifths main-content-column" id="content">
+      <div class="main-content-column" id="content">
         {#key $location}
           <Router {routes} on:conditionsFailed={() => replace('/')}/>
         {/key}
       </div>
-    </div>
-  </div>
-</section>
+    <!-- </div> -->
+  <!-- </div> -->
+<!-- </section> -->
 
 <!-- <Footer /> -->

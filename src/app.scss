@@ -30,7 +30,7 @@ html {
   --chatInputPaddingBottom: 10px;
   --chatInputPaddingLeft: 60px;
 
-  --BgColor: var(-BgColorLight) /* leave this */
+  --BgColor: var(-BgColorLight);
 }
 
 .navbar {
@@ -69,6 +69,7 @@ html {
     --sidebarWidth: max(300px, 20%);
     --mainContentWidth: calc(100%);
     --sidebarTop: 56px;
+    --sectionPaddingTop: 56px;
     --chatInputPaddingRight: 20px;
     --chatInputPaddingLeft: 20px;
   }
@@ -99,10 +100,6 @@ html {
   flex-direction: column;
   flex-grow: 1;
   min-height: 100vh;
-
-  section.section.root-section {
-    flex-grow: 1;
-  }
 }
 
 .is-disabled {
@@ -202,8 +199,6 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
 }
 
-
-
 /* Support for copy code button */
 .code-block>button {
   position: absolute;
@@ -297,17 +292,16 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 
 /* Overrides for main layout  */
 
-.column.side-bar-column {
+.side-bar-column {
   width: var(--sidebarWidth);
 }
 
-.column.main-content-column {
-  width: var(--mainContentWidth)
-}
-
-section.section.root-section {
-  padding: 0px;
+.main-content-column {
+  margin-left: auto;
+  margin-right: 0px;
+  width: var(--mainContentWidth);
   padding-top: var(--sectionPaddingTop);
+  position: relative;
 }
 
 aside.menu.main-menu {
@@ -352,6 +346,14 @@ aside.menu.main-menu .menu-expanse {
   background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%, var(--BgColorLight) 54.73%);
 }
 
+.lower-mask2 {
+  display: none;
+}
+
+.lower-mask2.strong-mask {
+  display: block;
+}
+
 
 @media (prefers-color-scheme: dark) {
   .default-text {
@@ -365,6 +367,8 @@ aside.menu.main-menu .menu-expanse {
     box-shadow: 5px 0px 0px var(--BgColorSidebarDark);
   }
 }
+
+
 *::-webkit-scrollbar {
   width: 11px;
 }
@@ -389,13 +393,14 @@ aside.menu.main-menu .menu-expanse {
     var(--chatContentPaddingLeft) ;
 }
 
-.chat-focus-point {
-  width: 100%;
-  height: 1px;
-  /* Bulma does something strange where scrolling to the end of the body
-   or html doesn't actually scroll to the bottom of the page 
-   this -.75rem, then scroll to the bottom of this works, but I don't like it.*/
-  margin-bottom: -.75rem;
+.section:has(+ .pin-footer) {
+  padding-bottom: var(--chatContentPaddingBottom);
+}
+
+.pin-footer {
+  position: fixed;
+  bottom: 0px;
+  width: var(--mainContentWidth);
 }
 
 .prompt-input-container {
