@@ -521,6 +521,7 @@
 {/if}
 </div>
 <div class="lower-mask"/>
+<div class="lower-mask2"/>
 <div class="chat-focus-point"></div>
 <div class="prompt-input-container">
   <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
