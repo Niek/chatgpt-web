@@ -1,5 +1,6 @@
 html {
   /* Scrollbar */
+  /* TODO: Update these to use bulma's scss variables, not css vars. */
   --scrollbarBG: transparent;
   --thumbBG: hsl(0, 0%, 60%); /* scollbar color light */
   /* Back-ground */
@@ -8,6 +9,9 @@ html {
   // --BgColorSidebarDark: rgb(28, 30, 36);
   --BgColorSidebarDark: rgb(16, 17, 22);
   --BgColorSidebarLight: hsla(0, 0%, 93%, 0.354);
+  // Tool drawer for messages
+  --chatToolDrawerSize: 40px;
+  --chatToolDrawerColor: var(--BgColorSidebarLight);
   
   /* Sizes */
   --sidebarTop: 0px;
@@ -25,6 +29,8 @@ html {
   --chatInputPaddingRight: 60px;
   --chatInputPaddingBottom: 10px;
   --chatInputPaddingLeft: 60px;
+
+  --BgColor: var(-BgColorLight) /* leave this */
 }
 
 .navbar {
@@ -34,6 +40,8 @@ html {
 @media (prefers-color-scheme: dark) {
   html {
     --thumbBG: #3f3f3f; /* scrollbar color dark */
+    --BgColor: var(-BgColorDark);
+    --chatToolDrawerColor: var(--BgColorSidebarDark);
   }
 }
 
@@ -423,5 +431,103 @@ aside.menu.main-menu .menu-expanse {
   margin-left: 8px;
 }
 
+.message-body {
+  z-index: 1;
+}
+.message-note {
+  padding-top: .6em;
+  margin-bottom: -0.6em;
+}
+.message-edit {
+  display: block;
+}
+.message-editor {
+  white-space: pre-wrap;
+  min-width: 60px;
+  min-height: 30px;
+}
+.message-display {
+  min-width: 60px;
+  min-height: 1.3em;
+}
+.button-pack .button {
+  display: block;
+  margin: 4px;
+  // border-radius: 10px;
+  opacity: .6;
+}
+.button-pack .button:hover {
+  opacity: 1;
+}
+.assistant-message .button-pack {    
+  right: auto;
+  left: -20px;
+}
+.chat-message.message {
+  position: relative;
+  transition: 0.3s;
+}
 
+// .chat-message.message:hover .button-pack, article.message:focus .button-pack {
+//   display: block;
+// }
+.chat-message.summarized {
+  opacity: 0.6;
+}
+.tool-drawer, .tool-drawer-mask {
+  position: absolute;
+  visibility: hidden;
+  width: 0%;
+  top: 0px;
+  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  margin: 0px;
+  padding: 0px;
+  transition: 0.1s;
+  background-color: var(--chatToolDrawerColor);
+  border-radius: 4px;
+}
+.tool-drawer-mask {
+  border-radius: 0px 4px 4px 0px;
+}
+.user-message .tool-drawer-mask {
+  border-radius: 4px 0px 0px 4px;
+}
+.assistant-message .tool-drawer, .assistant-message .tool-drawer-mask {
+  left:100%;
+}
+.user-message .tool-drawer, .user-message .tool-drawer-mask {
+  right:100%;
+}
+.assistant-message:hover .tool-drawer,
+.assistant-message:focus .tool-drawer {
+  width: var(--chatToolDrawerSize);
+  visibility: visible;
+  max-height: 300%;
+}
+.user-message:hover .tool-drawer,
+.user-message:focus .tool-drawer {
+  width: var(--chatToolDrawerSize);
+  visibility: visible;
+  max-height: 300%;
+}
 
+.assistant-message:hover .tool-drawer-mask,
+.assistant-message:focus .tool-drawer {
+  width: var(--chatToolDrawerSize);
+  visibility: visible;
+}
+.user-message:hover .tool-drawer-mask,
+.user-message:focus .tool-drawer {
+  width: var(--chatToolDrawerSize);
+  visibility: visible;
+}
+.assistant-message:hover, .assistant-message:focus {
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+.user-message:hover, .user-message:focus {
+  border-top-left-radius: 0px !important;
+  border-bottom-left-radius: 0px !important;
+}

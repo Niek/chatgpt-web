@@ -160,7 +160,7 @@
 {#key message.uuid}
 <article
   id="{'message-' + message.uuid}"
-  class="message" 
+  class="message chat-message" 
   class:is-info={message.role === 'user'}
   class:is-success={message.role === 'assistant'}
   class:is-warning={message.role === 'system'}
@@ -171,64 +171,7 @@
   class:editing={editing}
 >
   <div class="message-body content">
-    <div class="button-pack">
-    {#if message.summarized}
-    <a
-      href={'#'}
-      title="Jump to summary"
-      class="msg-summary-button button is-small is-info"
-      on:click|preventDefault={() => {
-        scrollToMessage(message.summarized)
-      }}
-    >
-    <span class="icon"><Fa icon={faDiagramNext} /></span>
-    </a>
-    {/if}
-    {#if message.summary}
-    <a
-      href={'#'}
-      title="Jump to summarized"
-      class="msg-summarized-button button is-small is-info"
-      on:click|preventDefault={() => {
-        scrollToMessage(message.summary)
-      }}
-    >
-    <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
-    </a>
-    {/if}
-    {#if !message.summarized}
-    <a
-      href={'#'}
-      title="Delete this message"
-      class=" msg-delete-button button is-small is-warning"
-      on:click|preventDefault={() => {
-        checkDelete()
-      }}
-    >
-    {#if waitingForDeleteConfirm}
-    <span class="icon"><Fa icon={faCircleCheck} /></span>
-    {:else}
-    <span class="icon"><Fa icon={faTrash} /></span>
-    {/if}
-    </a>
-    {/if}
-    {#if !message.summarized}
-    <a
-      href={'#'}
-      title="Truncate all and submit"
-      class=" msg-delete-button button is-small is-danger"
-      on:click|preventDefault={() => {
-        checkTruncate()
-      }}
-    >
-    {#if waitingForTruncateConfirm}
-    <span class="icon"><Fa icon={faCircleCheck} /></span>
-    {:else}
-    <span class="icon"><Fa icon={faPaperPlane} /></span>
-    {/if}
-    </a>
-    {/if}
-    </div>
+ 
     {#if editing && !noEdit}
       <form class="message-edit" on:submit|preventDefault={update} on:keydown={keydown}>
         <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
@@ -257,53 +200,68 @@
       </p>
     {/if}
   </div>
+  <div class="tool-drawer-mask"></div>
+  <div class="tool-drawer">
+    <div class="button-pack">
+      {#if message.summarized}
+      <a
+        href={'#'}
+        title="Jump to summary"
+        class="msg-summary-button button is-small is-info"
+        on:click|preventDefault={() => {
+          scrollToMessage(message.summarized)
+        }}
+      >
+      <span class="icon"><Fa icon={faDiagramNext} /></span>
+      </a>
+      {/if}
+      {#if message.summary}
+      <a
+        href={'#'}
+        title="Jump to summarized"
+        class="msg-summarized-button button is-small is-info"
+        on:click|preventDefault={() => {
+          scrollToMessage(message.summary)
+        }}
+      >
+      <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
+      </a>
+      {/if}
+      {#if !message.summarized}
+      <a
+        href={'#'}
+        title="Delete this message"
+        class=" msg-delete-button button is-small is-warning"
+        on:click|preventDefault={() => {
+          checkDelete()
+        }}
+      >
+      {#if waitingForDeleteConfirm}
+      <span class="icon"><Fa icon={faCircleCheck} /></span>
+      {:else}
+      <span class="icon"><Fa icon={faTrash} /></span>
+      {/if}
+      </a>
+      {/if}
+      {#if !message.summarized}
+      <a
+        href={'#'}
+        title="Truncate all and submit"
+        class=" msg-delete-button button is-small is-danger"
+        on:click|preventDefault={() => {
+          checkTruncate()
+        }}
+      >
+      {#if waitingForTruncateConfirm}
+      <span class="icon"><Fa icon={faCircleCheck} /></span>
+      {:else}
+      <span class="icon"><Fa icon={faPaperPlane} /></span>
+      {/if}
+      </a>
+      {/if}
+      </div>
+
+  </div>
 </article>
 {/key}
 
-<style>
-  .message-note {
-    padding-top: .6em;
-    margin-bottom: -0.6em;
-  }
-  .message-edit {
-    display: block;
-  }
-  .message-editor {
-    white-space: pre-wrap;
-    min-width: 60px;
-    min-height: 30px;
-  }
-  .message-display {
-    min-width: 60px;
-    min-height: 1.3em;
-  }
-  .button-pack .button {
-    display: block;
-    margin: 4px;
-    border-radius: 10px;
-    opacity: .8;
-  }
-  .button-pack .button:hover {
-    opacity: 1;
-  }
-  .button-pack {
-    display: none;
-    position: absolute;
-    right: -20px;
-    top: -20px;
-    text-decoration: none;
-  }
-  .assistant-message .button-pack {    
-    right: auto;
-    left: -20px;
-  }
-  .message {
-    position: relative;
-  }
-  .message:hover .button-pack, .message:focus .button-pack {
-    display: block;
-  }
-  .summarized {
-    opacity: 0.6;
-  }
-</style>
