@@ -5,7 +5,7 @@
   } from '@fortawesome/free-brands-svg-icons/index'
 
   let classes = ''
-	export { classes as class }
+export { classes as class }
   export let pin: boolean = false
   export let strongMask: boolean = false
 </script>
