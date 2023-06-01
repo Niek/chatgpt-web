@@ -429,6 +429,14 @@ aside.menu.main-menu .menu-expanse {
     }
   }
 }
+@media only screen and (max-width: 340px) {
+  .section-footer {
+    .author {
+      display: none;
+    }
+  }
+}
+
 
 .content.running-total-container {
   min-height:1em;
