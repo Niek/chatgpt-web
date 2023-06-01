@@ -413,6 +413,21 @@ aside.menu.main-menu .menu-expanse {
     var(--chatInputPaddingRight)
     var(--chatInputPaddingBottom)
     var(--chatInputPaddingLeft);
+
+  .control.send .button {
+    width: 60px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .prompt-input-container {
+    .control.send .button {
+      width: auto;
+    }
+    .control.settings {
+      display: none;
+    }
+  }
 }
 
 .content.running-total-container {

@@ -536,19 +536,19 @@
         bind:this={input}
       />
     </p>
-    <p class="control" class:is-hidden={!recognition}>
+    <p class="control mic" class:is-hidden={!recognition}>
       <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-        ><span class="greyscale"><Fa icon={faMicrophone} /></span></button
+        ><span class="icon"><Fa icon={faMicrophone} /></span></button
       >
     </p>
-    <p class="control">
-      <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><Fa icon={faGear} /></button>
+    <p class="control settings">
+      <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
     </p>
-    <p class="control">
-      <button title="Add message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><Fa icon={faArrowUpFromBracket} /></button>
+    <p class="control queue">
+      <button title="Queue message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
-    <p class="control">
-      <button title="Send" class="button is-info" type="submit"><Fa icon={faPaperPlane} /></button>
+    <p class="control send">
+      <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
     </p>
   </form>
   <!-- a target to scroll to -->
