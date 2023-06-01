@@ -4,7 +4,6 @@
 
   import Navbar from './lib/Navbar.svelte'
   import Sidebar from './lib/Sidebar.svelte'
-  // import Footer from './lib/Footer.svelte'
   import Home from './lib/Home.svelte'
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
@@ -30,24 +29,15 @@
 
     '*': Home
   }
-  // document.body.classList.add('something')
 </script>
 
 
 <Navbar />
-<!-- <section class="section root-section"> -->
-  <!-- <div class="container is-fullhd"> -->
-    <!-- <div class="columns"> -->
-      <div class="side-bar-column">
-        <Sidebar />
-      </div>
-      <div class="main-content-column" id="content">
-        {#key $location}
-          <Router {routes} on:conditionsFailed={() => replace('/')}/>
-        {/key}
-      </div>
-    <!-- </div> -->
-  <!-- </div> -->
-<!-- </section> -->
-
-<!-- <Footer /> -->
+<div class="side-bar-column">
+  <Sidebar />
+</div>
+<div class="main-content-column" id="content">
+  {#key $location}
+    <Router {routes} on:conditionsFailed={() => replace('/')}/>
+  {/key}
+</div>
