@@ -73,7 +73,7 @@ html {
     --chatInputPaddingRight: 20px;
     --chatInputPaddingLeft: 20px;
   }
-  .main-menu .gpt-logo {
+  .main-menu .menu-nav-bar {
     display: none;
   }
   .main-menu .level-right {
@@ -445,10 +445,21 @@ aside.menu.main-menu .menu-expanse {
   margin: 5px;
 }
 
-.main-menu .gpt-logo .icon {
+.main-menu .menu-nav-bar .gpt-logo .icon {
   display: inline-block;
   margin-top: 8px;
   margin-left: 8px;
+}
+
+.main-menu .menu-nav-bar .chat-option-menu {
+  padding-right: 2px;
+}
+
+@media only screen and (max-width: 900px) {
+  .main-menu .dropdown.is-right .dropdown-menu {
+    right:auto;
+    left:0;
+  }
 }
 
 .message-body {
