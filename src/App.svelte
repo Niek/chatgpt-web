@@ -35,7 +35,7 @@
 
 
 <Navbar />
-<section class="section">
+<section class="section root-section">
   <div class="container is-fullhd">
     <div class="columns">
       <div class="column is-one-fifth side-bar-column">

@@ -100,7 +100,7 @@ html {
   flex-grow: 1;
   min-height: 100vh;
 
-  section.section {
+  section.section.root-section {
     flex-grow: 1;
   }
 }
@@ -305,7 +305,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   width: var(--mainContentWidth)
 }
 
-section.section {
+section.section.root-section {
   padding: 0px;
   padding-top: var(--sectionPaddingTop);
 }

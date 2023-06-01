@@ -5,6 +5,7 @@ $: apiKey = $apiKeyStorage
 
 </script>
 
+<section class="section">
 <article class="message">
   <div class="message-body">
     <strong><a href="https://github.com/Niek/chatgpt-web">ChatGPT-web</a></strong>
@@ -59,3 +60,4 @@ $: apiKey = $apiKeyStorage
     </div>
   </article>
 {/if}
+</section>
