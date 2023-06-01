@@ -556,33 +556,33 @@ aside.menu.main-menu .menu-expanse {
   right:100%;
 }
 .assistant-message:hover .tool-drawer,
-.assistant-message:focus .tool-drawer {
+.assistant-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
   max-height: 300%;
 }
 .user-message:hover .tool-drawer,
-.user-message:focus .tool-drawer {
+.user-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
   max-height: 300%;
 }
 
 .assistant-message:hover .tool-drawer-mask,
-.assistant-message:focus .tool-drawer {
+.assistant-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
 }
 .user-message:hover .tool-drawer-mask,
-.user-message:focus .tool-drawer {
+.user-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
 }
-.assistant-message:hover, .assistant-message:focus {
+.assistant-message:hover, .assistant-message.editing {
   border-top-right-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
 }
-.user-message:hover, .user-message:focus {
+.user-message:hover, .user-message.editing {
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
 }
