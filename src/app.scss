@@ -529,10 +529,7 @@ aside.menu.main-menu .menu-expanse {
 // .chat-message.message:hover .button-pack, article.message:focus .button-pack {
 //   display: block;
 // }
-.chat-message.summarized {
-  opacity: 0.6;
-}
-.chat-message.suppress .message-body {
+.chat-message.summarized .message-body, .chat-message.suppress .message-body {
   opacity: 0.4;
 }
 .tool-drawer, .tool-drawer-mask {
