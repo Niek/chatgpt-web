@@ -1,12 +1,12 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow } from './Storage.svelte'
+  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons/index'
   import { scrollIntoViewWithOffset } from './Util.svelte'
 
   export let message:Message
@@ -155,6 +155,28 @@
     }
   }
 
+  
+
+  let waitingForSuppressConfirm:any = 0
+
+  const setSuppress = (value:boolean) => {
+    // clearTimeout(waitingForSuppressConfirm); waitingForSuppressConfirm = 0
+    // if (value && !waitingForSuppressConfirm) {
+    //   // wait a second for another click to avoid accidental deletes
+    //   waitingForSuppressConfirm = setTimeout(() => { waitingForSuppressConfirm = 0 }, 1000)
+    //   return
+    // }
+    // clearTimeout(waitingForSuppressConfirm)
+    waitingForTruncateConfirm = 0
+    if (message.summarized) {
+      // is in a summary, so we're summarized
+      window.alert('Sorry, you can\'t suppress a summarized message')
+      return
+    }
+    message.suppress = value
+    saveChatStore()
+  }
+
 </script>
 
 {#key message.uuid}
@@ -168,6 +190,7 @@
   class:user-message={message.role === 'user' || message.role === 'system'}
   class:assistant-message={message.role === 'error' || message.role === 'assistant'}
   class:summarized={message.summarized} 
+  class:suppress={message.suppress} 
   class:editing={editing}
 >
   <div class="message-body content">
@@ -244,20 +267,38 @@
       </a>
       {/if}
       {#if !message.summarized}
-      <a
-        href={'#'}
-        title="Truncate all and submit"
-        class=" msg-delete-button button is-small is-danger"
-        on:click|preventDefault={() => {
-          checkTruncate()
-        }}
-      >
-      {#if waitingForTruncateConfirm}
-      <span class="icon"><Fa icon={faCircleCheck} /></span>
-      {:else}
-      <span class="icon"><Fa icon={faPaperPlane} /></span>
+        <a
+          href={'#'}
+          title="Truncate all and submit"
+          class=" msg-delete-button button is-small is-danger"
+          on:click|preventDefault={() => {
+            checkTruncate()
+          }}
+        >
+        {#if waitingForTruncateConfirm}
+        <span class="icon"><Fa icon={faCircleCheck} /></span>
+        {:else}
+        <span class="icon"><Fa icon={faPaperPlane} /></span>
+        {/if}
+        </a>
       {/if}
-      </a>
+      {#if !message.summarized && message.role !== 'system'}
+        <a
+          href={'#'}
+          title={(message.suppress ? 'Uns' : 'S') + 'uppress message from submission'}
+          class=" msg-delete-button button is-small is-info"
+          on:click|preventDefault={() => {
+            setSuppress(!message.suppress)
+          }}
+        >
+        {#if waitingForSuppressConfirm}
+        <span class="icon"><Fa icon={faCircleCheck} /></span>
+        {:else if message.suppress}
+        <span class="icon"><Fa icon={faEye} /></span>
+        {:else}
+        <span class="icon"><Fa icon={faEyeSlash} /></span>
+        {/if}
+        </a>
       {/if}
       </div>
 

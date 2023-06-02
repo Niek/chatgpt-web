@@ -26,6 +26,7 @@
     removed?: boolean;
     summarized?: string[];
     summary?: string[];
+    suppress?: boolean;
   };
 
   export type Request = {
@@ -41,7 +42,6 @@
     frequency_penalty?: number;
     logit_bias?: Record<string, any> | null;
     user?: string;
-
   };
 
   export type ChatSettings = {
@@ -154,6 +154,7 @@ type SettingBoolean = {
     placeholder?: string;
     hide?: (chatId:number) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
+    setDefault?: (chatId:number, setting:ChatSetting, value:any) => any;
     beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
     afterChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther);

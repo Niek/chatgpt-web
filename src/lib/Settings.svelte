@@ -100,7 +100,10 @@ const profileSetting: ChatSetting & SettingSelect = {
       afterChange: (chatId, setting) => {
         applyProfile(chatId, '', !getChat(chatId).sessionStarted)
         return true // Signal we should refresh the setting modal
-      }
+      },
+      setDefault: (chatId, setting, value) => {
+
+      },
 }
 
 // Settings that will not be part of the API request
@@ -159,16 +162,16 @@ const nonRequestSettings: ChatSetting[] = [
       },
       {
         key: 'useSummarization',
-        name: 'Enable Auto Summarize',
-        header: 'Continuous Chat - Summarization',
+        name: 'Enable Continuous Chat',
+        header: 'Continuous Chat - (Summarize or FIFO)',
         headerClass: 'is-info',
-        title: 'When out of token space, summarize past tokens and keep going.',
+        title: 'When out of token space, summarize or remove past prompts and keep going.',
         type: 'boolean'
       },
       {
         key: 'summaryThreshold',
-        name: 'Summary Threshold',
-        title: 'When prompt history breaks this threshold, past prompts will be summarized to create space. 0 to disable.',
+        name: 'Token Threshold',
+        title: 'When prompt history breaks this threshold, past prompts will be summarized or rolled off to create space.',
         min: 0,
         max: 32000,
         step: 1,
@@ -178,7 +181,7 @@ const nonRequestSettings: ChatSetting[] = [
       {
         key: 'summarySize',
         name: 'Max Summary Size',
-        title: 'Maximum number of tokens to use for summarization response.',
+        title: 'Maximum number of tokens allowed for summary response.',
         min: 128,
         max: 2048,
         step: 1,
@@ -187,7 +190,7 @@ const nonRequestSettings: ChatSetting[] = [
       },
       {
         key: 'pinTop',
-        name: 'Keep First Prompts During Summary',
+        name: 'Keep First Prompts',
         title: 'When we run out of space and need to summarize prompts, the top number of prompts will not be removed after summarization.',
         min: 0,
         max: 4,
@@ -198,7 +201,7 @@ const nonRequestSettings: ChatSetting[] = [
       },
       {
         key: 'pinBottom',
-        name: 'Exclude Bottom Prompts From Summary',
+        name: 'Exclude Bottom Prompts',
         title: 'When we run out of space and need to summarize prompts, do not summarize the the last number prompts you set here.',
         min: 0,
         max: 20, // Will be auto adjusted down if needs more
@@ -209,7 +212,7 @@ const nonRequestSettings: ChatSetting[] = [
       },
       {
         key: 'summaryPrompt',
-        name: 'Summary Generation Prompt',
+        name: 'Summary Generation Prompt (Empty will use FIFO instead.)',
         title: 'A prompt used to summarize past prompts.',
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',

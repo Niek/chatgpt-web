@@ -154,8 +154,10 @@
 
     let response: Response
 
+    const messageFilter = (m) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
+
     // Submit only the role and content of the messages, provide the previous messages as well for context
-    const filtered = messages.filter((message) => message.role !== 'error' && message.content && !message.summarized)
+    let filtered = messages.filter(messageFilter)
   
     // Get an estimate of the total prompt size we're sending
     const promptTokenCount:number = countPromptTokens(filtered, model)
@@ -176,7 +178,8 @@
       const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
       const mlen = filtered.length - systemPad // always keep system prompt
       let diff = mlen - (pinTop + pinBottom)
-      while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
+      const useRollMode = !prepareSummaryPrompt(chatId, 0)
+      while (!useRollMode && diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
         // Not enough prompts exposed to summarize
         // try to open up pinTop and pinBottom to see if we can get more to summarize
         if (pinTop === 1 && pinBottom > 1) {
@@ -188,7 +191,7 @@
         }
         diff = mlen - (pinTop + pinBottom)
       }
-      if (diff > 0) {
+      if (!useRollMode && diff > 0) {
         // We've found at least one prompt we can try to summarize
         // Reduce to prompts we'll send in for summary
         // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
@@ -197,6 +200,7 @@
         let sourceTokenCount = countPromptTokens(summarize, model)
         // build summary prompt message
         let summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+        
         const summaryMessage = {
           role: 'user',
           content: summaryPrompt
@@ -279,8 +283,23 @@
         } else if (sourceTokenCount <= 20) {
           addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough words in past content to summarize.', uuid: uuidv4() })
         }
-      } else {
+      } else if (!useRollMode && diff < 1) {
         addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
+      } else {
+        // roll-off mode
+        const top = filtered.slice(0,pinTop+systemPad)
+        let rollaway = filtered.slice(pinTop+systemPad)
+        let promptTokenCount = countPromptTokens(top.concat(rollaway), model)
+        // suppress messages we're rolling off
+        while (rollaway.length > (((promptTokenCount + (chatSettings.max_tokens||1)) > maxTokens) ? pinBottom||1 : 1) 
+            && promptTokenCount >= chatSettings.summaryThreshold) {
+          const rollOff = rollaway.shift()
+          if (rollOff) rollOff.suppress = true
+          promptTokenCount = countPromptTokens(top.concat(rollaway), model)
+        }
+        saveChatStore()
+        // get a new list now excluding them
+        filtered = messages.filter(messageFilter)
       }
     }
 
