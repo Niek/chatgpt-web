@@ -58,7 +58,7 @@ const gptDefaults = {
   n: 1,
   stream: false,
   stop: null,
-  max_tokens: 128,
+  max_tokens: 512,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -275,7 +275,7 @@ const chatSettingsList: ChatSetting[] = [
               'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
         min: 1,
         max: 32768,
-        step: 1024,
+        step: 128,
         type: 'number',
         forceApi: true // Since default here is different than gpt default, will make sure we always send it
       },
