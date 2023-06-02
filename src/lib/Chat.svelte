@@ -22,7 +22,7 @@
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { applyProfile, getProfile, prepareSummaryPrompt } from './Profiles.svelte'
+  import { prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
 
   import { afterUpdate, onMount } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
@@ -64,8 +64,7 @@
     clearTimeout(scDelay)
     setTimeout(() => {
       if (chat.startSession) {
-        const profile = getProfile('') // get default profile
-        applyProfile(chatId, profile.profile as any)
+        restartProfile(chatId)
         if (chat.startSession) {
           chat.startSession = false
           saveChatStore()
@@ -120,8 +119,7 @@
       console.log('Speech recognition not supported')
     }
     if (chat.startSession) {
-      const profile = getProfile('') // get default profile
-      applyProfile(chatId, profile.profile as any)
+      restartProfile(chatId)
       if (chat.startSession) {
         chat.startSession = false
         saveChatStore()

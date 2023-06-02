@@ -71,12 +71,10 @@ export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxToken
         .replaceAll('[[MAX_WORDS]]', Math.floor(maxTokens * 0.75).toString()) // ~.75 words per token.  May need to reduce
 }
 
-// Apply currently selected profile
-export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
+// Restart currently loaded profile
+export const restartProfile = (chatId:number, noApply:boolean=false) => {
   const settings = getChatSettings(chatId)
-  const profile = getProfile(key || settings.profile)
-  resetChatSettings(chatId, resetChat) // Fully reset
-  if (!resetChat) return
+  if (!settings.profile && !noApply) return applyProfile(chatId, '', true)
   // Clear current messages
   clearMessages(chatId)
   // Add the system prompt
@@ -88,8 +86,8 @@ export const applyProfile = (chatId:number, key:string = '', resetChat:boolean =
   addMessage(chatId, systemPromptMessage)
 
   // Add trainingPrompts, if any
-  if (profile.trainingPrompts) {
-        profile.trainingPrompts.forEach(tp => {
+  if (settings.trainingPrompts) {
+      settings.trainingPrompts.forEach(tp => {
           addMessage(chatId, tp)
         })
   }
@@ -97,7 +95,16 @@ export const applyProfile = (chatId:number, key:string = '', resetChat:boolean =
   getChat(chatId).startSession = settings.autoStartSession
   saveChatStore()
   // Mark mark this as last used
-  setGlobalSettingValueByKey('lastProfile', key)
+  setGlobalSettingValueByKey('lastProfile', settings.profile)
+} 
+
+// Apply currently selected profile
+export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
+  const settings = getChatSettings(chatId)
+  const profile = getProfile(key || settings.profile)
+  resetChatSettings(chatId, resetChat) // Fully reset
+  if (!resetChat) return
+  return restartProfile(chatId, true)
 }
 
 const summaryPrompts = {

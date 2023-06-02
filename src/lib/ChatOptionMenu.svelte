@@ -19,7 +19,7 @@
   } from '@fortawesome/free-solid-svg-icons/index'
   import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
-  import { applyProfile } from './Profiles.svelte'
+  import { restartProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
   import { clickOutside } from 'svelte-use-click-outside'
 
@@ -66,7 +66,7 @@
 
   const restartChatSession = () => {
     close()
-    applyProfile(chatId, '', true)
+    restartProfile(chatId)
     $checkStateChange++ // signal chat page to start profile
   }
 

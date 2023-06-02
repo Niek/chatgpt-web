@@ -4,7 +4,7 @@
   import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
   import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
-  import { applyProfile, getProfile, isStaticProfile } from './Profiles.svelte'
+  import { getProfile, isStaticProfile, restartProfile } from './Profiles.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const globalStorage = persisted('global', {} as GlobalSettings)
@@ -40,7 +40,7 @@
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
-    applyProfile(chatId, '', true)
+    restartProfile(chatId)
     return chatId
   }
 
