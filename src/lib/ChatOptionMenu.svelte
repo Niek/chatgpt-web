@@ -17,7 +17,7 @@
     faEye,
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu } from './Storage.svelte'
+  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { applyProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
@@ -92,7 +92,7 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={'#/chat/new'} on:click={() => close()} class="dropdown-item">
+      <a href={$apiKeyStorage?'#/chat/new':'#/'} class:is-disabled={!$apiKeyStorage} on:click={() => close()} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>
@@ -109,10 +109,10 @@
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { close(); exportChatAsJSON(chatId) }}>
         <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Chat JSON
       </a>
-      <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) close(); chatFileInput.click() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { if (chatId) close(); chatFileInput.click() }}>
         <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Chat JSON
       </a>
-      <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) close(); exportAsMarkdown(chatId) }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); exportAsMarkdown(chatId) }}>
         <span class="menu-icon"><Fa icon={faFileExport}/></span> Export Chat Markdown
       </a>
       <hr class="dropdown-divider">
