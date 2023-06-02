@@ -12,7 +12,7 @@
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
   export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
-  export let pinMainMenu = writable(false) // for them to go now.  Will not submit anything in the input
+  export let pinMainMenu = writable(false) // Show menu (for mobile use)
 
   const chatDefaults = getChatDefaults()
 

@@ -228,7 +228,7 @@
       <a
         href={'#'}
         title="Jump to summary"
-        class="msg-summary-button button is-small is-info"
+        class="msg-summary button is-small"
         on:click|preventDefault={() => {
           scrollToMessage(message.summarized)
         }}
@@ -240,7 +240,7 @@
       <a
         href={'#'}
         title="Jump to summarized"
-        class="msg-summarized-button button is-small is-info"
+        class="msg-summarized button is-small"
         on:click|preventDefault={() => {
           scrollToMessage(message.summary)
         }}
@@ -252,7 +252,7 @@
       <a
         href={'#'}
         title="Delete this message"
-        class=" msg-delete-button button is-small is-warning"
+        class=" msg-delete button is-small"
         on:click|preventDefault={() => {
           checkDelete()
         }}
@@ -267,8 +267,8 @@
       {#if !message.summarized}
         <a
           href={'#'}
-          title="Truncate all and submit"
-          class=" msg-delete-button button is-small is-danger"
+          title="Truncate from here and submit"
+          class=" msg-truncate button is-small"
           on:click|preventDefault={() => {
             checkTruncate()
           }}
@@ -284,7 +284,7 @@
         <a
           href={'#'}
           title={(message.suppress ? 'Uns' : 'S') + 'uppress message from submission'}
-          class=" msg-delete-button button is-small is-info"
+          class=" msg-supress button is-small"
           on:click|preventDefault={() => {
             setSuppress(!message.suppress)
           }}

@@ -59,6 +59,7 @@
     systemPrompt: string;
     autoStartSession: boolean;
     trainingPrompts?: Message[];
+    isDirty?: boolean;
   } & Request;
 
   export type Chat = {

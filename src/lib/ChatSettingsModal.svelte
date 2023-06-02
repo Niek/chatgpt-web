@@ -190,6 +190,11 @@
     return cname
   }
 
+  const setDirty = () => {
+    chatSettings.isDirty = true
+    
+  }
+
 </script>
 
 
@@ -237,10 +242,9 @@
       </div>
     </header>
     <section class="modal-card-body">
-      <!-- Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p> -->
       {#key showSettingsModal}
       {#each settingsList as setting}
-        <ChatSettingField on:refresh={refreshSettings} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} />
+        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} />
       {/each}
       {/key}
     </section>

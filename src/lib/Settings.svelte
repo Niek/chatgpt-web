@@ -62,7 +62,7 @@ const gptDefaults = {
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
-  user: undefined
+  user: undefined,
 }
 
 // Core set of defaults
@@ -81,12 +81,14 @@ const defaults:ChatSettings = {
   useSystemPrompt: false,
   systemPrompt: '',
   autoStartSession: false,
-  trainingPrompts: []
+  trainingPrompts: [],
+  isDirty: false,
 }
 
 const excludeFromProfile = {
   messages: true,
-  user: true
+  user: true,
+  isDirty: true,
 }
 
 const profileSetting: ChatSetting & SettingSelect = {
