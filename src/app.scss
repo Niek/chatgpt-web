@@ -415,6 +415,7 @@ aside.menu.main-menu .menu-expanse {
 }
 
 .pin-footer {
+  z-index:2;
   position: fixed;
   bottom: 0px;
   width: var(--mainContentWidth);
