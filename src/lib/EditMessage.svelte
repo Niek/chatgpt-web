@@ -16,6 +16,11 @@
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
 
+  const isError = message.role === 'error'
+  const isSystem = message.role === 'system'
+  const isUser = message.role === 'user'
+  const isAssistant = message.role === 'assistant'
+
   // Marked options
   const markdownOptions = {
     gfm: true, // Use GitHub Flavored Markdown
@@ -155,18 +160,7 @@
     }
   }
 
-
-  const waitingForSuppressConfirm:any = 0
-
   const setSuppress = (value:boolean) => {
-    // clearTimeout(waitingForSuppressConfirm); waitingForSuppressConfirm = 0
-    // if (value && !waitingForSuppressConfirm) {
-    //   // wait a second for another click to avoid accidental deletes
-    //   waitingForSuppressConfirm = setTimeout(() => { waitingForSuppressConfirm = 0 }, 1000)
-    //   return
-    // }
-    // clearTimeout(waitingForSuppressConfirm)
-    waitingForTruncateConfirm = 0
     if (message.summarized) {
       // is in a summary, so we're summarized
       window.alert('Sorry, you can\'t suppress a summarized message')
@@ -181,12 +175,12 @@
 <article
   id="{'message-' + message.uuid}"
   class="message chat-message" 
-  class:is-info={message.role === 'user'}
-  class:is-success={message.role === 'assistant'}
-  class:is-warning={message.role === 'system'}
-  class:is-danger={message.role === 'error'}
-  class:user-message={message.role === 'user' || message.role === 'system'}
-  class:assistant-message={message.role === 'error' || message.role === 'assistant'}
+  class:is-info={isUser}
+  class:is-success={isAssistant}
+  class:is-warning={isSystem}
+  class:is-danger={isError}
+  class:user-message={isUser || isSystem}
+  class:assistant-message={isError || isAssistant}
   class:summarized={message.summarized} 
   class:suppress={message.suppress} 
   class:editing={editing}
@@ -212,7 +206,7 @@
         />
     </div>
     {/if}
-    {#if message.role === 'system'}
+    {#if isSystem}
       <p class="is-size-7 message-note">System Prompt</p>
     {:else if message.usage}
       <p class="is-size-7 message-note">
@@ -264,7 +258,7 @@
       {/if}
       </a>
       {/if}
-      {#if !message.summarized}
+      {#if !message.summarized && !isError}
         <a
           href={'#'}
           title="Truncate from here and submit"
@@ -280,7 +274,7 @@
         {/if}
         </a>
       {/if}
-      {#if !message.summarized && message.role !== 'system'}
+      {#if !message.summarized && !isSystem && !isError}
         <a
           href={'#'}
           title={(message.suppress ? 'Uns' : 'S') + 'uppress message from submission'}
@@ -289,9 +283,7 @@
             setSuppress(!message.suppress)
           }}
         >
-        {#if waitingForSuppressConfirm}
-        <span class="icon"><Fa icon={faCircleCheck} /></span>
-        {:else if message.suppress}
+        {#if message.suppress}
         <span class="icon"><Fa icon={faEye} /></span>
         {:else}
         <span class="icon"><Fa icon={faEyeSlash} /></span>
