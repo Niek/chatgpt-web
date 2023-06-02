@@ -178,7 +178,6 @@
 
 </script>
 
-{#key message.uuid}
 <article
   id="{'message-' + message.uuid}"
   class="message chat-message" 
@@ -303,5 +302,3 @@
 
   </div>
 </article>
-{/key}
-
