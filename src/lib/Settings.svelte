@@ -103,7 +103,7 @@ const profileSetting: ChatSetting & SettingSelect = {
       },
       setDefault: (chatId, setting, value) => {
 
-      },
+      }
 }
 
 // Settings that will not be part of the API request

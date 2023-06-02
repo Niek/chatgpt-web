@@ -179,17 +179,19 @@
       const mlen = filtered.length - systemPad // always keep system prompt
       let diff = mlen - (pinTop + pinBottom)
       const useRollMode = !prepareSummaryPrompt(chatId, 0)
-      while (!useRollMode && diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
-        // Not enough prompts exposed to summarize
-        // try to open up pinTop and pinBottom to see if we can get more to summarize
-        if (pinTop === 1 && pinBottom > 1) {
-          // If we have a pin top, try to keep some of it as long as we can
-          pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
-        } else {
-          pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
-          pinTop = Math.max(Math.floor(pinTop / 2), 0)
+      if (!useRollMode) {
+        while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
+          // Not enough prompts exposed to summarize
+          // try to open up pinTop and pinBottom to see if we can get more to summarize
+          if (pinTop === 1 && pinBottom > 1) {
+            // If we have a pin top, try to keep some of it as long as we can
+            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+          } else {
+            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+            pinTop = Math.max(Math.floor(pinTop / 2), 0)
+          }
+          diff = mlen - (pinTop + pinBottom)
         }
-        diff = mlen - (pinTop + pinBottom)
       }
       if (!useRollMode && diff > 0) {
         // We've found at least one prompt we can try to summarize
@@ -200,7 +202,7 @@
         let sourceTokenCount = countPromptTokens(summarize, model)
         // build summary prompt message
         let summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
-        
+  
         const summaryMessage = {
           role: 'user',
           content: summaryPrompt
@@ -287,12 +289,12 @@
         addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
       } else {
         // roll-off mode
-        const top = filtered.slice(0,pinTop+systemPad)
-        let rollaway = filtered.slice(pinTop+systemPad)
+        const top = filtered.slice(0, pinTop + systemPad)
+        const rollaway = filtered.slice(pinTop + systemPad)
         let promptTokenCount = countPromptTokens(top.concat(rollaway), model)
         // suppress messages we're rolling off
-        while (rollaway.length > (((promptTokenCount + (chatSettings.max_tokens||1)) > maxTokens) ? pinBottom||1 : 1) 
-            && promptTokenCount >= chatSettings.summaryThreshold) {
+        while (rollaway.length > (((promptTokenCount + (chatSettings.max_tokens || 1)) > maxTokens) ? pinBottom || 1 : 1) &&
+            promptTokenCount >= chatSettings.summaryThreshold) {
           const rollOff = rollaway.shift()
           if (rollOff) rollOff.suppress = true
           promptTokenCount = countPromptTokens(top.concat(rollaway), model)

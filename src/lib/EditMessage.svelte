@@ -155,9 +155,8 @@
     }
   }
 
-  
 
-  let waitingForSuppressConfirm:any = 0
+  const waitingForSuppressConfirm:any = 0
 
   const setSuppress = (value:boolean) => {
     // clearTimeout(waitingForSuppressConfirm); waitingForSuppressConfirm = 0

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect } from './Profiles.svelte'
+  import { applyProfile, getDefaultProfileKey, getProfileSelect } from './Profiles.svelte'
   import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey } from './Settings.svelte'
   import {
     saveChatStore,
@@ -10,11 +10,10 @@
     deleteCustomProfile,
     setGlobalSettingValueByKey,
     resetChatSettings,
-    setChatSettingValue,
     checkStateChange
   } from './Storage.svelte'
   import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption } from './Types.svelte'
-  import { sizeTextElements, autoGrowInputOnEvent } from './Util.svelte'
+  import { sizeTextElements } from './Util.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
     faTrash,
@@ -27,7 +26,7 @@
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { afterUpdate } from 'svelte'
-    import ChatSettingField from '../ChatSettingField.svelte';
+  import ChatSettingField from '../ChatSettingField.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
