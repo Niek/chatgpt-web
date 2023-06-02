@@ -27,6 +27,7 @@
   import { exportProfileAsJSON } from './Export.svelte'
   import { afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
+    import { getModelMaxTokens } from './Stats.svelte';
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -123,6 +124,7 @@
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = getProfileSelect()
     chatDefaults.profile = getDefaultProfileKey()
+    chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model||'')
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
   }
   
@@ -192,7 +194,7 @@
 
   const setDirty = () => {
     chatSettings.isDirty = true
-    
+
   }
 
 </script>

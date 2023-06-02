@@ -38,7 +38,7 @@
     }, 0) + 3
   }
 
-  export const getMaxModelPrompt = (model:Model):number => {
+  export const getModelMaxTokens = (model:Model):number => {
     return getModelDetail(model)[2]
   }
 

@@ -36,7 +36,7 @@
   } from '@fortawesome/free-solid-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
-  import { countPromptTokens, getMaxModelPrompt, getPrice } from './Stats.svelte'
+  import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
   import { autoGrowInputOnEvent, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
   import Footer from './Footer.svelte'
@@ -148,7 +148,7 @@
     updating = true
 
     const model = chat.settings.model || defaultModel
-    const maxTokens = getMaxModelPrompt(model) // max tokens for model
+    const maxTokens = getModelMaxTokens(model) // max tokens for model
 
     let response: Response
 

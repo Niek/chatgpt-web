@@ -277,7 +277,8 @@ const chatSettingsList: ChatSetting[] = [
         max: 32768,
         step: 128,
         type: 'number',
-        forceApi: true // Since default here is different than gpt default, will make sure we always send it
+        forceApi: true, // Since default here is different than gpt default, will make sure we always send it
+        afterChange: (chatId, setting) => true, // refresh settings
       },
       {
         key: 'presence_penalty',
