@@ -354,6 +354,7 @@ aside.menu.main-menu .menu-expanse {
 }
 
 .lower-mask, .lower-mask2 {
+  z-index: 1;
   display: block;
   position: fixed;
   bottom: 0px;
@@ -420,6 +421,7 @@ aside.menu.main-menu .menu-expanse {
 }
 
 .prompt-input-container {
+  z-index:2;
   position: fixed;
   bottom: 0px;
   width: var(--mainContentWidth);
