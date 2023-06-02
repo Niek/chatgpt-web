@@ -553,6 +553,10 @@ aside.menu.main-menu .menu-expanse {
 .user-message .tool-drawer-mask {
   border-radius: 4px 0px 0px 4px;
 }
+.message:last-of-type .tool-drawer, .tool-drawer-mask {
+  top: auto;
+  bottom: 0px;
+}
 .assistant-message .tool-drawer, .assistant-message .tool-drawer-mask {
   left:100%;
 }
