@@ -9,6 +9,7 @@
   export let chatSettings:ChatSettings
   export let chat:Chat
   export let chatDefaults:Record<string, any>
+  export let defaultProfile:String
 
   const chatId = chat.id
 

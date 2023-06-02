@@ -383,6 +383,8 @@
     })
     profiles[profile.profile as string] = clone
     globalStorage.set(store)
+    profile.isDirty = false
+    saveChatStore()
   }
   
 </script>

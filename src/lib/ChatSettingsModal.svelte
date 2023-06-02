@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { applyProfile, getDefaultProfileKey, getProfileSelect } from './Profiles.svelte'
+  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect } from './Profiles.svelte'
   import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey } from './Settings.svelte'
   import {
     saveChatStore,
@@ -38,6 +38,8 @@
   let showSettingsModal = 0
   let showProfileMenu:boolean = false
   let profileFileInput
+  let defaultProfile = getDefaultProfileKey()
+  let isDefault = false
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
@@ -76,6 +78,7 @@
       saveCustomProfile(clone)
       chat.settings.profile = clone.profile
       chat.settings.profileName = clone.profileName
+      applyProfile(chatId, clone.profile)
       refreshSettings()
     } catch (e) {
       window.alert('Error cloning profile: \n' + e.message)
@@ -126,6 +129,8 @@
     chatDefaults.profile = getDefaultProfileKey()
     chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model||'')
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
+    defaultProfile = getDefaultProfileKey()
+    isDefault = defaultProfile === chatSettings.profile
   }
   
   const showSettings = async () => {
@@ -192,9 +197,14 @@
     return cname
   }
 
-  const setDirty = () => {
-    chatSettings.isDirty = true
-
+  const setDirty = (e:CustomEvent) => {
+    const setting = e.detail as ChatSetting
+    const key = setting.key
+    if (key === 'profile') return
+    const profile = getProfile(chatSettings.profile)
+    const isDirty = profile[key] !== chatSettings[key] 
+    console.log('Is dirty?', setting, isDirty, profile[key], chatSettings[key])
+    chatSettings.isDirty = isDirty
   }
 
 </script>
@@ -215,14 +225,14 @@
         </div>
         <div class="dropdown-menu" id="dropdown-menu3" role="menu">
           <div class="dropdown-content">
-            <a href={'#'} class="dropdown-item disabled" on:click|preventDefault={saveProfile}>
-              <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Profile
+            <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={saveProfile}>
+              <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Changes
             </a>
             <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
               <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
             </a>
             <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={pinDefaultProfile}>
+            <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
               <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
             </a>
             <hr class="dropdown-divider">
@@ -246,7 +256,7 @@
     <section class="modal-card-body">
       {#key showSettingsModal}
       {#each settingsList as setting}
-        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} />
+        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} defaultProfile={defaultProfile} />
       {/each}
       {/key}
     </section>
@@ -254,6 +264,7 @@
     <footer class="modal-card-foot">
       <button class="button is-info" on:click={closeSettings}>Close</button>
       <button class="button is-warning" on:click={clearSettings}>Reset</button>
+      <button class="button" class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save Changes</button>
     </footer>
   </div>
 </div>
