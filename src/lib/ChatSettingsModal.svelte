@@ -26,7 +26,7 @@
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { afterUpdate } from 'svelte'
-  import ChatSettingField from '../ChatSettingField.svelte'
+  import ChatSettingField from './ChatSettingField.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }

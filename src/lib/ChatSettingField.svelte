@@ -1,9 +1,9 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { getProfile } from './lib/Profiles.svelte'
-  import { setChatSettingValue } from './lib/Storage.svelte'
-  import type { Chat, ChatSetting, ChatSettings } from './lib/Types.svelte'
-  import { autoGrowInputOnEvent } from './lib/Util.svelte'
+  import { getProfile } from './Profiles.svelte'
+  import { setChatSettingValue } from './Storage.svelte'
+  import type { Chat, ChatSetting, ChatSettings } from './Types.svelte'
+  import { autoGrowInputOnEvent } from './Util.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
