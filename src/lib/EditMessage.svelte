@@ -261,7 +261,7 @@
       {#if !message.summarized && !isError}
         <a
           href={'#'}
-          title="Truncate from here and submit"
+          title="Truncate from here and send"
           class=" msg-truncate button is-small"
           on:click|preventDefault={() => {
             checkTruncate()
