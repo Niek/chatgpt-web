@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChat, getChatSettings } from './Storage.svelte'
+    import { getChatSettings } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
 // Setting definitions
 
@@ -62,7 +62,7 @@ const gptDefaults = {
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
-  user: undefined,
+  user: undefined
 }
 
 // Core set of defaults
@@ -82,13 +82,13 @@ const defaults:ChatSettings = {
   systemPrompt: '',
   autoStartSession: false,
   trainingPrompts: [],
-  isDirty: false,
+  isDirty: false
 }
 
 const excludeFromProfile = {
   messages: true,
   user: true,
-  isDirty: true,
+  isDirty: true
 }
 
 const profileSetting: ChatSetting & SettingSelect = {
@@ -103,7 +103,7 @@ const profileSetting: ChatSetting & SettingSelect = {
         applyProfile(chatId)
         return true // Signal we should refresh the setting modal
       },
-      setDefault: (chatId, setting, value) => {},
+      setDefault: (chatId, setting, value) => {}
 }
 
 // Settings that will not be part of the API request
@@ -229,7 +229,7 @@ const modelSetting: ChatSetting & SettingSelect = {
       options: [],
       type: 'select',
       forceApi: true, // Need to make sure we send this
-      afterChange: (chatId, setting) => true, // refresh settings
+      afterChange: (chatId, setting) => true // refresh settings
 }
 
 const chatSettingsList: ChatSetting[] = [
@@ -276,7 +276,7 @@ const chatSettingsList: ChatSetting[] = [
         max: 32768,
         step: 1,
         type: 'number',
-        forceApi: true, // Since default here is different than gpt default, will make sure we always send it
+        forceApi: true // Since default here is different than gpt default, will make sure we always send it
       },
       {
         key: 'presence_penalty',

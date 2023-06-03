@@ -92,7 +92,7 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={$apiKeyStorage?'#/chat/new':'#/'} class:is-disabled={!$apiKeyStorage} on:click={() => close()} class="dropdown-item">
+      <a href={$apiKeyStorage ? '#/chat/new' : '#/'} class:is-disabled={!$apiKeyStorage} on:click={() => close()} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>

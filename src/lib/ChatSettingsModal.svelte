@@ -18,7 +18,7 @@
   import {
     faTrash,
     faClone,
-    faEllipsisVertical,
+    faEllipsis,
     faFloppyDisk,
     faThumbtack,
     faDownload,
@@ -27,7 +27,7 @@
   import { exportProfileAsJSON } from './Export.svelte'
   import { afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
-    import { getModelMaxTokens } from './Stats.svelte';
+  import { getModelMaxTokens } from './Stats.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -50,7 +50,7 @@
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
-  let originalProfile = chatSettings && chatSettings.profile
+  const originalProfile = chatSettings && chatSettings.profile
 
   afterUpdate(() => {
     sizeTextElements()
@@ -64,7 +64,7 @@
 
   const clearSettings = () => {
     resetChatSettings(chatId)
-    showSettingsModal++ // Make sure the dialog updates
+    refreshSettings()
   }
 
   const refreshSettings = async () => {
@@ -131,7 +131,7 @@
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = getProfileSelect()
     chatDefaults.profile = getDefaultProfileKey()
-    chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model||'')
+    chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model || '')
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
     defaultProfile = getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
@@ -204,10 +204,12 @@
   // excludeFromProfile
 
   const deepEqual = (x:any, y:any) => {
-    const ok = Object.keys, tx = typeof x, ty = typeof y
-    return x && y && tx === 'object' && tx === ty ? (
-        ok(x).every(key => excludeFromProfile[key] || deepEqual(x[key], y[key]))
-    ) : (x === y || ((x===undefined||x===null||x===false) && (y===undefined||y===null||y===false)))
+    const ok = Object.keys; const tx = typeof x; const ty = typeof y
+    return x && y && tx === 'object' && tx === ty
+      ? (
+          ok(x).every(key => excludeFromProfile[key] || deepEqual(x[key], y[key]))
+        )
+      : (x === y || ((x === undefined || x === null || x === false) && (y === undefined || y === null || y === false)))
   }
 
   const setDirty = (e:CustomEvent|undefined = undefined) => {
@@ -228,41 +230,7 @@
   <div class="modal-card" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
       <p class="modal-card-title">Chat Settings</p>
-      <div class="dropdown is-right" class:is-active={showProfileMenu}>
-        <div class="dropdown-trigger">
-          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
-            <span><Fa icon={faEllipsisVertical}/></span>
-          </button>
-        </div>
-        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-          <div class="dropdown-content">
-            <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={saveProfile}>
-              <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Changes
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
-              <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
-              <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} 
-              class="dropdown-item"
-              on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
-            >
-              <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Profile JSON
-            </a>
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
-              <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
-            </a>
-            <hr class="dropdown-divider">
-            <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
-              <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Profile
-            </a>
-          </div>
-        </div>
-      </div>
+      <button class="delete" aria-label="close" on:click={closeSettings}></button>
     </header>
     <section class="modal-card-body">
       {#key showSettingsModal}
@@ -273,9 +241,50 @@
     </section>
 
     <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close</button>
-      <button class="button is-warning" on:click={clearSettings}>Reset</button>
-      <button class="button" class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save Changes</button>
+      <div class="level is-mobile">
+        <div class="level-left">
+          <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
+          <button class="button" class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save Changes</button>    
+          <button class="button is-warning" class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
+        </div>
+        <div class="level-right">
+          <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
+            <div class="dropdown-trigger">
+              <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
+                <span class="icon"><Fa icon={faEllipsis}/></span>
+              </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+              <div class="dropdown-content">
+                <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={saveProfile}>
+                  <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Changes
+                </a>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
+                  <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
+                </a>
+                <hr class="dropdown-divider">
+                <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
+                  <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
+                </a>
+                <hr class="dropdown-divider">
+                <a href={'#'} 
+                  class="dropdown-item"
+                  on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
+                >
+                  <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Profile JSON
+                </a>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
+                  <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
+                </a>
+                <hr class="dropdown-divider">
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
+                  <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Profile
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>  
     </footer>
   </div>
 </div>

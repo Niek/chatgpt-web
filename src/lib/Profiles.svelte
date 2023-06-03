@@ -72,7 +72,7 @@ export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxToken
 }
 
 // Restart currently loaded profile
-export const restartProfile = (chatId:number, noApply:boolean=false) => {
+export const restartProfile = (chatId:number, noApply:boolean = false) => {
   const settings = getChatSettings(chatId)
   if (!settings.profile && !noApply) return applyProfile(chatId, '', true)
   // Clear current messages
@@ -87,7 +87,7 @@ export const restartProfile = (chatId:number, noApply:boolean=false) => {
 
   // Add trainingPrompts, if any
   if (settings.trainingPrompts) {
-      settings.trainingPrompts.forEach(tp => {
+        settings.trainingPrompts.forEach(tp => {
           addMessage(chatId, tp)
         })
   }
@@ -96,12 +96,10 @@ export const restartProfile = (chatId:number, noApply:boolean=false) => {
   saveChatStore()
   // Mark mark this as last used
   setGlobalSettingValueByKey('lastProfile', settings.profile)
-} 
+}
 
 // Apply currently selected profile
 export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
-  const settings = getChatSettings(chatId)
-  const profile = getProfile(key || settings.profile)
   resetChatSettings(chatId, resetChat) // Fully reset
   if (!resetChat) return
   return restartProfile(chatId, true)

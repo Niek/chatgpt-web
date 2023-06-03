@@ -157,9 +157,9 @@ html {
   resize: vertical;
 }
 
-$footer-padding: 1.5rem 1.5rem;
-$fullhd: 2000px;
-$modal-content-width: 1000px;
+// $footer-padding: 1.5rem 1.5rem;
+// $fullhd: 2000px;
+// $modal-content-width: 1000px;
 
 @import "/node_modules/bulma/bulma.sass";
 
@@ -276,6 +276,12 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 .dropdown-menu .dropdown-content {
   max-height: calc(100vh - 60px);
   overflow-y: auto;
+}
+.modal-card .dropdown-menu .dropdown-content {
+  max-height: calc(100vh - 80px);
+}
+.modal-card {
+  overflow: visible;
 }
 
 @media only screen and (max-width: 768px) {
@@ -593,4 +599,19 @@ aside.menu.main-menu .menu-expanse {
 .user-message:hover, .user-message.editing {
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
+}
+
+.modal-card footer {
+  justify-content: space-between;
+}
+.modal-card footer .level {
+  width: 100%;
+}
+
+.modal-card header, .modal-card footer, .modal-card .notification {
+  padding: .8em;
+}
+.modal-card .notification {
+  margin-left: -.5em;
+  margin-right: -.5em;
 }
