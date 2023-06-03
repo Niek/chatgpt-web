@@ -256,7 +256,7 @@
           <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
           <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
           <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
-          <button class="button is-warning" title="Start new chat with this profile." class:is-disabled={!chatSettings.isDirty} on:click={startNewChat}>New Chat</button>
+          <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat</button>
         </div>
         <div class="level-right">
           <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
@@ -277,7 +277,7 @@
                 <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
                   <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
                 </a>
-                <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={startNewChat}>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat Using Profile
                 </a>
                 <hr class="dropdown-divider">
