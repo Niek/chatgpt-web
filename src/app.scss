@@ -59,15 +59,27 @@ html {
   
 }
 
+@media screen and (min-width: 1024px) {
+  .chat-menu-item .chat-icon {
+    display: none;
+  }
+  .modal-card {
+    width: 960px;
+  }
+}
+
 @media only screen and (max-width: 900px) and (min-width: 769px) {
   .chat-menu-item .chat-icon {
     display: none;
-  }  
+  }
 }
 
 @media only screen and (max-width: 768px) {
   .navbar {
     display: block !important;
+  }
+  .main-menu {
+    z-index: 50;
   }
   html {
     --BgColorSidebarLight: hsl(210, 12%, 97%);
@@ -327,7 +339,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 aside.menu.main-menu {
-  z-index:50;
+  // z-index:50;
   position: fixed;
   width: var(--sidebarWidth);
   padding-right: 20px;
