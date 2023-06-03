@@ -32,7 +32,7 @@
   import { afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
-    import { replace } from 'svelte-spa-router';
+  import { replace } from 'svelte-spa-router'
 
   export let chatId:number
   export const show = () => { showSettings() }

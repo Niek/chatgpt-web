@@ -22,7 +22,7 @@
     return chatId
   }
 
-  export const addChat = (profile:ChatSettings|undefined=undefined): number => {
+  export const addChat = (profile:ChatSettings|undefined = undefined): number => {
     const chats = get(chatsStorage)
 
     // Find the max chatId

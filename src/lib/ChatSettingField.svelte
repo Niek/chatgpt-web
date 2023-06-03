@@ -4,7 +4,7 @@
   import { addChat, cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent } from './Util.svelte'
-    import { replace } from 'svelte-spa-router';
+  import { replace } from 'svelte-spa-router'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
