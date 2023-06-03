@@ -191,7 +191,7 @@ const nonRequestSettings: ChatSetting[] = [
       {
         key: 'pinTop',
         name: 'Keep First Prompts',
-        title: 'When we run out of space and need to summarize prompts, the top number of prompts will not be removed after summarization.',
+        title: 'When we run out of space and need to remove prompts, the top number of prompts will not be removed after summarization/FIFO.',
         min: 0,
         max: 4,
         step: 1,
@@ -201,8 +201,8 @@ const nonRequestSettings: ChatSetting[] = [
       },
       {
         key: 'pinBottom',
-        name: 'Exclude Bottom Prompts',
-        title: 'When we run out of space and need to summarize prompts, do not summarize the the last number prompts you set here.',
+        name: 'Keep Bottom Prompts',
+        title: 'When we run out of space and need to remove prompts, do not remove or summarize the the last number prompts you set here.',
         min: 0,
         max: 20, // Will be auto adjusted down if needs more
         step: 1,
