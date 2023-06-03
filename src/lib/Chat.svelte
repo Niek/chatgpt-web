@@ -501,6 +501,43 @@
 
 </script>
 
+<ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
+
+
+<!-- rename modal -->
+<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="modal-background" on:click={closeChatNameSettings} />
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Enter a new name for this chat</p>
+    </header>
+    <section class="modal-card-body">
+      <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label" for="settings-chat-name">New name:</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <input
+              class="input"
+              type="text"
+              id="settings-chat-name"
+              value={chat.name}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="modal-card-foot">
+      <input type="submit" class="button is-info" value="Save" />
+      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
+    </footer>
+  </div>
+</form>
+<!-- end -->
+
+
 <div class="chat-content">
 <nav class="level chat-header">
   <div class="level-left">
@@ -580,42 +617,6 @@
     {/each}
   </div>
 </Footer>
-
-
-<ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
-
-<!-- rename modal -->
-<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click={closeChatNameSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Enter a new name for this chat</p>
-    </header>
-    <section class="modal-card-body">
-      <div class="field is-horizontal">
-        <div class="field-label is-normal">
-          <label class="label" for="settings-chat-name">New name:</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <input
-              class="input"
-              type="text"
-              id="settings-chat-name"
-              value={chat.name}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-    <footer class="modal-card-foot">
-      <input type="submit" class="button is-info" value="Save" />
-      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
-    </footer>
-  </div>
-</form>
-<!-- end -->
 
 <svelte:window
   on:keydown={(event) => {

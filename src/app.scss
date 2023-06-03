@@ -336,7 +336,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 }
 
 aside.menu.main-menu {
-  // z-index:50;
+  z-index:50;
   position: fixed;
   width: var(--sidebarWidth);
   padding-right: 20px;
@@ -608,6 +608,10 @@ aside.menu.main-menu .menu-expanse {
 .user-message:hover, .user-message.editing {
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
+}
+
+.modal {
+  z-index:100;
 }
 
 .modal-card footer {
