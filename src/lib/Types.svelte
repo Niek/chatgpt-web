@@ -172,7 +172,9 @@ type SettingBoolean = {
   
   export type SettingPrompt = {
     prompt: string;
-    fn: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
+    checkPrompt: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
+    onYes?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
+    onNo?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
     passed: boolean;
   };
 

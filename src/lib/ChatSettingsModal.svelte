@@ -10,7 +10,10 @@
     deleteCustomProfile,
     setGlobalSettingValueByKey,
     resetChatSettings,
-    checkStateChange
+    checkStateChange,
+
+    addChat
+
   } from './Storage.svelte'
   import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption } from './Types.svelte'
   import { sizeTextElements } from './Util.svelte'
@@ -22,12 +25,14 @@
     faFloppyDisk,
     faThumbtack,
     faDownload,
-    faUpload
+    faUpload,
+    faSquarePlus
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
+    import { replace } from 'svelte-spa-router';
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -201,6 +206,11 @@
     return cname
   }
 
+  const startNewChat = () => {
+    const newChatId = addChat(chatSettings)
+    replace(`/chat/${newChatId}`)
+  }
+
   // excludeFromProfile
 
   const deepEqual = (x:any, y:any) => {
@@ -244,8 +254,9 @@
       <div class="level is-mobile">
         <div class="level-left">
           <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
-          <button class="button" class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save Changes</button>    
-          <button class="button is-warning" class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
+          <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
+          <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
+          <button class="button is-warning" title="Start new chat with this profile." class:is-disabled={!chatSettings.isDirty} on:click={startNewChat}>New Chat</button>
         </div>
         <div class="level-right">
           <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
@@ -265,6 +276,9 @@
                 <hr class="dropdown-divider">
                 <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
                   <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
+                </a>
+                <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={startNewChat}>
+                  <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat Using Profile
                 </a>
                 <hr class="dropdown-divider">
                 <a href={'#'} 

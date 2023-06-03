@@ -1,9 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   import { getProfile } from './Profiles.svelte'
-  import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
+  import { addChat, cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent } from './Util.svelte'
+    import { replace } from 'svelte-spa-router';
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
@@ -22,19 +23,34 @@
   const refreshSettings = () => {
     dispatch('refresh')
   }
-  
+
   const settingChecks:Record<string, SettingPrompt[]> = {
     profile: [
       {
         prompt: 'Unsaved changes to the current profile will be lost.\n Continue?',
-        fn: (setting, newVal, oldVal) => {
+        checkPrompt: (setting, newVal, oldVal) => {
           return !!chatSettings.isDirty && newVal !== oldVal
         },
         passed: false
       },
       {
+        prompt: 'Would you like to start a new chat session with this profile?',
+        checkPrompt: (setting, newVal, oldVal) => {
+          return newVal !== oldVal
+        },
+        onYes: (setting, newVal, oldVal) => {
+          // start new char session, apply this profile, amd start it
+          setChatSettingValue(chatId, setting, oldVal)
+          const profile = getProfile(newVal)
+          const newChatId = addChat(profile)
+          replace(`/chat/${newChatId}`)
+          return true
+        },
+        passed: false
+      },
+      {
         prompt: 'Personality change will not correctly apply to existing chat session.\n Continue?',
-        fn: (setting, newVal, oldVal) => {
+        checkPrompt: (setting, newVal, oldVal) => {
           return chat.sessionStarted && newVal !== originalProfile &&
             (getProfile(newVal).characterName !== chatSettings.characterName)
         },
@@ -70,7 +86,7 @@
         default:
           setChatSettingValue(chatId, setting, el.value)
       }
-      const newVal = chatSettings[setting.key]
+      const newVal = cleanSettingValue(setting.type, el.checked || el.value)
       if (val === newVal) return
       try {
         if ((typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key])) {
@@ -88,16 +104,21 @@
     for (let i = 0, l = checks.length; i < l; i++) {
       const c = checks[i]
       if (c.passed) continue
-      if (c.fn(setting, newVal, val)) {
+      if (c.checkPrompt(setting, newVal, val)) {
         // eventually this needs to be an async call to a confirmation modal where
         // "passed", not really being used here, will be reworked to some other
         // state to deal with inevitable issues once a non-blocking modal is used.
         if (window.confirm(c.prompt)) {
           c.passed = true
+          if (c.onYes && c.onYes(setting, newVal, val)) {
+            resetSettingCheck(setting.key)
+            return
+          }
         } else {
           // roll-back
           setChatSettingValue(chatId, setting, val)
           // refresh setting modal, if open
+          c.onNo && c.onNo(setting, newVal, val)
           refreshSettings()
           resetSettingCheck(setting.key)
           return

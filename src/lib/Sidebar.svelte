@@ -45,7 +45,7 @@
             ></div>
           {:else}
           <div class="level-item">
-            <a href={'#/chat/new'} class="panel-block" class:is-disabled={!$apiKeyStorage}
+            <a href={'#/chat/new'} class="panel-block" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
               ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</a
             ></div>
           {/if}

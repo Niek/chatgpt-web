@@ -22,17 +22,19 @@
     return chatId
   }
 
-  export const addChat = (): number => {
+  export const addChat = (profile:ChatSettings|undefined=undefined): number => {
     const chats = get(chatsStorage)
 
     // Find the max chatId
     const chatId = newChatID()
 
+    profile = JSON.parse(JSON.stringify(profile || getProfile('')))
+
     // Add a new chat
     chats.push({
       id: chatId,
       name: `Chat ${chatId}`,
-      settings: {} as ChatSettings,
+      settings: profile as any,
       messages: [],
       usage: {} as Record<Model, Usage>,
       startSession: false,
