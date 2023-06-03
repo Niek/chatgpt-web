@@ -169,5 +169,11 @@ type SettingBoolean = {
     header?: string;
     headerClass?: string;
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingOther);
+  
+  export type SettingPrompt = {
+    prompt: string;
+    fn: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
+    passed: boolean;
+  };
 
 </script>

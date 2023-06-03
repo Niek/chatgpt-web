@@ -1,6 +1,6 @@
 <script lang="ts">
   import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect } from './Profiles.svelte'
-  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey } from './Settings.svelte'
+  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile } from './Settings.svelte'
   import {
     saveChatStore,
     apiKeyStorage,
@@ -44,10 +44,13 @@
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
+  const excludeFromProfile = getExcludeFromProfile()
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
+
+  let originalProfile = chatSettings && chatSettings.profile
 
   afterUpdate(() => {
     sizeTextElements()
@@ -66,6 +69,7 @@
 
   const refreshSettings = async () => {
     showSettingsModal && showSettings()
+    setDirty()
   }
   
   const cloneProfile = () => {
@@ -197,18 +201,26 @@
     return cname
   }
 
-  const setDirty = (e:CustomEvent) => {
-    const setting = e.detail as ChatSetting
-    const key = setting.key
-    if (key === 'profile') return
+  // excludeFromProfile
+
+  const deepEqual = (x:any, y:any) => {
+    const ok = Object.keys, tx = typeof x, ty = typeof y
+    return x && y && tx === 'object' && tx === ty ? (
+        ok(x).every(key => excludeFromProfile[key] || deepEqual(x[key], y[key]))
+    ) : (x === y || ((x===undefined||x===null||x===false) && (y===undefined||y===null||y===false)))
+  }
+
+  const setDirty = (e:CustomEvent|undefined = undefined) => {
+    if (e) {
+      const setting = e.detail as ChatSetting
+      const key = setting.key
+      if (key === 'profile') return
+    }
     const profile = getProfile(chatSettings.profile)
-    const isDirty = profile[key] !== chatSettings[key] 
-    console.log('Is dirty?', setting, isDirty, profile[key], chatSettings[key])
-    chatSettings.isDirty = isDirty
+    chatSettings.isDirty = !deepEqual(profile, chatSettings)
   }
 
 </script>
-
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="modal" class:is-active={showSettingsModal}>
@@ -216,7 +228,6 @@
   <div class="modal-card" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
       <p class="modal-card-title">Chat Settings</p>
-
       <div class="dropdown is-right" class:is-active={showProfileMenu}>
         <div class="dropdown-trigger">
           <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
@@ -256,7 +267,7 @@
     <section class="modal-card-body">
       {#key showSettingsModal}
       {#each settingsList as setting}
-        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} defaultProfile={defaultProfile} />
+        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
       {/each}
       {/key}
     </section>

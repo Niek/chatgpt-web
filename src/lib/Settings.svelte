@@ -100,12 +100,10 @@ const profileSetting: ChatSetting & SettingSelect = {
       options: [], // Set by Profiles
       type: 'select',
       afterChange: (chatId, setting) => {
-        applyProfile(chatId, '', !getChat(chatId).sessionStarted)
+        applyProfile(chatId)
         return true // Signal we should refresh the setting modal
       },
-      setDefault: (chatId, setting, value) => {
-
-      }
+      setDefault: (chatId, setting, value) => {},
 }
 
 // Settings that will not be part of the API request
@@ -230,7 +228,8 @@ const modelSetting: ChatSetting & SettingSelect = {
       headerClass: 'is-warning',
       options: [],
       type: 'select',
-      forceApi: true // Need to make sure we send this
+      forceApi: true, // Need to make sure we send this
+      afterChange: (chatId, setting) => true, // refresh settings
 }
 
 const chatSettingsList: ChatSetting[] = [
@@ -275,10 +274,9 @@ const chatSettingsList: ChatSetting[] = [
               'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
         min: 1,
         max: 32768,
-        step: 128,
+        step: 1,
         type: 'number',
         forceApi: true, // Since default here is different than gpt default, will make sure we always send it
-        afterChange: (chatId, setting) => true, // refresh settings
       },
       {
         key: 'presence_penalty',

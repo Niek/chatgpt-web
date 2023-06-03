@@ -1,17 +1,21 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
   import { getProfile } from './Profiles.svelte'
-  import { setChatSettingValue } from './Storage.svelte'
-  import type { Chat, ChatSetting, ChatSettings } from './Types.svelte'
+  import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
+  import type { Chat, ChatSetting, ChatSettings, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent } from './Util.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
   export let chat:Chat
   export let chatDefaults:Record<string, any>
-  export let defaultProfile:String
+  export let originalProfile:String
 
   const chatId = chat.id
+
+  if (originalProfile) {
+    // eventually...
+  }
 
   const dispatch = createEventDispatcher()
 
@@ -19,7 +23,32 @@
     dispatch('refresh')
   }
   
-  let debounce:any
+  const settingChecks:Record<string, SettingPrompt[]> = {
+    'profile': [
+      {
+        prompt:'Unsaved changes to the current profile will be lost.\n Continue?',
+        fn: (setting, newVal, oldVal) => {
+          return !!chatSettings.isDirty && newVal !== oldVal
+        },
+        passed: false,
+      },
+      {
+        prompt:'Personality change will not correctly apply to existing chat session.\n Continue?',
+        fn: (setting, newVal, oldVal) => {
+          return chat.sessionStarted && newVal !== originalProfile &&
+            (getProfile(newVal).characterName !== chatSettings.characterName)
+        },
+        passed: false,
+      },
+    ]
+  }
+
+  const resetSettingCheck = (key:keyof ChatSettings) => {
+    const checks = settingChecks[key]
+    checks && checks.forEach((c)=>{c.passed=false})
+  }
+
+  let debounce: any
 
   const queueSettingValueChange = (event: Event, setting: ChatSetting) => {
     clearTimeout(debounce)
@@ -44,26 +73,42 @@
       const newVal = chatSettings[setting.key]
       if (val === newVal) return
       try {
-        (typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key]) &&
+        if((typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key])){
+          console.log('Refreshed from setting', setting.key, chatSettings[setting.key], val)
           refreshSettings()
+        }
+          
       } catch (e) {
         setChatSettingValue(chatId, setting, val)
         window.alert('Unable to change:\n' + e.message)
       }
       dispatch('change', setting)
     }
-    if (setting.key === 'profile' && chat.sessionStarted &&
-      (getProfile(el.value).characterName !== chatSettings.characterName)) {
-      const val = chatSettings[setting.key]
-      if (window.confirm('Personality change will not correctly apply to existing chat session.\n Continue?')) {
-        doSet()
+    const checks = settingChecks[setting.key] || []
+    const newVal = cleanSettingValue(setting.type, el.checked||el.value)
+    for (let i = 0, l = checks.length; i < l; i++) {
+      let c = checks[i]
+      if(c.passed) continue
+      if (c.fn(setting, newVal, val)) {
+        // eventually this needs to be an async call to a confirmation modal where
+        // "passed", not really being used here, will be reworked to some other 
+        // state to deal with inevitable issues once a non-blocking modal is used.
+        if (window.confirm(c.prompt)) {
+          c.passed = true
+        } else {
+          // roll-back
+          setChatSettingValue(chatId, setting, val)
+          // refresh setting modal, if open
+          refreshSettings()
+          resetSettingCheck(setting.key)
+          return 
+        }
       } else {
-        // roll-back
-        setChatSettingValue(chatId, setting, val)
-        // refresh setting modal, if open
-        refreshSettings()
+        c.passed = true
       }
     }
+    // passed all
+    resetSettingCheck(setting.key)
     debounce = setTimeout(doSet, 250)
   }
 
