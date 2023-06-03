@@ -2,9 +2,10 @@
   import { createEventDispatcher } from 'svelte'
   import { getProfile } from './Profiles.svelte'
   import { addChat, cleanSettingValue, setChatSettingValue } from './Storage.svelte'
-  import type { Chat, ChatSetting, ChatSettings, SettingPrompt } from './Types.svelte'
+  import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent } from './Util.svelte'
   import { replace } from 'svelte-spa-router'
+  import Fa from 'svelte-fa/src/fa.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
@@ -13,6 +14,10 @@
   export let originalProfile:String
 
   const chatId = chat.id
+
+  const fieldControls:ControlAction[] = (setting.fieldControls || [] as FieldControl[]).map(fc => {
+    return fc.getAction(chatId, setting, chatSettings[setting.key])
+  })
 
   if (originalProfile) {
     // eventually...
@@ -36,7 +41,8 @@
       {
         prompt: 'Would you like to start a new chat session with this profile?',
         checkPrompt: (setting, newVal, oldVal) => {
-          return newVal !== oldVal
+          return chat.sessionStarted && newVal !== originalProfile &&
+            (getProfile(newVal).characterName !== chatSettings.characterName)
         },
         onYes: (setting, newVal, oldVal) => {
           // start new char session, apply this profile, amd start it
@@ -46,6 +52,7 @@
           replace(`/chat/${newChatId}`)
           return true
         },
+        onNo: (setting, newVal, oldVal) => true, // Continue on no
         passed: false
       },
       {
@@ -54,6 +61,7 @@
           return chat.sessionStarted && newVal !== originalProfile &&
             (getProfile(newVal).characterName !== chatSettings.characterName)
         },
+        onYes: (setting, newVal, oldVal) => true,
         passed: false
       }
     ]
@@ -116,12 +124,14 @@
           }
         } else {
           // roll-back
-          setChatSettingValue(chatId, setting, val)
-          // refresh setting modal, if open
-          c.onNo && c.onNo(setting, newVal, val)
-          refreshSettings()
-          resetSettingCheck(setting.key)
-          return
+          if (!c.onNo || !c.onNo(setting, newVal, val)) {
+            setChatSettingValue(chatId, setting, val)
+            // refresh setting modal, if open
+            c.onNo && c.onNo(setting, newVal, val)
+            refreshSettings()
+            resetSettingCheck(setting.key)
+            return
+          }
         }
       } else {
         c.passed = true
@@ -172,7 +182,7 @@
     </div>
     {/if}
     <div class="field-body">
-      <div class="field">
+      <div class="field" class:has-addons={fieldControls.length}>
         {#if setting.type === 'number'}
           <input
             class="input"
@@ -188,13 +198,31 @@
             on:change={e => queueSettingValueChange(e, setting)}
           />
         {:else if setting.type === 'select'}
-          <div class="select">
+          <!-- <div class="select"> -->
+            <div class="select" class:control={fieldControls.length}>
             <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
               {#each setting.options as option}
                 <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
               {/each}
             </select>
-          </div>
+            </div>
+            {#each fieldControls as cont}
+            <div class="control">
+              <button title={cont.text} on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
+                {#if cont.text}
+                <span class="text">
+                  <Fa icon={cont.icon} />
+                </span> 
+                {/if}
+                {#if cont.icon}
+                <span class="icon">
+                  <Fa icon={cont.icon} />
+                </span> 
+                {/if}
+              </button>
+            </div>
+            {/each}
+
         {:else if setting.type === 'text'}
           <div class="field">
               <input 

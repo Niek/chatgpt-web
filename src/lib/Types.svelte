@@ -144,6 +144,19 @@ type SettingBoolean = {
     type: 'other';
   };
 
+  export type ControlAction = {
+    title:string;
+    icon?:any,
+    text?:string;
+    class?:string;
+    disabled?:boolean;
+    action?: (chatId:number, setting:any, value:any) => any;
+  };
+
+  export type FieldControl = {
+    getAction: (chatId:number, setting:any, value:any) => ControlAction;
+  };
+
   export type ChatSetting = {
     key: keyof ChatSettings;
     name: string;
@@ -155,7 +168,7 @@ type SettingBoolean = {
     placeholder?: string;
     hide?: (chatId:number) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
-    setDefault?: (chatId:number, setting:ChatSetting, value:any) => any;
+    fieldControls?: FieldControl[];
     beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
     afterChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther);

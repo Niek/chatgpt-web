@@ -117,6 +117,10 @@ html {
   min-height: 100vh;
 }
 
+select option.is-default {
+  background-color: #0842e058;
+}
+
 .is-disabled {
   pointer-events: none;
   cursor: default;

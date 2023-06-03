@@ -333,6 +333,12 @@
     globalStorage.set(store)
   }
 
+  
+  export const getGlobalSettingValue = (key:keyof GlobalSetting, value):any => {
+    const store = get(globalStorage)
+    return store[key]
+  }
+
   export const getGlobalSettings = ():GlobalSettings => {
     return get(globalStorage)
   }

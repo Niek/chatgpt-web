@@ -1,7 +1,8 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettings } from './Storage.svelte'
+    import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
+    import { faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
 import {
@@ -11,7 +12,10 @@ import {
       type GlobalSetting,
       type GlobalSettings,
       type Request,
-      type Model
+      type Model,
+
+      type ControlAction
+
 } from './Types.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo-0301'
@@ -103,7 +107,25 @@ const profileSetting: ChatSetting & SettingSelect = {
         applyProfile(chatId)
         return true // Signal we should refresh the setting modal
       },
-      setDefault: (chatId, setting, value) => {}
+      fieldControls: [{
+        getAction: (chatId, setting, value) => {
+          if (value === getGlobalSettings().defaultProfile) {
+            return {
+              title: 'This profile is currently your default',
+              icon: faCheck
+            } as ControlAction
+          } else {
+            return {
+              title: 'Set this profile as your default',
+              icon: faThumbTack,
+              class: 'is-info',
+              action: (chatId, setting, value) => {
+                setGlobalSettingValueByKey('defaultProfile', value)
+              }
+            } as ControlAction
+          }
+        }
+      }]
 }
 
 // Settings that will not be part of the API request
