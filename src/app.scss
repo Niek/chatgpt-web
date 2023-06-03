@@ -60,11 +60,8 @@ html {
 }
 
 @media screen and (min-width: 1024px) {
-  .chat-menu-item .chat-icon {
-    display: none;
-  }
   .modal-card {
-    width: 960px;
+    width: 960px !important;
   }
 }
 
