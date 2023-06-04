@@ -4,7 +4,7 @@
   import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
   import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
-  import { getProfile, isStaticProfile, restartProfile } from './Profiles.svelte'
+  import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const globalStorage = persisted('global', {} as GlobalSettings)
@@ -370,9 +370,6 @@
       store.profiles = profiles
     }
     if (!profile.profile) profile.profile = uuidv4()
-    if (isStaticProfile(profile.profile as any)) {
-      throw new Error('Sorry, you can\'t modify a static profile. You can clone it though!')
-    }
     const mt = profile.profileName && profile.profileName.trim().toLocaleLowerCase()
     const sameTitle = Object.values(profiles).find(c => c.profile !== profile.profile &&
     c.profileName && c.profileName.trim().toLocaleLowerCase() === mt)
@@ -385,6 +382,12 @@
     if (!profile.characterName || profile.characterName.length < 3) {
       throw new Error('Your profile\'s character needs a valid name.')
     }
+    if (isStaticProfile(profile.profile as any)) {
+      // throw new Error('Sorry, you can\'t modify a static profile. You can clone it though!')
+      // Save static profile as new custom
+      profile.profileName = newNameForProfile(profile.profileName)
+      profile.profile = uuidv4()
+    }
     const clone = JSON.parse(JSON.stringify(profile)) // Always store a copy
     Object.keys(getExcludeFromProfile()).forEach(k => {
       delete clone[k]
@@ -393,6 +396,18 @@
     globalStorage.set(store)
     profile.isDirty = false
     saveChatStore()
+    getProfiles(true) // force update profile cache
+  }
+
+  export const newName = (name:string, nameMap:Record<string, any>):string => {
+    if (!nameMap[name]) return name
+    let i:number = 1
+    let cname = name + `-${i}`
+    while (nameMap[cname]) {
+      i++
+      cname = name + `-${i}`
+    }
+    return cname
   }
   
 </script>

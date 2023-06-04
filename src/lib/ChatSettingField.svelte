@@ -1,10 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { getProfile } from './Profiles.svelte'
-  import { addChat, cleanSettingValue, setChatSettingValue } from './Storage.svelte'
+  // import { getProfile } from './Profiles.svelte'
+  import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent } from './Util.svelte'
-  import { replace } from 'svelte-spa-router'
+  // import { replace } from 'svelte-spa-router'
   import Fa from 'svelte-fa/src/fa.svelte'
 
   export let setting:ChatSetting
@@ -37,33 +37,33 @@
           return !!chatSettings.isDirty && newVal !== oldVal
         },
         passed: false
-      },
-      {
-        prompt: 'Would you like to start a new chat session with this profile?',
-        checkPrompt: (setting, newVal, oldVal) => {
-          return chat.sessionStarted && newVal !== originalProfile &&
-            (getProfile(newVal).characterName !== chatSettings.characterName)
-        },
-        onYes: (setting, newVal, oldVal) => {
-          // start new char session, apply this profile, amd start it
-          setChatSettingValue(chatId, setting, oldVal)
-          const profile = getProfile(newVal)
-          const newChatId = addChat(profile)
-          replace(`/chat/${newChatId}`)
-          return true
-        },
-        onNo: (setting, newVal, oldVal) => true, // Continue on no
-        passed: false
-      },
-      {
-        prompt: 'Personality change will not correctly apply to existing chat session.\n Continue?',
-        checkPrompt: (setting, newVal, oldVal) => {
-          return chat.sessionStarted && newVal !== originalProfile &&
-            (getProfile(newVal).characterName !== chatSettings.characterName)
-        },
-        onYes: (setting, newVal, oldVal) => true,
-        passed: false
       }
+      // {
+      //   prompt: 'Would you like to start a new chat session with this profile?',
+      //   checkPrompt: (setting, newVal, oldVal) => {
+      //     return chat.sessionStarted && newVal !== originalProfile &&
+      //       (getProfile(newVal).characterName !== chatSettings.characterName)
+      //   },
+      //   onYes: (setting, newVal, oldVal) => {
+      //     // start new char session, apply this profile, amd start it
+      //     setChatSettingValue(chatId, setting, oldVal)
+      //     const profile = getProfile(newVal)
+      //     const newChatId = addChat(profile)
+      //     replace(`/chat/${newChatId}`)
+      //     return true
+      //   },
+      //   onNo: (setting, newVal, oldVal) => true, // Continue on no
+      //   passed: false
+      // },
+      // {
+      //   prompt: 'Personality change will not correctly apply to existing chat session.\n Continue?',
+      //   checkPrompt: (setting, newVal, oldVal) => {
+      //     return chat.sessionStarted && newVal !== originalProfile &&
+      //       (getProfile(newVal).characterName !== chatSettings.characterName)
+      //   },
+      //   onYes: (setting, newVal, oldVal) => true,
+      //   passed: false
+      // }
     ]
   }
 
@@ -98,7 +98,7 @@
       if (val === newVal) return
       try {
         if ((typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key])) {
-          console.log('Refreshed from setting', setting.key, chatSettings[setting.key], val)
+          // console.log('Refreshed from setting', setting.key, chatSettings[setting.key], val)
           refreshSettings()
         }
       } catch (e) {

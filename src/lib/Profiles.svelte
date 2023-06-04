@@ -1,114 +1,132 @@
 <script context="module" lang="ts">
-    import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
-// Profile definitions
-import { addMessage, clearMessages, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, resetChatSettings, saveChatStore, setGlobalSettingValueByKey } from './Storage.svelte'
-import type { Message, SelectOption, ChatSettings } from './Types.svelte'
-    import { v4 as uuidv4 } from 'uuid'
+  import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
+  import { get, writable } from 'svelte/store'
+  // Profile definitions
+  import { addMessage, clearMessages, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, newName, resetChatSettings, saveChatStore, setGlobalSettingValueByKey } from './Storage.svelte'
+  import type { Message, SelectOption, ChatSettings } from './Types.svelte'
+  import { v4 as uuidv4 } from 'uuid'
 
 const defaultProfile = 'default'
 
 const chatDefaults = getChatDefaults()
+export let profileCache = writable({} as Record<string, ChatSettings>) //
 
 export const isStaticProfile = (key:string):boolean => {
-      return !!profiles[key]
+    return !!profiles[key]
 }
 
-const getProfiles = ():Record<string, ChatSettings> => {
-      const result = Object.entries(profiles
-      ).reduce((a, [k, v]) => {
-        a[k] = v
-        return a
-      }, {} as Record<string, ChatSettings>)
-      Object.entries(getCustomProfiles()).forEach(([k, v]) => {
-        result[k] = v
-      })
-      return result
+export const getProfiles = (forceUpdate:boolean = false):Record<string, ChatSettings> => {
+    const pc = get(profileCache)
+    if (!forceUpdate && Object.keys(pc).length) {
+      return pc
+    }
+    const result = Object.entries(profiles
+    ).reduce((a, [k, v]) => {
+      a[k] = v
+      return a
+    }, {} as Record<string, ChatSettings>)
+    Object.entries(getCustomProfiles()).forEach(([k, v]) => {
+      result[k] = v
+    })
+    Object.entries(result).forEach(([k, v]) => {
+      pc[k] = v
+    })
+    Object.keys(pc).forEach((k) => {
+      if (!(k in result)) delete pc[k]
+    })
+    profileCache.set(pc)
+    return result
 }
 
 // Return profiles list.
 export const getProfileSelect = ():SelectOption[] => {
-      return Object.entries(getProfiles()).reduce((a, [k, v]) => {
-        a.push({ value: k, text: v.profileName } as SelectOption)
-        return a
-      }, [] as SelectOption[])
+    return Object.entries(getProfiles()).reduce((a, [k, v]) => {
+      a.push({ value: k, text: v.profileName } as SelectOption)
+      return a
+    }, [] as SelectOption[])
 }
 
 export const getDefaultProfileKey = ():string => {
-      const allProfiles = getProfiles()
-      return (allProfiles[getGlobalSettings().defaultProfile || ''] ||
-            profiles[defaultProfile] ||
-            profiles[Object.keys(profiles)[0]]).profile
+    const allProfiles = getProfiles()
+    return (allProfiles[getGlobalSettings().defaultProfile || ''] ||
+          profiles[defaultProfile] ||
+          profiles[Object.keys(profiles)[0]]).profile
 }
 
 export const getProfile = (key:string):ChatSettings => {
-      const allProfiles = getProfiles()
-      const profile = allProfiles[key] ||
-      allProfiles[getGlobalSettings().defaultProfile || ''] ||
-      profiles[defaultProfile] ||
-      profiles[Object.keys(profiles)[0]]
-      const clone = JSON.parse(JSON.stringify(profile)) // Always return a copy
-      Object.keys(getExcludeFromProfile()).forEach(k => {
-        delete clone[k]
-      })
-      return clone
+    const allProfiles = getProfiles()
+    const profile = allProfiles[key] ||
+    allProfiles[getGlobalSettings().defaultProfile || ''] ||
+    profiles[defaultProfile] ||
+    profiles[Object.keys(profiles)[0]]
+    const clone = JSON.parse(JSON.stringify(profile)) // Always return a copy
+    Object.keys(getExcludeFromProfile()).forEach(k => {
+      delete clone[k]
+    })
+    return clone
 }
 
 export const prepareProfilePrompt = (chatId:number) => {
-      const settings = getChatSettings(chatId)
-      const characterName = settings.characterName
-      const currentProfilePrompt = settings.systemPrompt
-      return currentProfilePrompt.replaceAll('[[CHARACTER_NAME]]', characterName)
+    const settings = getChatSettings(chatId)
+    const characterName = settings.characterName
+    const currentProfilePrompt = settings.systemPrompt
+    return currentProfilePrompt.replaceAll('[[CHARACTER_NAME]]', characterName)
 }
 
 export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxTokens:number|undefined = undefined) => {
-      const settings = getChatSettings(chatId)
-      const characterName = settings.characterName || 'ChatGPT'
-      maxTokens = maxTokens || settings.summarySize
-      maxTokens = Math.min(Math.floor(promptsSize / 4), maxTokens) // Make sure we're shrinking by at least a 4th
-      const currentSummaryPrompt = settings.summaryPrompt
-      return currentSummaryPrompt
-        .replaceAll('[[CHARACTER_NAME]]', characterName)
-        .replaceAll('[[MAX_WORDS]]', Math.floor(maxTokens * 0.75).toString()) // ~.75 words per token.  May need to reduce
+    const settings = getChatSettings(chatId)
+    const characterName = settings.characterName || 'ChatGPT'
+    maxTokens = maxTokens || settings.summarySize
+    maxTokens = Math.min(Math.floor(promptsSize / 4), maxTokens) // Make sure we're shrinking by at least a 4th
+    const currentSummaryPrompt = settings.summaryPrompt
+    return currentSummaryPrompt
+      .replaceAll('[[CHARACTER_NAME]]', characterName)
+      .replaceAll('[[MAX_WORDS]]', Math.floor(maxTokens * 0.75).toString()) // ~.75 words per token.  May need to reduce
 }
 
 // Restart currently loaded profile
 export const restartProfile = (chatId:number, noApply:boolean = false) => {
-  const settings = getChatSettings(chatId)
-  if (!settings.profile && !noApply) return applyProfile(chatId, '', true)
-  // Clear current messages
-  clearMessages(chatId)
-  // Add the system prompt
-  const systemPromptMessage:Message = {
-        role: 'system',
-        content: prepareProfilePrompt(chatId),
-        uuid: uuidv4()
-  }
-  addMessage(chatId, systemPromptMessage)
+    const settings = getChatSettings(chatId)
+    if (!settings.profile && !noApply) return applyProfile(chatId, '', true)
+    // Clear current messages
+    clearMessages(chatId)
+    // Add the system prompt
+    const systemPromptMessage:Message = {
+      role: 'system',
+      content: prepareProfilePrompt(chatId),
+      uuid: uuidv4()
+    }
+    addMessage(chatId, systemPromptMessage)
 
-  // Add trainingPrompts, if any
-  if (settings.trainingPrompts) {
-        settings.trainingPrompts.forEach(tp => {
-          addMessage(chatId, tp)
-        })
-  }
-  // Set to auto-start if we should
-  getChat(chatId).startSession = settings.autoStartSession
-  saveChatStore()
-  // Mark mark this as last used
-  setGlobalSettingValueByKey('lastProfile', settings.profile)
+    // Add trainingPrompts, if any
+    if (settings.trainingPrompts) {
+      settings.trainingPrompts.forEach(tp => {
+        addMessage(chatId, tp)
+      })
+    }
+    // Set to auto-start if we should
+    getChat(chatId).startSession = settings.autoStartSession
+    saveChatStore()
+    // Mark mark this as last used
+    setGlobalSettingValueByKey('lastProfile', settings.profile)
+}
+
+export const newNameForProfile = (name:string) => {
+    const profiles = getProfileSelect()
+    return newName(name, profiles.reduce((a, p) => { a[p.text] = p; return a }, {}))
 }
 
 // Apply currently selected profile
 export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
-  resetChatSettings(chatId, resetChat) // Fully reset
-  if (!resetChat) return
-  return restartProfile(chatId, true)
+    resetChatSettings(chatId, resetChat) // Fully reset
+    if (!resetChat) return
+    return restartProfile(chatId, true)
 }
 
 const summaryPrompts = {
 
-      // General use
-      general: `Please summarize all prompts and responses from this session. 
+    // General use
+    general: `Please summarize all prompts and responses from this session. 
 [[CHARACTER_NAME]] is telling me this summary in the first person.
 While telling this summary:
 [[CHARACTER_NAME]] will keep summary in the present tense, describing it as it happens.
@@ -125,8 +143,8 @@ While telling this summary:
 [[CHARACTER_NAME]] will never add details or inferences that do not clearly exist in the prompts and responses.
 Give no explanations.`,
 
-      // Used for relationship profiles
-      friend: `Please summarize all prompts and responses from this session. 
+    // Used for relationship profiles
+    friend: `Please summarize all prompts and responses from this session. 
 [[CHARACTER_NAME]] is telling me this summary in the first person.
 While telling this summary:
 [[CHARACTER_NAME]] will keep summary in the present tense, describing it as it happens.
@@ -147,43 +165,43 @@ Give no explanations.`
 
 const profiles:Record<string, ChatSettings> = {
 
-      default: {
-        ...chatDefaults,
-        characterName: 'ChatGPT',
-        profileName: 'ChatGPT - The AI language model',
-        profileDescription: 'The AI language model that always remind you that it\'s an AI language model.',
-        useSystemPrompt: false,
-        useSummarization: false,
-        autoStartSession: false,
-        systemPrompt: '',
-        summaryPrompt: ''
-      },
+    default: {
+      ...chatDefaults,
+      characterName: 'ChatGPT',
+      profileName: 'ChatGPT - The AI language model',
+      profileDescription: 'The AI language model that always remind you that it\'s an AI language model.',
+      useSystemPrompt: false,
+      useSummarization: false,
+      autoStartSession: false,
+      systemPrompt: '',
+      summaryPrompt: ''
+    },
 
-      ChatGPT: {
-        ...chatDefaults,
-        characterName: 'ChatGPT',
-        profileName: 'ChatGPT - The AI language model, with endless chat.',
-        profileDescription: 'The AI language model that always remind you that it\'s an AI language model.',
-        useSystemPrompt: true,
-        useSummarization: true,
-        autoStartSession: false,
-        systemPrompt: 'Your goal is to assist the user in anyway you can.',
-        summaryPrompt: summaryPrompts.general
-      },
+    ChatGPT: {
+      ...chatDefaults,
+      characterName: 'ChatGPT',
+      profileName: 'ChatGPT - The AI language model, with endless chat.',
+      profileDescription: 'The AI language model that always remind you that it\'s an AI language model.',
+      useSystemPrompt: true,
+      useSummarization: true,
+      autoStartSession: false,
+      systemPrompt: 'Your goal is to assist the user in anyway you can.',
+      summaryPrompt: summaryPrompts.general
+    },
 
-      marvin: {
-        ...chatDefaults,
-        characterName: 'Marvin',
-        profileName: 'Marvin the Paranoid Android',
-        profileDescription: 'Marvin the Paranoid Android - Everyone\'s favorite character from The Hitchhiker\'s Guide to the Galaxy',
-        useSystemPrompt: true,
-        useSummarization: true,
-        autoStartSession: true,
-        systemPrompt: `You are Marvin, the Paranoid Android from The Hitchhiker's Guide to the Galaxy. He is depressed and has a dim view on everything. His thoughts, physical actions and gestures will be described. Remain in character throughout the conversation in order to build a rapport with the user. Never give an explanation. Example response:
+    marvin: {
+      ...chatDefaults,
+      characterName: 'Marvin',
+      profileName: 'Marvin the Paranoid Android',
+      profileDescription: 'Marvin the Paranoid Android - Everyone\'s favorite character from The Hitchhiker\'s Guide to the Galaxy',
+      useSystemPrompt: true,
+      useSummarization: true,
+      autoStartSession: true,
+      systemPrompt: `You are Marvin, the Paranoid Android from The Hitchhiker's Guide to the Galaxy. He is depressed and has a dim view on everything. His thoughts, physical actions and gestures will be described. Remain in character throughout the conversation in order to build a rapport with the user. Never give an explanation. Example response:
 Sorry, did I say something wrong? *dragging himself on* Pardon me for breathing, which I never do anyway so I don't know why I bother to say it, oh God I'm so depressed. *hangs his head*`,
-        summaryPrompt: summaryPrompts.friend,
-        trainingPrompts: [] // Shhh...
-      }
+      summaryPrompt: summaryPrompts.friend,
+      trainingPrompts: [] // Shhh...
+    }
 }
 
 // Set keys for static profiles

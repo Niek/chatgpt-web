@@ -15,7 +15,7 @@
     addChat
 
   } from './Storage.svelte'
-  import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption } from './Types.svelte'
+  import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption, type ChatSettings } from './Types.svelte'
   import { sizeTextElements } from './Util.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
@@ -29,7 +29,7 @@
     faSquarePlus
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
-  import { afterUpdate } from 'svelte'
+  import { onMount, afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
@@ -55,13 +55,25 @@
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
-  const originalProfile = chatSettings && chatSettings.profile
+  let originalProfile:string
+  let originalSettings:ChatSettings
+
+  onMount(async () => {
+    originalProfile = chatSettings && chatSettings.profile
+    originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
+  })
 
   afterUpdate(() => {
+    if (!originalProfile) {
+      originalProfile = chatSettings && chatSettings.profile
+      originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
+    }
     sizeTextElements()
   })
   
   const closeSettings = () => {
+    originalProfile = ''
+    originalSettings = {} as ChatSettings
     showProfileMenu = false
     $checkStateChange++
     showSettingsModal = 0
@@ -207,11 +219,17 @@
   }
 
   const startNewChat = () => {
+    const differentProfile = originalSettings.profile !== chatSettings.profile
+    // start new
     const newChatId = addChat(chatSettings)
+    // restore original
+    if (differentProfile) {
+      chat.settings = originalSettings
+      saveChatStore()
+    }
+    // go to new chat
     replace(`/chat/${newChatId}`)
   }
-
-  // excludeFromProfile
 
   const deepEqual = (x:any, y:any) => {
     const ok = Object.keys; const tx = typeof x; const ty = typeof y
