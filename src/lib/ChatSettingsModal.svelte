@@ -326,6 +326,7 @@
 <svelte:window
   on:keydown={(event) => {
     if (event.key === 'Escape') {
+      event.stopPropagation()
       closeSettings()
     }
   }}

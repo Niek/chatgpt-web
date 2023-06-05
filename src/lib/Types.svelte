@@ -184,7 +184,9 @@ type SettingBoolean = {
   } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingOther);
   
   export type SettingPrompt = {
-    prompt: string;
+    title: string;
+    message: string;
+    class?: string;
     checkPrompt: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
     onYes?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
     onNo?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;

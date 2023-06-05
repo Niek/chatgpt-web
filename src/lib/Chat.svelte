@@ -545,6 +545,7 @@
         on:keydown={e => {
           // Only send if Enter is pressed, not Shift+Enter
           if (e.key === 'Enter' && !e.shiftKey) {
+            e.stopPropagation()
             submitForm()
             e.preventDefault()
           }

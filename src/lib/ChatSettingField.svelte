@@ -6,6 +6,8 @@
   import { autoGrowInputOnEvent } from './Util.svelte'
   // import { replace } from 'svelte-spa-router'
   import Fa from 'svelte-fa/src/fa.svelte'
+  import { openModal } from 'svelte-modals'
+  import PromptConfirm from './PromptConfirm.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
@@ -32,7 +34,8 @@
   const settingChecks:Record<string, SettingPrompt[]> = {
     profile: [
       {
-        prompt: 'Unsaved changes to the current profile will be lost.\n Continue?',
+        title: 'Unsaved Profile Changes',
+        message: 'Unsaved changes to the current profile will be lost.\n Continue?',
         checkPrompt: (setting, newVal, oldVal) => {
           return !!chatSettings.isDirty && newVal !== oldVal
         },
@@ -113,31 +116,37 @@
       const c = checks[i]
       if (c.passed) continue
       if (c.checkPrompt(setting, newVal, val)) {
-        // eventually this needs to be an async call to a confirmation modal where
-        // "passed", not really being used here, will be reworked to some other
-        // state to deal with inevitable issues once a non-blocking modal is used.
-        if (window.confirm(c.prompt)) {
-          c.passed = true
-          if (c.onYes && c.onYes(setting, newVal, val)) {
-            resetSettingCheck(setting.key)
-            return
+        openModal(PromptConfirm, {
+          title: c.title,
+          message: c.message,
+          class: c.class || 'is-warning',
+          onConfirm: () => {
+            c.passed = true
+            if (c.onYes && c.onYes(setting, newVal, val)) {
+              resetSettingCheck(setting.key)
+            } else {
+              queueSettingValueChange(event, setting)
+            }
+          },
+          onCancel: () => {
+            // roll-back
+            if (!c.onNo || !c.onNo(setting, newVal, val)) {
+              resetSettingCheck(setting.key)
+              setChatSettingValue(chatId, setting, val)
+              // refresh setting modal, if open
+              c.onNo && c.onNo(setting, newVal, val)
+              refreshSettings()
+            } else {
+              queueSettingValueChange(event, setting)
+            }
           }
-        } else {
-          // roll-back
-          if (!c.onNo || !c.onNo(setting, newVal, val)) {
-            setChatSettingValue(chatId, setting, val)
-            // refresh setting modal, if open
-            c.onNo && c.onNo(setting, newVal, val)
-            refreshSettings()
-            resetSettingCheck(setting.key)
-            return
-          }
-        }
+        })
       } else {
         c.passed = true
       }
     }
-    // passed all
+    // passed all?
+    if (checks.find(c => !c.passed)) return
     resetSettingCheck(setting.key)
     debounce = setTimeout(doSet, 250)
   }
