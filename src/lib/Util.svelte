@@ -1,4 +1,5 @@
 <script  context="module" lang="ts">
+  import { compare } from 'stacking-order'
   export const sizeTextElements = () => {
     const els = document.querySelectorAll('textarea.auto-size')
     for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
@@ -27,4 +28,24 @@
         offset
     })
   }
+
+  export const triggerModalEsc = (event:KeyboardEvent|undefined):boolean|void => {
+    if (!event || event.key !== 'Escape') return
+    const stack = Array.from(document.querySelectorAll('.modal')).filter(s =>
+      window.getComputedStyle(s).getPropertyValue('display') !== 'none'
+    )
+    const top:HTMLElement = stack.length === 1
+      ? stack[0]
+      : stack.find(m1 => {
+        return stack.find(m2 => {
+          return m1 !== m2 && compare(m1, m2) > 0 && m1
+        })
+      }) as any
+    if (top) {
+      // trigger modal-esc event on topmost modal when esc key is pressed
+      const e = new CustomEvent('modal-esc', { detail: top })
+      top.dispatchEvent(e)
+    }
+  }
+
 </script> 

@@ -9,6 +9,7 @@
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals'
+  import { triggerModalEsc } from './lib/Util.svelte'
 
   // The definition of the routes with some conditions
   const routes = {
@@ -50,6 +51,10 @@
     on:click={closeModal}
   />
 </Modals>
+
+<svelte:window
+  on:keydown={(e) => triggerModalEsc(e)}
+/>
 
 <style>
   .backdrop {

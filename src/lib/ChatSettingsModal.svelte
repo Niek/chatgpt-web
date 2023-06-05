@@ -253,7 +253,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal chat-settings" class:is-active={showSettingsModal}>
+<div class="modal chat-settings" class:is-active={showSettingsModal} on:modal-esc={closeSettings}>
   <div class="modal-background" on:click={closeSettings} />
   <div class="modal-card wide" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
@@ -322,12 +322,3 @@
 </div>
 
 <input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
-
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation()
-      closeSettings()
-    }
-  }}
-/>

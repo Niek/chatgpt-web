@@ -139,12 +139,3 @@
 </div>
 
 <input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
-
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation()
-      showChatMenu = false
-    }
-  }}
-/>

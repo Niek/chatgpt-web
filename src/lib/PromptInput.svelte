@@ -45,7 +45,7 @@
 </script>
 
 {#if isOpen}
-<div class="modal is-active">
+<div class="modal is-active" on:modal-esc={doClose}>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="modal-background" on:click={doClose} />
   <div class="modal-content nomax">
@@ -97,11 +97,11 @@
 </div>
 {/if}
 
-<svelte:window
+<!-- <svelte:window
   on:keydown={(event) => {
     if (event.key === 'Escape') {
       event.stopPropagation()
       onClose()
     }
   }}
-/>
+/> -->

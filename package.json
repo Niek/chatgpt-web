@@ -34,6 +34,7 @@
     "gpt-tokenizer": "^2.0.0",
     "postcss": "^8.4.24",
     "sass": "^1.61.0",
+    "stacking-order": "^2.0.0",
     "svelte": "^3.58.0",
     "svelte-check": "^3.4.3",
     "svelte-fa": "^3.0.3",

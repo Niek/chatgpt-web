@@ -29,7 +29,7 @@
 </script>
 
 {#if isOpen}
-<div class="modal is-active">
+<div class="modal is-active" on:modal-esc={doCancel}>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="modal-background" on:click={doCancel} />
   <div class="modal-content nomax">
@@ -59,12 +59,3 @@
   </div>
 </div>
 {/if}
-
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation()
-      doCancel()
-    }
-  }}
-/>
