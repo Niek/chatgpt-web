@@ -478,6 +478,7 @@
       value: chat.name,
       onSubmit: (value) => {
         chat.name = (value || '').trim() || chat.name
+        saveChatStore()
         $checkStateChange++
       }
     })
