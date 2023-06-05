@@ -147,12 +147,6 @@ select option.is-default {
   width: fit-content;
 }
 
-/* Show the edit button on hover of the user message */
-.user-message:hover .editbutton {
-  /* TODO: add when ready: display: block !important; */
-  text-decoration: none !important;
-}
-
 /* Swap the border on user messages to the other side */
 .user-message>.message-body {
   border-width: 0 4px 0 0 !important;
@@ -631,4 +625,16 @@ aside.menu.main-menu .menu-expanse {
 .modal-card .notification {
   margin-left: -.5em;
   margin-right: -.5em;
+}
+
+.message-footer {
+  padding: $message-header-padding;
+}
+
+.modal .message-body {
+  overflow-y: auto;max-height: calc(100vh - 150px);
+}
+
+.modal .modal-content.nomax {
+  max-height: none;
 }

@@ -476,6 +476,7 @@
       title: 'Enter Name for Chat',
       label: 'Name',
       value: chat.name,
+      class: 'is-info',
       onSubmit: (value) => {
         chat.name = (value || '').trim() || chat.name
         saveChatStore()
