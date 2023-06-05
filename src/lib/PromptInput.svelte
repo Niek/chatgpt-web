@@ -23,7 +23,7 @@
   export let placeholder:string = ''
   export let error:string = ''
   export let icon:Fa|null = null
-  let classes = ''
+  let classes:string = ''
   export { classes as class }
 
   const id = uuidv4()
