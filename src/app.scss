@@ -638,3 +638,7 @@ aside.menu.main-menu .menu-expanse {
 .modal .modal-content.nomax {
   max-height: none;
 }
+
+.modal.chat-settings .field-body {
+  max-width: calc(100% - 40px);
+}

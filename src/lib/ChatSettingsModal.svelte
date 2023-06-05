@@ -253,7 +253,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" class:is-active={showSettingsModal}>
+<div class="modal chat-settings" class:is-active={showSettingsModal}>
   <div class="modal-background" on:click={closeSettings} />
   <div class="modal-card wide" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
