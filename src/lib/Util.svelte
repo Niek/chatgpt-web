@@ -29,8 +29,12 @@
     })
   }
 
-  export const triggerModalEsc = (event:KeyboardEvent|undefined):boolean|void => {
+  export const checkModalEsc = (event:KeyboardEvent|undefined):boolean|void => {
     if (!event || event.key !== 'Escape') return
+    dispatchModalEsc()
+  }
+
+  export const dispatchModalEsc = ():boolean|void => {
     const stack = Array.from(document.querySelectorAll('.modal')).filter(s =>
       window.getComputedStyle(s).getPropertyValue('display') !== 'none'
     )

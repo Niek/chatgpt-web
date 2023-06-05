@@ -9,7 +9,7 @@
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals'
-  import { triggerModalEsc } from './lib/Util.svelte'
+  import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
 
   // The definition of the routes with some conditions
   const routes = {
@@ -31,6 +31,14 @@
 
     '*': Home
   }
+
+  const onLocationChange = (...args:any) => {
+    // close all modals on route change
+    dispatchModalEsc()
+  }
+
+  $: onLocationChange($location)
+
 </script>
 
 <Navbar />
@@ -53,7 +61,7 @@
 </Modals>
 
 <svelte:window
-  on:keydown={(e) => triggerModalEsc(e)}
+  on:keydown={(e) => checkModalEsc(e)}
 />
 
 <style>
