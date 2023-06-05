@@ -1,7 +1,7 @@
 <script lang="ts">
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
-  import { apiKeyStorage, chatsStorage, pinMainMenu } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
@@ -9,7 +9,6 @@
   import { clickOutside } from 'svelte-use-click-outside'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
-
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
   
 </script>
@@ -29,9 +28,11 @@
       {#if sortedChats.length === 0}
         <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
       {:else}
+        {#key $checkStateChange}
         {#each sortedChats as chat, i}
         <ChatMenuItem activeChatId={activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
         {/each}
+        {/key}
       {/if}
     </ul>
     <!-- <p class="menu-label">Actions</p> -->

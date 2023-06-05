@@ -40,6 +40,8 @@
   import { autoGrowInputOnEvent, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
   import Footer from './Footer.svelte'
+  import { openModal } from 'svelte-modals'
+  import PromptInput from './PromptInput.svelte'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -51,7 +53,7 @@
   let updatingMessage: string = ''
   let input: HTMLTextAreaElement
   // let settings: HTMLDivElement
-  let chatNameSettings: HTMLFormElement
+  // let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
 
@@ -469,24 +471,16 @@
     }
   }
 
-  const showChatNameSettings = () => {
-    chatNameSettings.classList.add('is-active');
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).select()
-  }
-
-  const saveChatNameSettings = () => {
-    const newChatName = (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).value
-    // save if changed
-    if (newChatName && newChatName !== chat.name) {
-      chat.name = newChatName
-      chatsStorage.set($chatsStorage)
-    }
-    closeChatNameSettings()
-  }
-
-  const closeChatNameSettings = () => {
-    chatNameSettings.classList.remove('is-active')
+  function promptRename () {
+    openModal(PromptInput, {
+      title: 'Enter Name for Chat',
+      label: 'Name',
+      value: chat.name,
+      onSubmit: (value) => {
+        chat.name = (value || '').trim() || chat.name
+        $checkStateChange++
+      }
+    })
   }
 
   const recordToggle = () => {
@@ -503,48 +497,13 @@
 
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
 
-
-<!-- rename modal -->
-<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click={closeChatNameSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Enter a new name for this chat</p>
-    </header>
-    <section class="modal-card-body">
-      <div class="field is-horizontal">
-        <div class="field-label is-normal">
-          <label class="label" for="settings-chat-name">New name:</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <input
-              class="input"
-              type="text"
-              id="settings-chat-name"
-              value={chat.name}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-    <footer class="modal-card-foot">
-      <input type="submit" class="button is-info" value="Save" />
-      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
-    </footer>
-  </div>
-</form>
-<!-- end -->
-
-
 <div class="chat-content">
 <nav class="level chat-header">
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
         <span>{chat.name || `Chat ${chat.id}`}</span>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}><Fa icon={faPenToSquare} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
         <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
         <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
@@ -617,11 +576,3 @@
     {/each}
   </div>
 </Footer>
-
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      closeChatNameSettings()
-    }
-  }}
-/>

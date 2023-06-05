@@ -8,6 +8,7 @@
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
+  import { Modals, closeModal } from 'svelte-modals'
 
   // The definition of the routes with some conditions
   const routes = {
@@ -31,7 +32,6 @@
   }
 </script>
 
-
 <Navbar />
 <div class="side-bar-column">
   <Sidebar />
@@ -41,3 +41,23 @@
     <Router {routes} on:conditionsFailed={() => replace('/')}/>
   {/key}
 </div>
+
+<Modals>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div
+    slot="backdrop"
+    class="backdrop"
+    on:click={closeModal}
+  />
+</Modals>
+
+<style>
+  .backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background: transparent
+  }
+</style>
