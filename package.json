@@ -36,7 +36,7 @@
     "svelte-local-storage-store": "^0.4.0",
     "svelte-markdown": "^0.2.3",
     "svelte-spa-router": "^3.3.0",
-    "tslib": "^2.5.0",
+    "tslib": "^2.5.3",
     "typescript": "^5.0.4",
     "vite": "^4.3.9"
   }
