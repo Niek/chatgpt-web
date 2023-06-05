@@ -86,7 +86,6 @@
 
   const refreshSettings = async () => {
     showSettingsModal && showSettings()
-    setDirty()
   }
   
   const cloneProfile = () => {
@@ -155,6 +154,7 @@
   }
   
   const showSettings = async () => {
+    setDirty()
     // Show settings modal
     showSettingsModal++
 
