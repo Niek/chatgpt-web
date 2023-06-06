@@ -37,7 +37,7 @@
   }
 
   export const dispatchModalEsc = ():boolean|void => {
-    const stack = Array.from(document.querySelectorAll('.modal')).filter(s =>
+    const stack = Array.from(document.querySelectorAll('.modal, .has-esc')).filter(s =>
       window.getComputedStyle(s).getPropertyValue('display') !== 'none'
     )
     const top:HTMLElement = stack.length === 1
