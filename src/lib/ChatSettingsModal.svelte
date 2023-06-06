@@ -33,8 +33,6 @@
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
-  import { openModal } from 'svelte-modals'
-  import PromptNotice from './PromptNotice.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -103,7 +101,7 @@
       applyProfile(chatId, clone.profile)
       refreshSettings()
     } catch (e) {
-      openModal(PromptNotice, errorNotice('Error cloning profile:', e))
+      errorNotice('Error cloning profile:', e)
     }
   }
 
@@ -117,7 +115,7 @@
       applyProfile(chatId, chat.settings.profile as any)
       refreshSettings()
     } catch (e) {
-      openModal(PromptNotice, errorNotice('Error deleting profile:', e))
+      errorNotice('Error deleting profile:', e)
     }
   }
 
@@ -140,7 +138,7 @@
         saveCustomProfile(profile)
         refreshSettings()
       } catch (e) {
-        openModal(PromptNotice, errorNotice('Unable to import profile:', e))
+        errorNotice('Unable to import profile:', e)
       }
     }
   }
@@ -203,7 +201,7 @@
       saveCustomProfile(chat.settings)
       refreshSettings()
     } catch (e) {
-      openModal(PromptNotice, errorNotice('Error saving profile:', e))
+      errorNotice('Error saving profile:', e)
     }
   }
 

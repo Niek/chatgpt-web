@@ -1,5 +1,7 @@
 <script  context="module" lang="ts">
   import { compare } from 'stacking-order'
+  import { openModal } from 'svelte-modals'
+  import PromptNotice from './PromptNotice.svelte'
   export const sizeTextElements = () => {
     const els = document.querySelectorAll('textarea.auto-size')
     for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
@@ -53,13 +55,23 @@
   }
 
   export const errorNotice = (message:string, error:Error|undefined = undefined):any => {
-    return {
+    openModal(PromptNotice, {
       title: 'Error',
       class: 'is-danger',
       message: message + (error ? '<br>' + error.message : ''),
       asHtml: true,
       onConfirm: () => {}
-    }
+    })
+  }
+  
+  export const warningNotice = (message:string, error:Error|undefined = undefined):any => {
+    openModal(PromptNotice, {
+      title: 'Warning',
+      class: 'is-warning',
+      message: message + (error ? '<br>' + error.message : ''),
+      asHtml: true,
+      onConfirm: () => {}
+    })
   }
 
 </script> 

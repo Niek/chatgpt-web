@@ -7,7 +7,7 @@
   export let message:string
   export let asHtml:boolean = false
 
-  export let onConfirm:()=>boolean|void
+  export let onConfirm:(()=>boolean|void)|null = null
 
   export let confirmButton:string = 'Okay'
   export let confirmButtonClass:string = 'is-info'

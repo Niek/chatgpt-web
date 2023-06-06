@@ -8,7 +8,7 @@
   export let asHtml:boolean = false
 
   export let onConfirm:()=>boolean|void
-  export let onCancel:()=>boolean|void
+  export let onCancel:(()=>boolean|void)|null = null
 
   export let confirmButton:string = 'Okay'
   export let confirmButtonClass:string = 'is-info'

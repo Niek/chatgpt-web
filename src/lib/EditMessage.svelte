@@ -10,7 +10,6 @@
   import { errorNotice, scrollIntoViewWithOffset } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import PromptNotice from './PromptNotice.svelte'
 
   export let message:Message
   export let chatId:number
@@ -118,7 +117,7 @@
     waitingForDeleteConfirm = 0
     if (message.summarized) {
       // is in a summary, so we're summarized
-      openModal(PromptNotice, errorNotice('Sorry, you can\'t delete a summarized message'))
+      errorNotice('Sorry, you can\'t delete a summarized message')
       return
     }
     if (message.summary) {
@@ -134,16 +133,15 @@
           try {
             deleteSummaryMessage(chatId, message.uuid)
           } catch (e) {
-            openModal(PromptNotice, errorNotice('Unable to delete summary:', e))
+            errorNotice('Unable to delete summary:', e)
           }
-        },
-        onCancel: () => {}
+        }
       })
     } else {
       try {
         deleteMessage(chatId, message.uuid)
       } catch (e) {
-        openModal(PromptNotice, errorNotice('Unable to delete:', e))
+        errorNotice('Unable to delete:', e)
       }
     }
   }
@@ -162,21 +160,21 @@
     waitingForTruncateConfirm = 0
     if (message.summarized) {
       // is in a summary, so we're summarized
-      openModal(PromptNotice, errorNotice('Sorry, you can\'t truncate a summarized message'))
+      errorNotice('Sorry, you can\'t truncate a summarized message')
       return
     }
     try {
       truncateFromMessage(chatId, message.uuid)
       $submitExitingPromptsNow = true
     } catch (e) {
-      openModal(PromptNotice, errorNotice('Unable to delete:', e))
+      errorNotice('Unable to delete:', e)
     }
   }
 
   const setSuppress = (value:boolean) => {
     if (message.summarized) {
       // is in a summary, so we're summarized
-      openModal(PromptNotice, errorNotice('Sorry, you can\'t suppress a summarized message'))
+      errorNotice('Sorry, you can\'t suppress a summarized message')
       return
     }
     message.suppress = value

@@ -68,8 +68,7 @@
           // Delete the current chat and go to the max chatId
           replace(`/chat/${newChat.id}`).then(() => { deleteChat(chatId) })
         }
-      },
-      onCancel: () => {}
+      }
     })
   }
 
@@ -83,8 +82,7 @@
       confirmButton: 'Delete ALL',
       onConfirm: () => {
         clearChats()
-      },
-      onCancel: () => {}
+      }
     })
   }
 
