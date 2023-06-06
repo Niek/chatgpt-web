@@ -17,17 +17,21 @@
     faEye,
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu } from './Storage.svelte'
+  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { restartProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
   import { clickOutside } from 'svelte-use-click-outside'
+  import { openModal } from 'svelte-modals'
+  import PromptConfirm from './PromptConfirm.svelte'
 
   export let chatId
   export const show = (showHide:boolean = true) => {
     showChatMenu = showHide
   }
   export let style: string = 'is-right'
+
+  $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
 
   let showChatMenu = false
   let chatFileInput
@@ -43,20 +47,45 @@
     }
   }
 
-  const deleteChat = () => {
+  const delChat = () => {
     close()
-    if (window.confirm('Are you sure you want to delete this chat?')) {
-      replace('/').then(() => {
-        chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId))
-      })
-    }
+    openModal(PromptConfirm, {
+      title: 'Delete Chat',
+      message: 'Are you sure you want to delete this chat?',
+      class: 'is-warning',
+      confirmButtonClass: 'is-warning',
+      confirmButton: 'Delete Chat',
+      onConfirm: () => {
+        const thisChat = getChat(chatId)
+        const thisIndex = sortedChats.indexOf(thisChat)
+        const prevChat = sortedChats[thisIndex - 1]
+        const nextChat = sortedChats[thisIndex + 1]
+        const newChat = nextChat || prevChat
+        if (!newChat) {
+          // No other chats, clear all and go to home
+          replace('/').then(() => { deleteChat(chatId) })
+        } else {
+          // Delete the current chat and go to the max chatId
+          replace(`/chat/${newChat.id}`).then(() => { deleteChat(chatId) })
+        }
+      },
+      onCancel: () => {}
+    })
   }
 
   const confirmClearChats = () => {
     close()
-    if (window.confirm('Are you sure you want to delete ALL of your chats?')) {
-      clearChats()
-    }
+    openModal(PromptConfirm, {
+      title: 'Delete ALL Chat',
+      message: 'Are you sure you want to delete ALL of your chats?',
+      class: 'is-danger',
+      confirmButtonClass: 'is-danger',
+      confirmButton: 'Delete ALL',
+      onConfirm: () => {
+        clearChats()
+      },
+      onCancel: () => {}
+    })
   }
 
   const close = () => {
@@ -116,7 +145,7 @@
         <span class="menu-icon"><Fa icon={faFileExport}/></span> Export Chat Markdown
       </a>
       <hr class="dropdown-divider">
-      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); deleteChat() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); delChat() }}>
         <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Chat
       </a>
       <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) confirmClearChats() }}>

@@ -5,6 +5,9 @@
   import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
+  import { openModal } from 'svelte-modals'
+  import PromptNotice from './PromptNotice.svelte'
+  import { errorNotice } from './Util.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const globalStorage = persisted('global', {} as GlobalSettings)
@@ -56,11 +59,11 @@
     try {
       chat = JSON.parse(json) as Chat
       if (!chat.settings || !chat.messages || isNaN(chat.id)) {
-        window.alert('Not valid Chat JSON')
+        openModal(PromptNotice, errorNotice('Not valid Chat JSON'))
         return 0
       }
     } catch (err) {
-      window.alert("Can't parse file JSON")
+      openModal(PromptNotice, errorNotice("Can't parse file JSON"))
       return 0
     }
 

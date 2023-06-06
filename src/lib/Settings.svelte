@@ -18,7 +18,7 @@ import {
 
 } from './Types.svelte'
 
-export const defaultModel:Model = 'gpt-3.5-turbo-0301'
+export const defaultModel:Model = 'gpt-3.5-turbo'
 
 export const getChatSettingList = (): ChatSetting[] => {
       return chatSettingsList
@@ -86,6 +86,8 @@ const defaults:ChatSettings = {
   systemPrompt: '',
   autoStartSession: false,
   trainingPrompts: [],
+  // useResponseAlteration: false,
+  // responseAlterations: [],
   isDirty: false
 }
 
@@ -129,8 +131,7 @@ const profileSetting: ChatSetting & SettingSelect = {
 }
 
 // Settings that will not be part of the API request
-const nonRequestSettings: ChatSetting[] = [
-      profileSetting,
+const systemPromptSettings: ChatSetting[] = [
       {
         key: 'profileName',
         name: 'Profile Name',
@@ -181,7 +182,10 @@ const nonRequestSettings: ChatSetting[] = [
         title: 'If possible, auto-start the chat session, sending a system prompt to get an initial response.',
         type: 'boolean',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
-      },
+      }
+]
+
+const summarySettings: ChatSetting[] = [
       {
         key: 'useSummarization',
         name: 'Enable Continuous Chat',
@@ -242,6 +246,54 @@ const nonRequestSettings: ChatSetting[] = [
       }
 ]
 
+// const responseAlterationSettings: ChatSetting[] = [
+//       {
+//         key: 'useResponseAlteration',
+//         name: 'Alter Responses',
+//         header: 'Automatic Response Alteration',
+//         headerClass: 'is-info',
+//         title: 'When an undesired response is encountered, try to alter it in effort to improve future responses.',
+//         type: 'boolean',
+//         hide: () => true
+//       },
+//       {
+//         key: 'responseAlterations',
+//         name: 'Alterations',
+//         title: 'Add find/replace or re-prompts.',
+//         header: 'Profile / Presets',
+//         headerClass: 'is-info',
+//         settings: [
+//           {
+//             key: 'type',
+//             type: 'select',
+//             name: 'Alteration Type',
+//             default: 'replace',
+//             options: [{
+//               value: 'replace',
+//               text: 'Regexp Find / Replace'
+//             }, {
+//               value: 'prompt',
+//               text: 'Re-prompt with Instructions'
+//             }]
+//           },
+//           {
+//             key: 'match',
+//             type: 'text',
+//             name: 'Match Expression',
+//             title: 'Regular expression used to match '
+//           },
+//           {
+//             key: 'replace',
+//             type: 'text',
+//             name: 'Alteration',
+//             title: 'Regexp Replacement or Re-prompt'
+//           }
+//         ],
+//         type: 'subset',
+//         hide: (chatId) => !getChatSettings(chatId).useResponseAlteration!
+//       }
+// ]
+
 const modelSetting: ChatSetting & SettingSelect = {
       key: 'model',
       name: 'Model',
@@ -255,7 +307,10 @@ const modelSetting: ChatSetting & SettingSelect = {
 }
 
 const chatSettingsList: ChatSetting[] = [
-      ...nonRequestSettings,
+      profileSetting,
+      ...systemPromptSettings,
+      ...summarySettings,
+      // ...responseAlterationSettings,
       modelSetting,
       {
         key: 'temperature',

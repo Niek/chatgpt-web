@@ -16,7 +16,7 @@
 
   } from './Storage.svelte'
   import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption, type ChatSettings } from './Types.svelte'
-  import { sizeTextElements } from './Util.svelte'
+  import { errorNotice, sizeTextElements } from './Util.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
     faTrash,
@@ -33,6 +33,8 @@
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
+  import { openModal } from 'svelte-modals'
+  import PromptNotice from './PromptNotice.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -101,7 +103,7 @@
       applyProfile(chatId, clone.profile)
       refreshSettings()
     } catch (e) {
-      window.alert('Error cloning profile: \n' + e.message)
+      openModal(PromptNotice, errorNotice('Error cloning profile:', e))
     }
   }
 
@@ -115,7 +117,7 @@
       applyProfile(chatId, chat.settings.profile as any)
       refreshSettings()
     } catch (e) {
-      window.alert('Error deleting profile: \n' + e.message)
+      openModal(PromptNotice, errorNotice('Error deleting profile:', e))
     }
   }
 
@@ -138,7 +140,7 @@
         saveCustomProfile(profile)
         refreshSettings()
       } catch (e) {
-        window.alert('Unable to import profile: \n' + e.message)
+        openModal(PromptNotice, errorNotice('Unable to import profile:', e))
       }
     }
   }
@@ -201,7 +203,7 @@
       saveCustomProfile(chat.settings)
       refreshSettings()
     } catch (e) {
-      window.alert('Error saving profile: \n' + e.message)
+      openModal(PromptNotice, errorNotice('Error saving profile:', e))
     }
   }
 

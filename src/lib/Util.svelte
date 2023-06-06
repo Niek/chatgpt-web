@@ -52,4 +52,14 @@
     }
   }
 
+  export const errorNotice = (message:string, error:Error|undefined = undefined):any => {
+    return {
+      title: 'Error',
+      class: 'is-danger',
+      message: message + (error ? '<br>' + error.message : ''),
+      asHtml: true,
+      onConfirm: () => {}
+    }
+  }
+
 </script> 

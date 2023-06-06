@@ -3,11 +3,12 @@
   // import { getProfile } from './Profiles.svelte'
   import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
-  import { autoGrowInputOnEvent } from './Util.svelte'
+  import { autoGrowInputOnEvent, errorNotice } from './Util.svelte'
   // import { replace } from 'svelte-spa-router'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
+  import PromptNotice from './PromptNotice.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
@@ -87,7 +88,7 @@
         (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) &&
           refreshSettings()
       } catch (e) {
-        window.alert('Unable to change:\n' + e.message)
+        openModal(PromptNotice, errorNotice('Unable to change:', e))
       }
       switch (setting.type) {
         case 'boolean':
@@ -106,7 +107,7 @@
         }
       } catch (e) {
         setChatSettingValue(chatId, setting, val)
-        window.alert('Unable to change:\n' + e.message)
+        openModal(PromptNotice, errorNotice('Unable to change:', e))
       }
       dispatch('change', setting)
     }

@@ -29,6 +29,12 @@
     suppress?: boolean;
   };
 
+  export type ResponseAlteration = {
+    type: 'prompt' | 'replace';
+    match: string;
+    replace: string;
+  }
+
   export type Request = {
     model?: Model;
     messages?: Message[];
@@ -59,6 +65,8 @@
     systemPrompt: string;
     autoStartSession: boolean;
     trainingPrompts?: Message[];
+    useResponseAlteration?: boolean;
+    responseAlterations?: ResponseAlteration[];
     isDirty?: boolean;
   } & Request;
 
@@ -157,6 +165,11 @@ type SettingBoolean = {
     getAction: (chatId:number, setting:any, value:any) => ControlAction;
   };
 
+  export type SubSetting = {
+    type: 'subset';
+    settings: any[];
+  };
+  
   export type ChatSetting = {
     key: keyof ChatSettings;
     name: string;
@@ -171,7 +184,8 @@ type SettingBoolean = {
     fieldControls?: FieldControl[];
     beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
     afterChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
-  } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther);
+  } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther | SubSetting);
+
 
   export type GlobalSetting = {
     key: keyof GlobalSettings;

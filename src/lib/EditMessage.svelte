@@ -7,7 +7,10 @@
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons/index'
-  import { scrollIntoViewWithOffset } from './Util.svelte'
+  import { errorNotice, scrollIntoViewWithOffset } from './Util.svelte'
+  import { openModal } from 'svelte-modals'
+  import PromptConfirm from './PromptConfirm.svelte'
+  import PromptNotice from './PromptNotice.svelte'
 
   export let message:Message
   export let chatId:number
@@ -115,24 +118,33 @@
     waitingForDeleteConfirm = 0
     if (message.summarized) {
       // is in a summary, so we're summarized
-      window.alert('Sorry, you can\'t delete a summarized message')
+      openModal(PromptNotice, errorNotice('Sorry, you can\'t delete a summarized message'))
       return
     }
     if (message.summary) {
       // We're linked to messages we're a summary of
-      if (window.confirm('Are you sure you want to delete this summary?\nYour session may be too long to submit again after you do.')) {
-        try {
-          deleteSummaryMessage(chatId, message.uuid)
-        } catch (e) {
-          window.alert('Unable to delete summary:\n' + e.message)
-        }
+      openModal(PromptConfirm, {
+        title: 'Delete Summary',
+        message: '<p>Are you sure you want to delete this summary?</p><p>Your session may be too long to submit again after you do.</p>',
+        asHtml: true,
+        class: 'is-warning',
+        confirmButtonClass: 'is-warning',
+        confirmButton: 'Delete Summary',
+        onConfirm: () => {
+          try {
+            deleteSummaryMessage(chatId, message.uuid)
+          } catch (e) {
+            openModal(PromptNotice, errorNotice('Unable to delete summary:', e))
+          }
+        },
+        onCancel: () => {}
+      })
+    } else {
+      try {
+        deleteMessage(chatId, message.uuid)
+      } catch (e) {
+        openModal(PromptNotice, errorNotice('Unable to delete:', e))
       }
-      return
-    }
-    try {
-      deleteMessage(chatId, message.uuid)
-    } catch (e) {
-      window.alert('Unable to delete:\n' + e.message)
     }
   }
 
@@ -150,21 +162,21 @@
     waitingForTruncateConfirm = 0
     if (message.summarized) {
       // is in a summary, so we're summarized
-      window.alert('Sorry, you can\'t truncate a summarized message')
+      openModal(PromptNotice, errorNotice('Sorry, you can\'t truncate a summarized message'))
       return
     }
     try {
       truncateFromMessage(chatId, message.uuid)
       $submitExitingPromptsNow = true
     } catch (e) {
-      window.alert('Unable to delete:\n' + e.message)
+      openModal(PromptNotice, errorNotice('Unable to delete:', e))
     }
   }
 
   const setSuppress = (value:boolean) => {
     if (message.summarized) {
       // is in a summary, so we're summarized
-      window.alert('Sorry, you can\'t suppress a summarized message')
+      openModal(PromptNotice, errorNotice('Sorry, you can\'t suppress a summarized message'))
       return
     }
     message.suppress = value
