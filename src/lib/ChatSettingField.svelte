@@ -8,7 +8,6 @@
   import Fa from 'svelte-fa/src/fa.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import PromptNotice from './PromptNotice.svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
@@ -88,7 +87,7 @@
         (typeof setting.beforeChange === 'function') && setting.beforeChange(chatId, setting, el.checked || el.value) &&
           refreshSettings()
       } catch (e) {
-        openModal(PromptNotice, errorNotice('Unable to change:', e))
+        errorNotice('Unable to change:', e)
       }
       switch (setting.type) {
         case 'boolean':
@@ -107,7 +106,7 @@
         }
       } catch (e) {
         setChatSettingValue(chatId, setting, val)
-        openModal(PromptNotice, errorNotice('Unable to change:', e))
+        errorNotice('Unable to change:', e)
       }
       dispatch('change', setting)
     }
