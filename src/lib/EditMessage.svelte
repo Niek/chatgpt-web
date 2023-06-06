@@ -69,12 +69,12 @@
   }
 
   const keydown = (event:KeyboardEvent) => {
-    // if (event.key === 'Escape') {
-    //   event.stopPropagation()
-    //   event.preventDefault()
-    //   message.content = original
-    //   editing = false
-    // }
+    if (event.key === 'Escape') {
+      event.stopPropagation()
+      event.preventDefault()
+      message.content = original
+      editing = false
+    }
   }
 
   const scrollToMessage = (uuid:string | string[] | undefined) => {
