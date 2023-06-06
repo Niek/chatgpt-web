@@ -33,6 +33,8 @@
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
+  import { openModal } from 'svelte-modals'
+  import PromptConfirm from './PromptConfirm.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -103,6 +105,17 @@
     } catch (e) {
       errorNotice('Error cloning profile:', e)
     }
+  }
+
+  const promptDeleteProfile = () => {
+    openModal(PromptConfirm, {
+      title: 'Delete Profile',
+      message: 'Are you sure you want to delete this profile?',
+      class: 'is-warning',
+      onConfirm: () => {
+        deleteProfile()
+      }
+    })
   }
 
   const deleteProfile = () => {
@@ -309,7 +322,7 @@
                   <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
                 </a>
                 <hr class="dropdown-divider">
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={deleteProfile}>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={promptDeleteProfile}>
                   <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Profile
                 </a>
               </div>

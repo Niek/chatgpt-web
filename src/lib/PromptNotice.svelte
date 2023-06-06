@@ -9,7 +9,7 @@
 
   export let onConfirm:(()=>boolean|void)|null = null
 
-  export let confirmButton:string = 'Okay'
+  export let confirmButton:string = 'Close'
   export let confirmButtonClass:string = 'is-info'
   let classes:string = ''
   export { classes as class }

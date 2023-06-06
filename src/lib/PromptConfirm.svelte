@@ -10,9 +10,9 @@
   export let onConfirm:()=>boolean|void
   export let onCancel:(()=>boolean|void)|null = null
 
-  export let confirmButton:string = 'Okay'
+  export let confirmButton:string = 'Yes'
   export let confirmButtonClass:string = 'is-info'
-  export let cancelButton:string = 'Cancel'
+  export let cancelButton:string = 'No'
   export let cancelButtonClass:string = ''
   let classes:string = ''
   export { classes as class }
