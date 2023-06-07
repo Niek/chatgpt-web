@@ -398,7 +398,7 @@
             // Remove updating indicator
             updating = 1 // hide indicator, but still signal we're updating
             updatingMessage = ''
-            console.log('ev.data', ev.data)
+            // console.log('ev.data', ev.data)
             if (!chatResponse.hasFinished()) {
               if (ev.data === '[DONE]') {
                 // ?? anything to do when "[DONE]"?
@@ -441,6 +441,7 @@
   }
 
   const addNewMessage = () => {
+    if (updating) return
     let inputMessage: Message
     const lastMessage = chat.messages[chat.messages.length - 1]
     const uuid = uuidv4()
@@ -550,6 +551,7 @@
   }
 
   const recordToggle = () => {
+    if (updating) return
     // Check if already recording - if so, stop - else start
     if (recording) {
       recognition?.stop()
@@ -619,7 +621,7 @@
       />
     </p>
     <p class="control mic" class:is-hidden={!recognition}>
-      <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
+      <button class="button" class:is-disabled={updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
         ><span class="icon"><Fa icon={faMicrophone} /></span></button
       >
     </p>
@@ -627,7 +629,7 @@
       <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
     </p>
     <p class="control queue">
-      <button title="Queue message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
+      <button title="Queue message, don't send yet" class:is-disabled={updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
     {#if updating}
     <p class="control send">
