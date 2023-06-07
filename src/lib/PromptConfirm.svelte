@@ -18,12 +18,13 @@
   export { classes as class }
 
   const doCancel = () => {
-    if (!onCancel || !onCancel()) closeModal()
+    closeModal()
+    onCancel && onCancel()
   }
 
   const doConfirm = () => {
-    onConfirm()
     closeModal()
+    onConfirm()
   }
 
 </script>

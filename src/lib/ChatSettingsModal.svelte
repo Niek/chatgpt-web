@@ -126,6 +126,7 @@
       applyProfile(chatId, chat.settings.profile as any)
       refreshSettings()
     } catch (e) {
+      console.error(e)
       errorNotice('Error deleting profile:', e)
     }
   }
