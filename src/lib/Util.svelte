@@ -21,14 +21,40 @@
     anyEl.__didAutoGrow = true // don't resize this one again unless it's via an event
   }
 
-  export const scrollIntoViewWithOffset = (element:HTMLElement, offset:number) => {
-    window.scrollTo({
-      behavior: 'smooth',
-      top:
+  export const scrollIntoViewWithOffset = (element:HTMLElement, offset:number, instant:boolean = false, bottom:boolean = false) => {
+    const behavior = instant ? 'instant' : 'smooth'
+    if (bottom) {
+      window.scrollTo({
+        behavior: behavior as any,
+        top:
+        (element.getBoundingClientRect().bottom) -
+        document.body.getBoundingClientRect().top - (window.innerHeight - offset)
+      })
+    } else {
+      window.scrollTo({
+        behavior: behavior as any,
+        top:
         element.getBoundingClientRect().top -
         document.body.getBoundingClientRect().top -
         offset
-    })
+      })
+    }
+  }
+
+  export const scrollToMessage = (uuid:string | string[] | undefined, offset:number = 60, instant:boolean = false, bottom:boolean = false) => {
+    if (Array.isArray(uuid)) {
+      uuid = uuid[0]
+    }
+    if (!uuid) {
+      console.error('Not a valid uuid', uuid)
+      return
+    }
+    const el = document.getElementById('message-' + uuid)
+    if (el) {
+      scrollIntoViewWithOffset(el, offset, instant, bottom)
+    } else {
+      console.error("Can't find element with message ID", uuid)
+    }
   }
 
   export const checkModalEsc = (event:KeyboardEvent|undefined):boolean|void => {

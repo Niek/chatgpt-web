@@ -8,17 +8,23 @@
     insertMessages,
     getChatSettingValueNullDefault,
     updateChatSettings,
-    updateRunningTotal,
     checkStateChange,
     showSetChatSettings,
-    submitExitingPromptsNow
+    submitExitingPromptsNow,
+
+    deleteMessage
+
+
   } from './Storage.svelte'
   import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
     type Request,
-    type Response,
     type Message,
-    type Chat
+    type Chat,
+    type ChatCompletionOpts,
+
+    type Usage
+
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -37,11 +43,13 @@
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
-  import { autoGrowInputOnEvent, sizeTextElements } from './Util.svelte'
+  import { autoGrowInputOnEvent, scrollToMessage, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
   import Footer from './Footer.svelte'
   import { openModal } from 'svelte-modals'
   import PromptInput from './PromptInput.svelte'
+  import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
+  import { fetchEventSource } from '@microsoft/fetch-event-source'
 
   // This makes it possible to override the OpenAI API base URL in the .env file
   const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
@@ -52,8 +60,6 @@
   let updating: boolean = false
   let updatingMessage: string = ''
   let input: HTMLTextAreaElement
-  // let settings: HTMLDivElement
-  // let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
 
@@ -141,20 +147,24 @@
   // Scroll to the bottom of the chat on update
   const focusInput = () => {
     input.focus()
-    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0)
+    setTimeout(() => scrollToBottom(), 0)
+  }
+
+  const scrollToBottom = (instant:boolean = false) => {
+    document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' })
   }
 
   // Send API request
-  const sendRequest = async (messages: Message[], summaryTarget:number|undefined = undefined, withSummary:boolean = false): Promise<Response> => {
+  const sendRequest = async (messages: Message[], opts:ChatCompletionOpts): Promise<ChatCompletionResponse> => {
     // Show updating bar
+    opts.chat = chat
+    const chatResponse = new ChatCompletionResponse(opts)
     updating = true
 
     const model = chat.settings.model || defaultModel
     const maxTokens = getModelMaxTokens(model) // max tokens for model
 
-    let response: Response
-
-    const messageFilter = (m) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
+    const messageFilter = (m:Message) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
 
     // Submit only the role and content of the messages, provide the previous messages as well for context
     let filtered = messages.filter(messageFilter)
@@ -166,8 +176,8 @@
 
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
-    if (chatSettings.useSummarization &&
-          !withSummary && !summaryTarget &&
+    if (chatSettings.useSummarization && !opts.didSummary &&
+          !opts.summaryRequest && !opts.maxTokens &&
           promptTokenCount > chatSettings.summaryThreshold) {
       // Too many tokens -- well need to sumarize some past ones else we'll run out of space
       // Get a block of past prompts we'll summarize
@@ -239,35 +249,47 @@
           summarizeReq.push(summaryMessage)
           summaryPromptSize = countPromptTokens(summarizeReq, model)
 
+          const summaryResponse:Message = {
+            role: 'assistant',
+            content: '',
+            uuid: uuidv4(),
+            streaming: opts.streaming,
+            summary: []
+          }
+          summaryResponse.usage = {
+            prompt_tokens: 0
+          } as Usage
+          summaryResponse.model = model
+
+          // Insert summary prompt
+          insertMessages(chatId, endPrompt, [summaryResponse])
+          if (opts.streaming) setTimeout(() => scrollToMessage(summaryResponse.uuid, 150, true, true), 0)
+
           // Wait for the summary completion
-          updatingMessage = 'Building Summary...'
-          const summary = await sendRequest(summarizeReq, summarySize)
-          if (summary.error) {
+          updatingMessage = 'Summarizing...'
+          const summary = await sendRequest(summarizeReq, {
+            summaryRequest: true,
+            streaming: opts.streaming,
+            maxTokens: summarySize,
+            fillMessage: summaryResponse,
+            autoAddMessages: true,
+            onMessageChange: (m) => {
+              if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
+            }
+          } as ChatCompletionOpts)
+          if (!summary.hasFinished()) await summary.promiseToFinish()
+          if (summary.hasError()) {
             // Failed to some API issue. let the original caller handle it.
+            deleteMessage(chatId, summaryResponse.uuid)
             return summary
           } else {
-            // Get response
-            const summaryPromptContent: string = summary.choices.reduce((a, c) => {
-              if (a.length > c.message.content.length) return a
-              a = c.message.content
-              return a
-            }, '')
-
             // Looks like we got our summarized messages.
             // get ids of messages we summarized
             const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
             // Mark the new summaries as such
-            const summaryPrompt:Message = {
-              role: 'assistant',
-              content: summaryPromptContent,
-              uuid: uuidv4(),
-              summary: summarizedIds,
-              usage: summary.usage,
-              model
-            }
-            const summaryIds = [summaryPrompt.uuid]
-            // Insert messages
-            insertMessages(chatId, endPrompt, [summaryPrompt])
+            summaryResponse.summary = summarizedIds
+
+            const summaryIds = [summaryResponse.uuid]
             // Disable the messages we summarized so they still show in history
             summarize.forEach((m, i) => {
               if (i - systemPad >= pinTop) {
@@ -278,7 +300,8 @@
             // Re-run request with summarized prompts
             // return { error: { message: "End for now" } } as Response
             updatingMessage = 'Continuing...'
-            return await sendRequest(chat.messages, undefined, true)
+            opts.didSummary = true
+            return await sendRequest(chat.messages, opts)
           }
         } else if (!summaryPrompt) {
           addMessage(chatId, { role: 'error', content: 'Unable to summarize. No summary prompt defined.', uuid: uuidv4() })
@@ -315,67 +338,79 @@
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
-          if (summaryTarget) {
+          if (opts.summaryRequest && opts.maxTokens) {
             // requesting summary. do overrides
-            if (setting.key === 'max_tokens') value = summaryTarget // only as large as we need for summary
-            if (setting.key === 'n') value = 1 // never more than one completion
+            if (setting.key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
+            if (setting.key === 'n') value = 1 // never more than one completion for summary
+          }
+          if (opts.streaming) {
+            /*
+            Streaming goes insane with more than one completion.
+            Doesn't seem like there's any way to separate the jumbled mess of deltas for the
+            different completions.
+            */
+            if (setting.key === 'n') value = 1
           }
           if (value !== null) acc[setting.key] = value
           return acc
         }, {})
       }
 
-      // Not working yet: a way to get the response as a stream
-      /*
-      request.stream = true
-      await fetchEventSource(apiBase + '/v1/chat/completions', {
+      request.stream = opts.streaming
+
+      chatResponse.setPromptTokenCount(promptTokenCount)
+
+      const fetchOptions = {
         method: 'POST',
         headers: {
-          Authorization:
-          `Bearer ${$apiKeyStorage}`,
+          Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(request),
-        onmessage (ev) {
-          const data = JSON.parse(ev.data)
-          console.log(data)
-        },
-        onerror (err) {
-          throw err
-        }
-      })
-      */
+        body: JSON.stringify(request)
+      }
 
-      response = await (
-        await fetch(apiBase + '/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
-            'Content-Type': 'application/json'
+      if (opts.streaming) {
+        fetchEventSource(apiBase + '/v1/chat/completions', {
+          ...fetchOptions,
+          onmessage (ev) {
+            // Remove updating indicator
+            updating = false
+            updatingMessage = ''
+            if (!chatResponse.hasFinished()) {
+              // console.log('ev.data', ev.data)
+              if (ev.data === '[DONE]') {
+                // ?? anything to do when "[DONE]"?
+              } else {
+                const data = JSON.parse(ev.data)
+                // console.log('data', data)
+                window.requestAnimationFrame(() => { chatResponse.updateFromAsyncResponse(data) })
+              }
+            }
           },
-          body: JSON.stringify(request)
+          onerror (err) {
+            throw err
+          }
+        }).catch(err => {
+          chatResponse.updateFromError(err.message)
         })
-      ).json()
+      } else {
+        const response = await fetch(apiBase + '/v1/chat/completions', fetchOptions)
+        const json = await response.json()
+  
+        // Remove updating indicator
+        updating = false
+        updatingMessage = ''
+        chatResponse.updateFromSyncResponse(json)
+      }
     } catch (e) {
-      response = { error: { message: e.message } } as Response
+      chatResponse.updateFromError(e.message)
     }
 
     // Hide updating bar
     updating = false
     updatingMessage = ''
 
-    if (!response.error) {
-      // Add response counts to usage totals
-      updateRunningTotal(chatId, response.usage, response.model)
-      // const completionTokenCount:number = response.choices.reduce((a, c) => {
-      //   // unlike the prompts, token count of the completion is just the completion.
-      //   a += encode(c.message.content).length
-      //   return a
-      // }, 0)
-      // console.log('estimated response token count', completionTokenCount)
-    }
-
-    return response
+    return chatResponse
   }
 
   const addNewMessage = () => {
@@ -395,6 +430,14 @@
     input.value = ''
     // input.blur()
     focusInput()
+  }
+
+  const tts = (text:string, recorded:boolean) => {
+    // Use TTS to read the response, if query was recorded
+    if (recorded && 'SpeechSynthesisUtterance' in window) {
+      const utterance = new SpeechSynthesisUtterance(text)
+      window.speechSynthesis.speak(utterance)
+    }
   }
 
   const submitForm = async (recorded: boolean = false, skipInput: boolean = false): Promise<void> => {
@@ -419,29 +462,18 @@
     }
     focusInput()
 
-    const response = await sendRequest(chat.messages)
-
-    if (response.error) {
-      addMessage(chatId, {
-        role: 'error',
-        content: `Error: ${response.error.message}`,
-        uuid: uuidv4()
-      })
-    } else {
-      response.choices.forEach((choice) => {
-        // Store usage and model in the message
-        choice.message.usage = response.usage
-        choice.message.model = response.model
-  
-        // Remove whitespace around the message that the OpenAI API sometimes returns
-        choice.message.content = choice.message.content.trim()
-        addMessage(chatId, choice.message)
-        // Use TTS to read the response, if query was recorded
-        if (recorded && 'SpeechSynthesisUtterance' in window) {
-          const utterance = new SpeechSynthesisUtterance(choice.message.content)
-          window.speechSynthesis.speak(utterance)
-        }
-      })
+    const response = await sendRequest(chat.messages, {
+      chat,
+      autoAddMessages: true, // Auto-add and update messages in array
+      streaming: chatSettings.stream,
+      onMessageChange: (messages) => {
+        scrollToBottom(true)
+      }
+    })
+    await response.promiseToFinish()
+    const message = response.getMessages()[0]
+    if (message) {
+      tts(message.content, recorded)
     }
     focusInput()
   }
@@ -456,17 +488,22 @@
     const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
 
-    const response = await sendRequest(suggestMessages, 20)
+    const response = await sendRequest(suggestMessages, {
+      chat,
+      autoAddMessages: false,
+      streaming: false
+    })
+    await response.promiseToFinish()
 
-    if (response.error) {
+    if (response.hasError()) {
       addMessage(chatId, {
         role: 'error',
-        content: `Unable to get suggested name: ${response.error.message}`,
+        content: `Unable to get suggested name: ${response.getError()}`,
         uuid: uuidv4()
       })
     } else {
-      response.choices.forEach((choice) => {
-        chat.name = choice.message.content
+      response.getMessages().forEach(m => {
+        chat.name = m.content
       })
     }
   }

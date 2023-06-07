@@ -60,7 +60,7 @@ const gptDefaults = {
   temperature: 1,
   top_p: 1,
   n: 1,
-  stream: false,
+  stream: true,
   stop: null,
   max_tokens: 512,
   presence_penalty: 0,
@@ -312,6 +312,12 @@ const chatSettingsList: ChatSetting[] = [
       ...summarySettings,
       // ...responseAlterationSettings,
       modelSetting,
+      {
+        key: 'stream',
+        name: 'Stream Response',
+        title: 'Stream responses as they are generated.',
+        type: 'boolean'
+      },
       {
         key: 'temperature',
         name: 'Sampling Temperature',

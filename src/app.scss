@@ -607,6 +607,20 @@ aside.menu.main-menu .menu-expanse {
   border-top-left-radius: 0px !important;
   border-bottom-left-radius: 0px !important;
 }
+.message.streaming .tool-drawer, .message.streaming .tool-drawer-mask {
+  display: none;
+}
+@keyframes cursor-blink {
+  0% {
+    opacity: 0;
+  }
+}
+
+.message.streaming .message-display p:last-of-type::after {
+  position: relative;
+  content: '❚';
+  animation: cursor-blink 1s steps(2) infinite;
+}
 
 .modal {
   z-index:100;

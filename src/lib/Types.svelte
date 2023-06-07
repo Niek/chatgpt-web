@@ -27,6 +27,8 @@
     summarized?: string[];
     summary?: string[];
     suppress?: boolean;
+    finish_reason?: string;
+    streaming?: boolean;
   };
 
   export type ResponseAlteration = {
@@ -88,6 +90,7 @@
       index: number;
       message: Message;
       finish_reason: string;
+      delta: Message;
     }[];
     usage: Usage;
     model: Model;
@@ -109,6 +112,17 @@
     data: {
       id: string;
     }[];
+  };
+
+  export type ChatCompletionOpts = {
+    chat: Chat;
+    autoAddMessages: boolean;
+    maxTokens?:number;
+    summaryRequest?:boolean;
+    didSummary?:boolean;
+    streaming?:boolean;
+    onMessageChange?: (messages: Message[]) => void;
+    fillMessage?:Message,
   };
 
   export type GlobalSettings = {

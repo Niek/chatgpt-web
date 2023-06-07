@@ -7,7 +7,7 @@
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons/index'
-  import { errorNotice, scrollIntoViewWithOffset } from './Util.svelte'
+  import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
 
@@ -43,7 +43,7 @@
   })
 
   const edit = () => {
-    if (noEdit) return
+    if (noEdit || message.streaming) return
     editing = true
     setTimeout(() => {
       const el = document.getElementById('edit-' + message.uuid)
@@ -74,22 +74,6 @@
       event.preventDefault()
       message.content = original
       editing = false
-    }
-  }
-
-  const scrollToMessage = (uuid:string | string[] | undefined) => {
-    if (Array.isArray(uuid)) {
-      uuid = uuid[0]
-    }
-    if (!uuid) {
-      console.error('Not a valid uuid', uuid)
-      return
-    }
-    const el = document.getElementById('message-' + uuid)
-    if (el) {
-      scrollIntoViewWithOffset(el, 80)
-    } else {
-      console.error("Can't find element with message ID", uuid)
     }
   }
 
@@ -146,7 +130,6 @@
     }
   }
 
-
   let waitingForTruncateConfirm:any = 0
 
   const checkTruncate = () => {
@@ -195,6 +178,7 @@
   class:summarized={message.summarized} 
   class:suppress={message.suppress} 
   class:editing={editing}
+  class:streaming={message.streaming}
 >
   <div class="message-body content">
  
@@ -210,6 +194,9 @@
         on:touchend={editOnDoubleTap}
           on:dblclick|preventDefault={() => edit()}
         >
+        {#if message.summary && !message.summary.length}
+        <p><b>Summarizing...</b></p>
+        {/if}
         <SvelteMarkdown 
           source={message.content} 
           options={markdownOptions} 

@@ -89,6 +89,7 @@
     // make sure old chat messages have UUID
     chat.messages.forEach((m) => {
       m.uuid = m.uuid || uuidv4()
+      delete m.streaming
     })
     // Make sure the usage totals object is set
     // (some earlier versions of this had different structures)
@@ -163,7 +164,10 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     if (!message.uuid) message.uuid = uuidv4()
-    chat.messages.push(message)
+    if (chat.messages.indexOf(message) < 0) {
+      // Don't have message, add it
+      chat.messages.push(message)
+    }
     chatsStorage.set(chats)
   }
 
