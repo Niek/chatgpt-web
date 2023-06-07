@@ -20,7 +20,6 @@ export class ChatCompletionResponse {
   private messages: Message[]
 
   private error: string
-  private didFinish: boolean
 
   private finishResolver: (value: Message[]) => void
   private errorResolver: (error: string) => void
@@ -32,6 +31,7 @@ export class ChatCompletionResponse {
   private promptTokenCount:number
   private finished = false
   private messageChangeListeners: ((m: Message[]) => void)[] = []
+  private finishListeners: ((m: Message[]) => void)[] = []
 
   setPromptTokenCount (tokens:number) {
     this.promptTokenCount = tokens
@@ -100,6 +100,9 @@ export class ChatCompletionResponse {
   onMessageChange = (listener: (m: Message[]) => void): number =>
     this.messageChangeListeners.push(listener)
 
+  onFinish = (listener: (m: Message[]) => void): number =>
+    this.finishListeners.push(listener)
+
   promiseToFinish = (): Promise<Message[]> => this.finishPromise
 
   hasFinished = (): boolean => this.finished
@@ -114,14 +117,20 @@ export class ChatCompletionResponse {
     })
   }
 
+  private notifyFinish (): void {
+    this.finishListeners.forEach((listener) => {
+      listener(this.messages)
+    })
+  }
+
   private finish = (): void => {
-    if (this.didFinish) return
-    this.didFinish = true
+    if (this.finished) return
+    this.finished = true
     const message = this.messages[0]
     if (message) {
       updateRunningTotal(this.chat.id, message.usage as any, message.model as any)
     }
-    this.finished = true
+    this.notifyFinish()
     if (this.error) {
       this.errorResolver(this.error)
     } else {

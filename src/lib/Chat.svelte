@@ -57,7 +57,7 @@
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
 
-  let updating: boolean = false
+  let updating: boolean|number = false
   let updatingMessage: string = ''
   let input: HTMLTextAreaElement
   let recognition: any = null
@@ -370,11 +370,12 @@
       }
 
       if (opts.streaming) {
+        chatResponse.onFinish(() => { updating = false; updatingMessage = '' })
         fetchEventSource(apiBase + '/v1/chat/completions', {
           ...fetchOptions,
           onmessage (ev) {
             // Remove updating indicator
-            updating = false
+            updating = 1 // hide indicator, but still signal we're updating
             updatingMessage = ''
             if (!chatResponse.hasFinished()) {
               // console.log('ev.data', ev.data)
@@ -403,12 +404,10 @@
         chatResponse.updateFromSyncResponse(json)
       }
     } catch (e) {
+      updating = false
+      updatingMessage = ''
       chatResponse.updateFromError(e.message)
     }
-
-    // Hide updating bar
-    updating = false
-    updatingMessage = ''
 
     return chatResponse
   }
@@ -559,7 +558,7 @@
 
 <Messages messages={chat.messages} chatId={chatId} />
 
-{#if updating}
+{#if updating === true}
   <article class="message is-success assistant-message">
     <div class="message-body content">
       <span class="is-loading" ></span>
@@ -603,7 +602,7 @@
       <button title="Queue message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
     <p class="control send">
-      <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
+      <button title="Send" class="button is-info" class:is-disabled={updating} type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
     </p>
   </form>
   <!-- a target to scroll to -->
