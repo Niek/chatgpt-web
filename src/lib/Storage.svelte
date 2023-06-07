@@ -384,6 +384,7 @@
     }
     delete store.profiles[profileId]
     globalStorage.set(store)
+    getProfiles(true) // force update profile cache
   }
 
   export const saveCustomProfile = (profile:ChatSettings) => {
