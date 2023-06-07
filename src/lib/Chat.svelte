@@ -341,14 +341,15 @@
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...getRequestSettingList().reduce((acc, setting) => {
+          const key = setting.key
           let value = getChatSettingValueNullDefault(chatId, setting)
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
           if (opts.summaryRequest && opts.maxTokens) {
             // requesting summary. do overrides
-            if (setting.key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
-            if (setting.key === 'n') value = 1 // never more than one completion for summary
+            if (key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
+            if (key === 'n') value = 1 // never more than one completion for summary
           }
           if (opts.streaming) {
             /*
@@ -356,9 +357,9 @@
             Doesn't seem like there's any way to separate the jumbled mess of deltas for the
             different completions.
             */
-            if (setting.key === 'n') value = 1
+            if (key === 'n') value = 1
           }
-          if (value !== null) acc[setting.key] = value
+          if (value !== null) acc[key] = value
           return acc
         }, {})
       }
