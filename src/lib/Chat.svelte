@@ -100,6 +100,7 @@
     // clean up
     // abort any pending requests.
     controller.abort()
+    ttsStop()
   })
 
   onMount(async () => {
@@ -460,11 +461,18 @@
     focusInput()
   }
 
-  const tts = (text:string, recorded:boolean) => {
+  const ttsStart = (text:string, recorded:boolean) => {
     // Use TTS to read the response, if query was recorded
     if (recorded && 'SpeechSynthesisUtterance' in window) {
       const utterance = new SpeechSynthesisUtterance(text)
       window.speechSynthesis.speak(utterance)
+    }
+  }
+
+  const ttsStop = () => {
+    // Use TTS to read the response, if query was recorded
+    if ('SpeechSynthesisUtterance' in window) {
+      window.speechSynthesis.cancel()
     }
   }
 
@@ -501,7 +509,7 @@
     await response.promiseToFinish()
     const message = response.getMessages()[0]
     if (message) {
-      tts(message.content, recorded)
+      ttsStart(message.content, recorded)
     }
     focusInput()
   }
@@ -551,6 +559,7 @@
   }
 
   const recordToggle = () => {
+    ttsStop()
     if (updating) return
     // Check if already recording - if so, stop - else start
     if (recording) {
