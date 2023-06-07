@@ -1,12 +1,12 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore } from './Storage.svelte'
+  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore, continueMessage } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
@@ -61,6 +61,11 @@
     if (message.content !== original) {
       dispatch('change', message)
     }
+  }
+
+  const continueIncomplete = () => {
+    editing = false
+    $continueMessage = message.uuid
   }
 
   const exit = () => {
@@ -175,10 +180,11 @@
   class:is-danger={isError}
   class:user-message={isUser || isSystem}
   class:assistant-message={isError || isAssistant}
-  class:summarized={message.summarized} 
+  class:summarized={message.summarized}
   class:suppress={message.suppress} 
   class:editing={editing}
   class:streaming={message.streaming}
+  class:incomplete={message.finish_reason === 'length'}
 >
   <div class="message-body content">
  
@@ -216,6 +222,18 @@
   <div class="tool-drawer-mask"></div>
   <div class="tool-drawer">
     <div class="button-pack">
+      {#if message.finish_reason === 'length'}
+      <a
+        href={'#'}
+        title="Continue "
+        class="msg-incomplete button is-small"
+        on:click|preventDefault={() => {
+          continueIncomplete()
+        }}
+      >
+      <span class="icon"><Fa icon={faEllipsis} /></span>
+      </a>
+      {/if}
       {#if message.summarized}
       <a
         href={'#'}

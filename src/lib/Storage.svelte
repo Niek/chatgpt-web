@@ -14,6 +14,7 @@
   export let showSetChatSettings = writable(false) //
   export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
   export let pinMainMenu = writable(false) // Show menu (for mobile use)
+  export let continueMessage = writable('') //
 
   const chatDefaults = getChatDefaults()
 
@@ -160,6 +161,24 @@
     chatsStorage.set(chats)
   }
 
+  export const subtractRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+    const chats = get(chatsStorage)
+    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    let total:Usage = chat.usage[model]
+    if (!total) {
+      total = {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0
+      }
+      chat.usage[model] = total
+    }
+    total.completion_tokens -= usage.completion_tokens
+    total.prompt_tokens -= usage.prompt_tokens
+    total.total_tokens -= usage.total_tokens
+    chatsStorage.set(chats)
+  }
+
   export const addMessage = (chatId: number, message: Message) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -177,7 +196,7 @@
     return chat.messages
   }
 
-  const getMessage = (chat: Chat, uuid:string):Message|undefined => {
+  export const getMessage = (chat: Chat, uuid:string):Message|undefined => {
     return chat.messages.find((m) => m.uuid === uuid)
   }
 
@@ -394,9 +413,14 @@
       profile.profile = uuidv4()
     }
     const clone = JSON.parse(JSON.stringify(profile)) // Always store a copy
+    // pull excluded
     Object.keys(getExcludeFromProfile()).forEach(k => {
       delete clone[k]
     })
+    // pull defaults
+    // Object.entries(getChatDefaults()).forEach(([k, v]) => {
+    //   if (clone[k] === v || (v === undefined && clone[k] === null)) delete clone[k]
+    // })
     profiles[profile.profile as string] = clone
     globalStorage.set(store)
     profile.isDirty = false

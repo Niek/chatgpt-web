@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 // TODO: Integrate API calls
-import { addMessage, saveChatStore, updateRunningTotal } from './Storage.svelte'
+import { addMessage, saveChatStore, subtractRunningTotal, updateRunningTotal } from './Storage.svelte'
 import type { Chat, ChatCompletionOpts, Message, Response, Usage } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import { v4 as uuidv4 } from 'uuid'
@@ -10,9 +10,16 @@ export class ChatCompletionResponse {
     this.opts = opts
     this.chat = opts.chat
     this.messages = []
-    if (opts.fillMessage) this.messages.push(opts.fillMessage)
+    if (opts.fillMessage) {
+      this.messages.push(opts.fillMessage)
+      this.offsetTotals = JSON.parse(JSON.stringify(opts.fillMessage.usage))
+      this.isFill = true
+    }
     if (opts.onMessageChange) this.messageChangeListeners.push(opts.onMessageChange)
   }
+
+  private offsetTotals: Usage
+  private isFill: boolean = false
 
   private opts: ChatCompletionOpts
   private chat: Chat
@@ -39,11 +46,30 @@ export class ChatCompletionResponse {
 
   updateFromSyncResponse (response: Response) {
     response.choices.forEach((choice, i) => {
-      const message = this.messages[i] || choice.message
-      message.content = choice.message.content
-      message.usage = response.usage
-      message.model = response.model
+      const exitingMessage = this.messages[i]
+      const message = exitingMessage || choice.message
+      if (exitingMessage) {
+        if (this.isFill && choice.message.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
+          // deal with merging contractions since we've added an extra space to your fill message
+          message.content.replace(/ $/, '')
+        }
+        this.isFill = false
+        message.content += choice.message.content
+        message.usage = message.usage || {
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          total_tokens: 0
+        } as Usage
+        message.usage.completion_tokens += response.usage.completion_tokens
+        message.usage.prompt_tokens += response.usage.prompt_tokens
+        message.usage.total_tokens += response.usage.total_tokens
+      } else {
+        message.content = choice.message.content
+        message.usage = response.usage
+      }
+      message.finish_reason = choice.finish_reason
       message.role = choice.message.role
+      message.model = response.model
       this.messages[i] = message
       if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
     })
@@ -60,7 +86,14 @@ export class ChatCompletionResponse {
         uuid: uuidv4()
       } as Message
       choice.delta?.role && (message.role = choice.delta.role)
-      choice.delta?.content && (message.content += choice.delta.content)
+      if (choice.delta?.content) {
+        if (this.isFill && choice.delta.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
+          // deal with merging contractions since we've added an extra space to your fill message
+          message.content.replace(/([a-z]) $/i, '$1')
+        }
+        this.isFill = false
+        message.content += choice.delta.content
+      }
       completionTokenCount += encode(message.content).length
       message.usage = response.usage || {
         prompt_tokens: this.promptTokenCount
@@ -135,6 +168,10 @@ export class ChatCompletionResponse {
     saveChatStore()
     const message = this.messages[0]
     if (message) {
+      if (this.offsetTotals) {
+        // Need to subtract some previous message totals before we add new combined message totals
+        subtractRunningTotal(this.chat.id, this.offsetTotals, this.chat.settings.model as any)
+      }
       updateRunningTotal(this.chat.id, message.usage as any, message.model as any)
     } else {
       // If no messages it's probably because of an error or user initiated abort.

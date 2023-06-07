@@ -11,17 +11,16 @@
     checkStateChange,
     showSetChatSettings,
     submitExitingPromptsNow,
-    deleteMessage
+    deleteMessage,
+    continueMessage,
+    getMessage
   } from './Storage.svelte'
   import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
     type Request,
     type Message,
     type Chat,
-    type ChatCompletionOpts,
-
-    type Usage
-
+    type ChatCompletionOpts
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -36,9 +35,7 @@
     faPenToSquare,
     faMicrophone,
     faLightbulb,
-
     faCommentSlash
-
   } from '@fortawesome/free-solid-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
@@ -62,6 +59,7 @@
   let input: HTMLTextAreaElement
   let recognition: any = null
   let recording = false
+  let lastSubmitRecorded = false
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
@@ -88,10 +86,17 @@
         $submitExitingPromptsNow = false
         submitForm(false, true)
       }
+      if ($continueMessage) {
+        const message = getMessage(chat, $continueMessage)
+        $continueMessage = ''
+        if (message && chat.messages.indexOf(message) === (chat.messages.length - 1)) {
+          submitForm(lastSubmitRecorded, true, message)
+        }
+      }
     })
   }
   
-  $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow)
+  $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
 
   // Make sure chat object is ready to go
   updateChatSettings(chatId)
@@ -263,9 +268,6 @@
             streaming: opts.streaming,
             summary: []
           }
-          summaryResponse.usage = {
-            prompt_tokens: 0
-          } as Usage
           summaryResponse.model = model
 
           // Insert summary prompt
@@ -433,6 +435,7 @@
         scrollToBottom()
       }
     } catch (e) {
+      console.error(e)
       updating = false
       updatingMessage = ''
       chatResponse.updateFromError(e.message)
@@ -477,9 +480,11 @@
     }
   }
 
-  const submitForm = async (recorded: boolean = false, skipInput: boolean = false): Promise<void> => {
+  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
     // Compose the system prompt message if there are no messages yet - disabled for now
     if (updating) return
+
+    lastSubmitRecorded = recorded
   
     if (!skipInput) {
       chat.sessionStarted = true
@@ -488,7 +493,11 @@
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
+      } else if (!fillMessage && chat.messages.length && chat.messages[chat.messages.length - 1].finish_reason === 'length') {
+        fillMessage = chat.messages[chat.messages.length - 1]
       }
+
+      if (fillMessage && fillMessage.content) fillMessage.content += ' ' // add a space
 
       // Clear the input value
       input.value = ''
@@ -503,6 +512,7 @@
       chat,
       autoAddMessages: true, // Auto-add and update messages in array
       streaming: chatSettings.stream,
+      fillMessage,
       onMessageChange: (messages) => {
         scrollToBottom(true)
       }
