@@ -57,7 +57,7 @@
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
 
-  const controller = new AbortController()
+  let controller:AbortController = new AbortController()
 
   let updating: boolean|number = false
   let updatingMessage: string = ''
@@ -380,16 +380,18 @@
         signal
       }
 
+      // fetchEventSource doesn't seem to throw on abort, so...
+      const abortListener = (e:Event) => {
+        controller = new AbortController()
+        chatResponse.updateFromError('User aborted request.')
+        signal.removeEventListener('abort', abortListener)
+      }
+      signal.addEventListener('abort', abortListener)
+
       if (opts.streaming) {
-        const abortListener = (e:Event) => {
-          chatResponse.updateFromError('User aborted request.')
-        }
-        // fetchEventSource doesn't seem to throw on abort, so...
-        signal.addEventListener('abort', abortListener)
         chatResponse.onFinish(() => {
           updating = false
           updatingMessage = ''
-          signal.removeEventListener('abort', abortListener)
           scrollToBottom()
         })
         fetchEventSource(apiBase + '/v1/chat/completions', {

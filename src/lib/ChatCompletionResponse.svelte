@@ -67,7 +67,7 @@ export class ChatCompletionResponse {
       } as Usage
       message.model = response.model
       message.finish_reason = choice.finish_reason
-      message.streaming = choice.finish_reason === null
+      message.streaming = choice.finish_reason === null && !this.finished
       this.messages[i] = message
       if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
     })
@@ -85,7 +85,7 @@ export class ChatCompletionResponse {
   }
 
   updateFromError (errorMessage: string): void {
-    if (this.finished) return
+    if (this.finished || this.error) return
     this.error = errorMessage
     if (this.opts.autoAddMessages) {
       addMessage(this.chat.id, {
@@ -95,11 +95,11 @@ export class ChatCompletionResponse {
       } as Message)
     }
     this.notifyMessageChange()
-    this.finish()
+    setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
   }
 
   updateFromClose (): void {
-    setTimeout(() => this.finish(), 100) // give others a chance to signal the finish first
+    setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
   }
 
   onMessageChange = (listener: (m: Message[]) => void): number =>
