@@ -50,9 +50,7 @@
   import PromptInput from './PromptInput.svelte'
   import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
   import { fetchEventSource } from '@microsoft/fetch-event-source'
-
-  // This makes it possible to override the OpenAI API base URL in the .env file
-  const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
+  import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
@@ -394,7 +392,7 @@
           updatingMessage = ''
           scrollToBottom()
         })
-        fetchEventSource(apiBase + '/v1/chat/completions', {
+        fetchEventSource(getApiBase() + getEndpointCompletions(), {
           ...fetchOptions,
           onmessage (ev) {
             // Remove updating indicator
@@ -423,7 +421,7 @@
           scrollToBottom()
         })
       } else {
-        const response = await fetch(apiBase + '/v1/chat/completions', fetchOptions)
+        const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
         const json = await response.json()
   
         // Remove updating indicator

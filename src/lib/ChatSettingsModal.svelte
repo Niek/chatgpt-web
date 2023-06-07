@@ -35,12 +35,10 @@
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
+  import { getApiBase, getEndpointModels } from './ApiUtil.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
-
-  // This makes it possible to override the OpenAI API base URL in the .env file
-  const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
   
   let showSettingsModal = 0
   let showProfileMenu:boolean = false
@@ -179,7 +177,7 @@
   
     // Load available models from OpenAI
     const allModels = (await (
-      await fetch(apiBase + '/v1/models', {
+      await fetch(getApiBase() + getEndpointModels(), {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${$apiKeyStorage}`,
