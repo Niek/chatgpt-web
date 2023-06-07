@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 // TODO: Integrate API calls
-import { addMessage, updateRunningTotal } from './Storage.svelte'
+import { addMessage, saveChatStore, updateRunningTotal } from './Storage.svelte'
 import type { Chat, ChatCompletionOpts, Message, Response, Usage } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import { v4 as uuidv4 } from 'uuid'
@@ -85,6 +85,7 @@ export class ChatCompletionResponse {
   }
 
   updateFromError (errorMessage: string): void {
+    if (this.finished) return
     this.error = errorMessage
     if (this.opts.autoAddMessages) {
       addMessage(this.chat.id, {
@@ -95,6 +96,10 @@ export class ChatCompletionResponse {
     }
     this.notifyMessageChange()
     this.finish()
+  }
+
+  updateFromClose (): void {
+    setTimeout(() => this.finish(), 100) // give others a chance to signal the finish first
   }
 
   onMessageChange = (listener: (m: Message[]) => void): number =>
@@ -126,9 +131,25 @@ export class ChatCompletionResponse {
   private finish = (): void => {
     if (this.finished) return
     this.finished = true
+    this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
+    saveChatStore()
     const message = this.messages[0]
     if (message) {
       updateRunningTotal(this.chat.id, message.usage as any, message.model as any)
+    } else {
+      // If no messages it's probably because of an error or user initiated abort.
+      // We could miss counting the cost of the prompts sent.
+      // To deal with this accurately, we'd need to figure out how far the request
+      // made it before ending, and that may not be practical or possible to do reliably.
+      // For now, to error on the side of caution, we'll just count the prompts we
+      // sent / attempted to send.  This will over-count in many error cases,
+      // and may under-count in others.
+      const usage:Usage = {
+        prompt_tokens: this.promptTokenCount,
+        completion_tokens: 0, // We have no idea if there are any to count
+        total_tokens: this.promptTokenCount
+      }
+      updateRunningTotal(this.chat.id, usage as any, this.chat.settings.model as any)
     }
     this.notifyFinish()
     if (this.error) {

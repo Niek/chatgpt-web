@@ -11,10 +11,7 @@
     checkStateChange,
     showSetChatSettings,
     submitExitingPromptsNow,
-
     deleteMessage
-
-
   } from './Storage.svelte'
   import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
@@ -30,7 +27,7 @@
   import Messages from './Messages.svelte'
   import { prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
 
-  import { afterUpdate, onMount } from 'svelte'
+  import { afterUpdate, onMount, onDestroy } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
     faArrowUpFromBracket,
@@ -38,7 +35,10 @@
     faGear,
     faPenToSquare,
     faMicrophone,
-    faLightbulb
+    faLightbulb,
+
+    faCommentSlash
+
   } from '@fortawesome/free-solid-svg-icons/index'
   // import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
@@ -56,6 +56,8 @@
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
+
+  const controller = new AbortController()
 
   let updating: boolean|number = false
   let updatingMessage: string = ''
@@ -95,6 +97,12 @@
 
   // Make sure chat object is ready to go
   updateChatSettings(chatId)
+
+  onDestroy(async () => {
+    // clean up
+    // abort any pending requests.
+    controller.abort()
+  })
 
   onMount(async () => {
     // Focus the input on mount
@@ -147,11 +155,11 @@
   // Scroll to the bottom of the chat on update
   const focusInput = () => {
     input.focus()
-    setTimeout(() => scrollToBottom(), 0)
+    scrollToBottom()
   }
 
   const scrollToBottom = (instant:boolean = false) => {
-    document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' })
+    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' }), 0)
   }
 
   // Send API request
@@ -360,25 +368,38 @@
 
       chatResponse.setPromptTokenCount(promptTokenCount)
 
+      const signal = controller.signal
+
       const fetchOptions = {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
+        signal
       }
 
       if (opts.streaming) {
-        chatResponse.onFinish(() => { updating = false; updatingMessage = '' })
+        const abortListener = (e:Event) => {
+          chatResponse.updateFromError('User aborted request.')
+        }
+        // fetchEventSource doesn't seem to throw on abort, so...
+        signal.addEventListener('abort', abortListener)
+        chatResponse.onFinish(() => {
+          updating = false
+          updatingMessage = ''
+          signal.removeEventListener('abort', abortListener)
+          scrollToBottom()
+        })
         fetchEventSource(apiBase + '/v1/chat/completions', {
           ...fetchOptions,
           onmessage (ev) {
             // Remove updating indicator
             updating = 1 // hide indicator, but still signal we're updating
             updatingMessage = ''
+            console.log('ev.data', ev.data)
             if (!chatResponse.hasFinished()) {
-              // console.log('ev.data', ev.data)
               if (ev.data === '[DONE]') {
                 // ?? anything to do when "[DONE]"?
               } else {
@@ -388,11 +409,16 @@
               }
             }
           },
+          onclose () {
+            chatResponse.updateFromClose()
+          },
           onerror (err) {
+            console.error(err)
             throw err
           }
         }).catch(err => {
           chatResponse.updateFromError(err.message)
+          scrollToBottom()
         })
       } else {
         const response = await fetch(apiBase + '/v1/chat/completions', fetchOptions)
@@ -402,11 +428,13 @@
         updating = false
         updatingMessage = ''
         chatResponse.updateFromSyncResponse(json)
+        scrollToBottom()
       }
     } catch (e) {
       updating = false
       updatingMessage = ''
       chatResponse.updateFromError(e.message)
+      scrollToBottom()
     }
 
     return chatResponse
@@ -601,9 +629,15 @@
     <p class="control queue">
       <button title="Queue message, don't send yet" class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
+    {#if updating}
     <p class="control send">
-      <button title="Send" class="button is-info" class:is-disabled={updating} type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
+      <button title="Cancel Response" class="button is-danger" type="button" on:click={() => { controller.abort() }}><span class="icon"><Fa icon={faCommentSlash} /></span></button>
     </p>
+    {:else}
+    <p class="control send">
+      <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
+    </p>
+    {/if}
   </form>
   <!-- a target to scroll to -->
   <div class="content has-text-centered running-total-container">
