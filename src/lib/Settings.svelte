@@ -148,7 +148,7 @@ const systemPromptSettings: ChatSetting[] = [
       },
       {
         key: 'useSystemPrompt',
-        name: 'Use Profile/System Prompt',
+        name: 'Use Character / System Prompt',
         title: 'Send a "System" prompt as the first prompt.',
         header: 'System Prompt',
         headerClass: 'is-info',
@@ -165,7 +165,7 @@ const systemPromptSettings: ChatSetting[] = [
         key: 'systemPrompt',
         name: 'System Prompt',
         title: 'First prompt to send.',
-        placeholder: 'Enter the first prompt to send here.',
+        placeholder: 'Enter the first prompt to send here.  You can tell ChatGPT how to act.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
