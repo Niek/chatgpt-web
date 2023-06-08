@@ -76,7 +76,7 @@ const defaults:ChatSettings = {
   characterName: 'ChatGPT',
   profileName: '',
   profileDescription: '',
-  useSummarization: false,
+  continuousChat: 'fifo',
   summaryThreshold: 3000,
   summarySize: 1000,
   pinTop: 0,
@@ -187,12 +187,18 @@ const systemPromptSettings: ChatSetting[] = [
 
 const summarySettings: ChatSetting[] = [
       {
-        key: 'useSummarization',
-        name: 'Enable Continuous Chat',
-        header: 'Continuous Chat - (Summarize or FIFO)',
+        key: 'continuousChat',
+        name: 'Continuous Chat',
+        header: 'Continuous Chat',
         headerClass: 'is-info',
         title: 'When out of token space, summarize or remove past prompts and keep going.',
-        type: 'boolean'
+        type: 'select',
+        options: [
+          { value: '', text: 'OFF - Chat errors when token buffer full' },
+          { value: 'fifo', text: 'First message in is first out' },
+          { value: 'summary', text: 'Summarize past messages' }
+        ],
+        afterChange: (chatId, setting) => true // refresh settings]
       },
       {
         key: 'summaryThreshold',
@@ -202,7 +208,7 @@ const summarySettings: ChatSetting[] = [
         max: 32000,
         step: 1,
         type: 'number',
-        hide: (chatId) => !getChatSettings(chatId).useSummarization!
+        hide: (chatId) => !getChatSettings(chatId).continuousChat
       },
       {
         key: 'summarySize',
@@ -212,7 +218,7 @@ const summarySettings: ChatSetting[] = [
         max: 2048,
         step: 1,
         type: 'number',
-        hide: (chatId) => !getChatSettings(chatId).useSummarization!
+        hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       },
       {
         key: 'pinTop',
@@ -222,7 +228,7 @@ const summarySettings: ChatSetting[] = [
         max: 4,
         step: 1,
         type: 'number',
-        hide: (chatId) => !getChatSettings(chatId).useSummarization!
+        hide: (chatId) => !getChatSettings(chatId).continuousChat
 
       },
       {
@@ -233,7 +239,7 @@ const summarySettings: ChatSetting[] = [
         max: 20, // Will be auto adjusted down if needs more
         step: 1,
         type: 'number',
-        hide: (chatId) => !getChatSettings(chatId).useSummarization!
+        hide: (chatId) => !getChatSettings(chatId).continuousChat
 
       },
       {
@@ -242,7 +248,7 @@ const summarySettings: ChatSetting[] = [
         title: 'A prompt used to summarize past prompts.',
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',
-        hide: (chatId) => !getChatSettings(chatId).useSummarization!
+        hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       }
 ]
 

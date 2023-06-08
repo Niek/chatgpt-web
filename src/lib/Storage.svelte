@@ -30,13 +30,13 @@
     // Find the max chatId
     const chatId = newChatID()
 
-    profile = JSON.parse(JSON.stringify(profile || getProfile('')))
+    profile = JSON.parse(JSON.stringify(profile || getProfile(''))) as ChatSettings
 
     // Add a new chat
     chats.push({
       id: chatId,
       name: `Chat ${chatId}`,
-      settings: profile as any,
+      settings: profile,
       messages: [],
       usage: {} as Record<Model, Usage>,
       startSession: false,
@@ -83,10 +83,7 @@
     if (!chat.settings) {
       chat.settings = {} as ChatSettings
     }
-    Object.entries(getChatDefaults()).forEach(([k, v]) => {
-      const val = chat.settings[k]
-      chat.settings[k] = (val === undefined || val === null ? v : chat.settings[k])
-    })
+    updateProfile(chat.settings, false)
     // make sure old chat messages have UUID
     chat.messages.forEach((m) => {
       m.uuid = m.uuid || uuidv4()
@@ -104,6 +101,32 @@
     if (chat.startSession === undefined) chat.startSession = false
     if (chat.sessionStarted === undefined) chat.sessionStarted = !!chat.messages.find(m => m.role === 'user')
     chatsStorage.set(chats)
+  }
+
+  // Make sure profile options are set with current values or defaults
+  export const updateProfile = (profile:ChatSettings, exclude:boolean):ChatSettings => {
+    Object.entries(getChatDefaults()).forEach(([k, v]) => {
+      const val = profile[k]
+      profile[k] = (val === undefined || val === null ? v : profile[k])
+    })
+    // update old useSummarization to continuousChat mode setting
+    if ('useSummarization' in profile || !('continuousChat' in profile)) {
+      const usm = profile.useSummarization
+      if (usm && !profile.summaryPrompt) {
+        profile.continuousChat = 'fifo'
+      } else if (usm) {
+        profile.continuousChat = 'summary'
+      } else {
+        profile.continuousChat = ''
+      }
+      delete profile.useSummarization
+    }
+    if (exclude) {
+      Object.keys(getExcludeFromProfile()).forEach(k => {
+        delete profile[k]
+      })
+    }
+    return profile
   }
   
   // Reset all setting to current profile defaults

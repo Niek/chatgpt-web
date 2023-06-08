@@ -11,9 +11,7 @@
     setGlobalSettingValueByKey,
     resetChatSettings,
     checkStateChange,
-
     addChat
-
   } from './Storage.svelte'
   import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption, type ChatSettings } from './Types.svelte'
   import { errorNotice, sizeTextElements } from './Util.svelte'
@@ -26,7 +24,10 @@
     faThumbtack,
     faDownload,
     faUpload,
-    faSquarePlus
+    faSquarePlus,
+
+    faRotateLeft
+
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
@@ -80,8 +81,15 @@
   }
 
   const clearSettings = () => {
-    resetChatSettings(chatId)
-    refreshSettings()
+    openModal(PromptConfirm, {
+      title: 'Reset Changes',
+      message: 'Are you sure you want to reset all changes you\'ve made to this profile?',
+      class: 'is-warning',
+      onConfirm: () => {
+        resetChatSettings(chatId)
+        refreshSettings()
+      }
+    })
   }
 
   const refreshSettings = async () => {
@@ -119,11 +127,11 @@
   const deleteProfile = () => {
     showProfileMenu = false
     try {
-      deleteCustomProfile(chatId, chat.settings.profile as any)
+      deleteCustomProfile(chatId, chat.settings.profile)
       chat.settings.profile = globalStore.defaultProfile || ''
       saveChatStore()
       setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
-      applyProfile(chatId, chat.settings.profile as any)
+      applyProfile(chatId, chat.settings.profile)
       refreshSettings()
     } catch (e) {
       console.error(e)
@@ -299,6 +307,9 @@
               <div class="dropdown-content">
                 <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={saveProfile}>
                   <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Changes
+                </a>
+                <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={clearSettings}>
+                  <span class="menu-icon"><Fa icon={faRotateLeft}/></span> Reset Changes
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
                   <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile

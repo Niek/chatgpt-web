@@ -188,10 +188,10 @@
 
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
-    if (chatSettings.useSummarization && !opts.didSummary &&
+    if (chatSettings.continuousChat && !opts.didSummary &&
           !opts.summaryRequest && !opts.maxTokens &&
           promptTokenCount > chatSettings.summaryThreshold) {
-      // Too many tokens -- well need to sumarize some past ones else we'll run out of space
+      // Too many tokens -- well need to summarize some past ones else we'll run out of space
       // Get a block of past prompts we'll summarize
       let pinTop = chatSettings.pinTop
       const tp = chatSettings.trainingPrompts
@@ -200,8 +200,8 @@
       const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
       const mlen = filtered.length - systemPad // always keep system prompt
       let diff = mlen - (pinTop + pinBottom)
-      const useRollMode = !prepareSummaryPrompt(chatId, 0)
-      if (!useRollMode) {
+      const useFIFO = chatSettings.continuousChat === 'fifo' || !prepareSummaryPrompt(chatId, 0)
+      if (!useFIFO) {
         while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
           // Not enough prompts exposed to summarize
           // try to open up pinTop and pinBottom to see if we can get more to summarize
@@ -215,7 +215,7 @@
           diff = mlen - (pinTop + pinBottom)
         }
       }
-      if (!useRollMode && diff > 0) {
+      if (!useFIFO && diff > 0) {
         // We've found at least one prompt we can try to summarize
         // Reduce to prompts we'll send in for summary
         // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
@@ -317,10 +317,10 @@
         } else if (sourceTokenCount <= 20) {
           addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough words in past content to summarize.', uuid: uuidv4() })
         }
-      } else if (!useRollMode && diff < 1) {
+      } else if (!useFIFO && diff < 1) {
         addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
       } else {
-        // roll-off mode
+        // roll-off/fifo mode
         const top = filtered.slice(0, pinTop + systemPad)
         const rollaway = filtered.slice(pinTop + systemPad)
         let promptTokenCount = countPromptTokens(top.concat(rollaway), model)
