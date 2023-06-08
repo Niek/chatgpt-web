@@ -22,8 +22,9 @@ html {
 
   --chatContentPaddingTop: 20px;
   --chatContentPaddingRight: 40px;
-  --chatContentPaddingBottom: 130px;
+  --chatContentPaddingBottom: 110px;
   --chatContentPaddingLeft: 40px;
+  --runningTotalLineHeight: 28px;
   
   --chatInputPaddingTop: 0px;
   --chatInputPaddingRight: 60px;
@@ -31,6 +32,7 @@ html {
   --chatInputPaddingLeft: 60px;
 
   --BgColor: var(-BgColorLight);
+  --running-totals: 0;
 }
 
 .navbar {
@@ -371,7 +373,7 @@ aside.menu.main-menu .menu-expanse {
   display: block;
   position: fixed;
   bottom: 0px;
-  height: var(--chatContentPaddingBottom) ;
+  height: calc(var(--chatContentPaddingBottom) + var(--runningTotalLineHeight) * var(--running-totals));
   width: 100%;
   background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%, var(--BgColorLight) 54.73%);
 }
@@ -419,7 +421,7 @@ aside.menu.main-menu .menu-expanse {
   padding: 
     var(--chatContentPaddingTop) 
     var(--chatContentPaddingRight)
-    var(--chatContentPaddingBottom)
+    calc(var(--chatContentPaddingBottom) + var(--runningTotalLineHeight) * var(--running-totals))
     var(--chatContentPaddingLeft) ;
 }
 

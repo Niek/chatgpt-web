@@ -370,7 +370,7 @@
 
       request.stream = opts.streaming
 
-      chatResponse.setPromptTokenCount(promptTokenCount)
+      chatResponse.setPromptTokenCount(promptTokenCount) // streaming needs this
 
       const signal = controller.signal
 
@@ -589,7 +589,7 @@
 </script>
 {#if chat}
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
-
+<div class="chat-page" style="--running-totals: {Object.entries(chat.usage || {}).length}">
 <div class="chat-content">
 <nav class="level chat-header">
   <div class="level-left">
@@ -676,4 +676,5 @@
     {/each}
   </div>
 </Footer>
+</div>
 {/if}

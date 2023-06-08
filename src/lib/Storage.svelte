@@ -8,6 +8,7 @@
   import { errorNotice } from './Util.svelte'
 
   export const chatsStorage = persisted('chats', [] as Chat[])
+  export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
   export const apiKeyStorage = persisted('apiKey', '' as string)
   export let checkStateChange = writable(0) // Trigger for Chat
@@ -461,6 +462,18 @@
       cname = name + `-${i}`
     }
     return cname
+  }
+
+  export const getLatestKnownModel = (model:Model) => {
+    const modelMapStore = get(latestModelMap)
+    return modelMapStore[model] || model
+  }
+
+  
+  export const setLatestKnownModel = (requestedModel:Model, responseModel:Model) => {
+    const modelMapStore = get(latestModelMap)
+    modelMapStore[requestedModel] = responseModel
+    latestModelMap.set(modelMapStore)
   }
   
 </script>

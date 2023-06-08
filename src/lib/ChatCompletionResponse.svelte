@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
 // TODO: Integrate API calls
-import { addMessage, saveChatStore, subtractRunningTotal, updateRunningTotal } from './Storage.svelte'
-import type { Chat, ChatCompletionOpts, Message, Response, Usage } from './Types.svelte'
+import { addMessage, getLatestKnownModel, saveChatStore, setLatestKnownModel, subtractRunningTotal, updateRunningTotal } from './Storage.svelte'
+import type { Chat, ChatCompletionOpts, Message, Model, Response, Usage } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -20,6 +20,7 @@ export class ChatCompletionResponse {
 
   private offsetTotals: Usage
   private isFill: boolean = false
+  private didFill: boolean = false
 
   private opts: ChatCompletionOpts
   private chat: Chat
@@ -27,6 +28,16 @@ export class ChatCompletionResponse {
   private messages: Message[]
 
   private error: string
+
+  private model: Model
+  private lastModel: Model
+
+  private setModel = (model: Model) => {
+    if (!model) return
+    !this.model && setLatestKnownModel(this.chat.settings.model as Model, model)
+    this.lastModel = this.model || model
+    this.model = model
+  }
 
   private finishResolver: (value: Message[]) => void
   private errorResolver: (error: string) => void
@@ -49,11 +60,11 @@ export class ChatCompletionResponse {
       const exitingMessage = this.messages[i]
       const message = exitingMessage || choice.message
       if (exitingMessage) {
-        if (this.isFill && choice.message.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
+        if (!this.didFill && this.isFill && choice.message.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
           // deal with merging contractions since we've added an extra space to your fill message
           message.content.replace(/ $/, '')
         }
-        this.isFill = false
+        this.didFill = true
         message.content += choice.message.content
         message.usage = message.usage || {
           prompt_tokens: 0,
@@ -61,8 +72,8 @@ export class ChatCompletionResponse {
           total_tokens: 0
         } as Usage
         message.usage.completion_tokens += response.usage.completion_tokens
-        message.usage.prompt_tokens += response.usage.prompt_tokens
-        message.usage.total_tokens += response.usage.total_tokens
+        message.usage.prompt_tokens = response.usage.prompt_tokens + (this.offsetTotals?.prompt_tokens || 0)
+        message.usage.total_tokens += response.usage.total_tokens + (this.offsetTotals?.total_tokens || 0)
       } else {
         message.content = choice.message.content
         message.usage = response.usage
@@ -70,6 +81,7 @@ export class ChatCompletionResponse {
       message.finish_reason = choice.finish_reason
       message.role = choice.message.role
       message.model = response.model
+      this.setModel(response.model)
       this.messages[i] = message
       if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
     })
@@ -87,30 +99,30 @@ export class ChatCompletionResponse {
       } as Message
       choice.delta?.role && (message.role = choice.delta.role)
       if (choice.delta?.content) {
-        if (this.isFill && choice.delta.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
+        if (!this.didFill && this.isFill && choice.delta.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
           // deal with merging contractions since we've added an extra space to your fill message
           message.content.replace(/([a-z]) $/i, '$1')
         }
-        this.isFill = false
+        this.didFill = true
         message.content += choice.delta.content
       }
       completionTokenCount += encode(message.content).length
-      message.usage = response.usage || {
-        prompt_tokens: this.promptTokenCount
-      } as Usage
       message.model = response.model
+      this.setModel(response.model)
       message.finish_reason = choice.finish_reason
       message.streaming = choice.finish_reason === null && !this.finished
       this.messages[i] = message
-      if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
     })
     // total up the tokens
-    const totalTokens = this.promptTokenCount + completionTokenCount
+    const promptTokens = this.promptTokenCount + (this.offsetTotals?.prompt_tokens || 0)
+    const totalTokens = promptTokens + completionTokenCount
     this.messages.forEach(m => {
-      if (m.usage) {
-        m.usage.completion_tokens = completionTokenCount
-        m.usage.total_tokens = totalTokens
-      }
+      m.usage = {
+        completion_tokens: completionTokenCount,
+        total_tokens: totalTokens,
+        prompt_tokens: promptTokens
+      } as Usage
+      if (this.opts.autoAddMessages) addMessage(this.chat.id, m)
     })
     const finished = !this.messages.find(m => m.streaming)
     this.notifyMessageChange()
@@ -167,12 +179,13 @@ export class ChatCompletionResponse {
     this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
     saveChatStore()
     const message = this.messages[0]
+    const model = this.model || getLatestKnownModel(this.chat.settings.model as Model)
     if (message) {
-      if (this.offsetTotals) {
+      if (this.isFill && this.lastModel === this.model && this.offsetTotals && model && message.usage) {
         // Need to subtract some previous message totals before we add new combined message totals
-        subtractRunningTotal(this.chat.id, this.offsetTotals, this.chat.settings.model as any)
+        subtractRunningTotal(this.chat.id, this.offsetTotals, model)
       }
-      updateRunningTotal(this.chat.id, message.usage as any, message.model as any)
+      updateRunningTotal(this.chat.id, message.usage as Usage, model)
     } else {
       // If no messages it's probably because of an error or user initiated abort.
       // We could miss counting the cost of the prompts sent.
@@ -186,7 +199,7 @@ export class ChatCompletionResponse {
         completion_tokens: 0, // We have no idea if there are any to count
         total_tokens: this.promptTokenCount
       }
-      updateRunningTotal(this.chat.id, usage as any, this.chat.settings.model as any)
+      updateRunningTotal(this.chat.id, usage as Usage, model)
     }
     this.notifyFinish()
     if (this.error) {
