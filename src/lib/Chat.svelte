@@ -62,11 +62,12 @@
   let lastSubmitRecorded = false
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
-  $: chatSettings = chat.settings
+  $: chatSettings = chat?.settings
   let showSettingsModal
 
   let scDelay
   const onStateChange = (...args:any) => {
+    if (!chat) return
     clearTimeout(scDelay)
     setTimeout(() => {
       if (chat.startSession) {
@@ -109,6 +110,7 @@
   })
 
   onMount(async () => {
+    if (!chat) return
     // Focus the input on mount
     focusInput()
 
@@ -585,7 +587,7 @@
   }
 
 </script>
-
+{#if chat}
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
 
 <div class="chat-content">
@@ -674,3 +676,4 @@
     {/each}
   </div>
 </Footer>
+{/if}

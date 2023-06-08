@@ -81,6 +81,7 @@
       confirmButtonClass: 'is-danger',
       confirmButton: 'Delete ALL',
       onConfirm: () => {
+        replace('/').then(() => { deleteChat(chatId) })
         clearChats()
       }
     })
