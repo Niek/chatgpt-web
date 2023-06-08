@@ -13,9 +13,7 @@ import {
       type GlobalSettings,
       type Request,
       type Model,
-
       type ControlAction
-
 } from './Types.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo'
@@ -195,10 +193,10 @@ const summarySettings: ChatSetting[] = [
         type: 'select',
         options: [
           { value: '', text: 'OFF - Chat errors when token buffer full' },
-          { value: 'fifo', text: 'First message in is first out' },
-          { value: 'summary', text: 'Summarize past messages' }
+          { value: 'fifo', text: 'FIFO - First message in is first out' },
+          { value: 'summary', text: 'Summary - Summarize past messages' }
         ],
-        afterChange: (chatId, setting) => true // refresh settings]
+        afterChange: (chatId, setting) => true // refresh settings
       },
       {
         key: 'summaryThreshold',
