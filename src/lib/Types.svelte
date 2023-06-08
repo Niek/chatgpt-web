@@ -57,7 +57,8 @@
     characterName: string,
     profileName: string,
     profileDescription: string,
-    useSummarization: boolean;
+    continuousChat: (''|'fifo'|'summary');
+    // useSummarization: boolean;
     summaryThreshold: number;
     summarySize: number;
     pinTop: number;

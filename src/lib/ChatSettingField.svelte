@@ -41,32 +41,6 @@
         },
         passed: false
       }
-      // {
-      //   prompt: 'Would you like to start a new chat session with this profile?',
-      //   checkPrompt: (setting, newVal, oldVal) => {
-      //     return chat.sessionStarted && newVal !== originalProfile &&
-      //       (getProfile(newVal).characterName !== chatSettings.characterName)
-      //   },
-      //   onYes: (setting, newVal, oldVal) => {
-      //     // start new char session, apply this profile, amd start it
-      //     setChatSettingValue(chatId, setting, oldVal)
-      //     const profile = getProfile(newVal)
-      //     const newChatId = addChat(profile)
-      //     replace(`/chat/${newChatId}`)
-      //     return true
-      //   },
-      //   onNo: (setting, newVal, oldVal) => true, // Continue on no
-      //   passed: false
-      // },
-      // {
-      //   prompt: 'Personality change will not correctly apply to existing chat session.\n Continue?',
-      //   checkPrompt: (setting, newVal, oldVal) => {
-      //     return chat.sessionStarted && newVal !== originalProfile &&
-      //       (getProfile(newVal).characterName !== chatSettings.characterName)
-      //   },
-      //   onYes: (setting, newVal, oldVal) => true,
-      //   passed: false
-      // }
     ]
   }
 
@@ -75,10 +49,7 @@
     checks && checks.forEach((c) => { c.passed = false })
   }
 
-  let debounce: any
-
   const queueSettingValueChange = (event: Event, setting: ChatSetting) => {
-    clearTimeout(debounce)
     if (event.target === null) return
     const val = chatSettings[setting.key]
     const el = (event.target as HTMLInputElement)
@@ -148,7 +119,7 @@
     // passed all?
     if (checks.find(c => !c.passed)) return
     resetSettingCheck(setting.key)
-    debounce = setTimeout(doSet, 250)
+    doSet()
   }
 
 </script>
