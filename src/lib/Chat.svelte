@@ -398,6 +398,7 @@
         })
         fetchEventSource(getApiBase() + getEndpointCompletions(), {
           ...fetchOptions,
+          openWhenHidden: true,
           onmessage (ev) {
             // Remove updating indicator
             updating = 1 // hide indicator, but still signal we're updating
