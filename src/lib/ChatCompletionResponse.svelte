@@ -12,7 +12,7 @@ export class ChatCompletionResponse {
     this.messages = []
     if (opts.fillMessage) {
       this.messages.push(opts.fillMessage)
-      this.offsetTotals = JSON.parse(JSON.stringify(opts.fillMessage.usage))
+      this.offsetTotals = opts.fillMessage.usage && JSON.parse(JSON.stringify(opts.fillMessage.usage))
       this.isFill = true
     }
     if (opts.onMessageChange) this.messageChangeListeners.push(opts.onMessageChange)
