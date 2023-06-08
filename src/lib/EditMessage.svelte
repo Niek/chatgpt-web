@@ -34,16 +34,14 @@
   let editing = false
   let original:string
   let defaultModel:Model
-  let noEdit:boolean
 
   onMount(() => {
     original = message.content
     defaultModel = chatSettings.model as any
-    noEdit = !!message.summarized
   })
 
   const edit = () => {
-    if (noEdit || message.streaming) return
+    if (message.summarized || message.streaming) return
     editing = true
     setTimeout(() => {
       const el = document.getElementById('edit-' + message.uuid)
@@ -188,7 +186,7 @@
 >
   <div class="message-body content">
  
-    {#if editing && !noEdit}
+    {#if editing}
       <form class="message-edit" on:submit|preventDefault={update} on:keydown={keydown}>
         <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
         on:input={update} on:blur={exit} />
