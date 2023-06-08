@@ -553,6 +553,8 @@
       response.getMessages().forEach(m => {
         chat.name = m.content
       })
+      saveChatStore()
+      $checkStateChange++
     }
   }
 
