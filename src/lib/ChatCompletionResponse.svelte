@@ -73,7 +73,7 @@ export class ChatCompletionResponse {
         } as Usage
         message.usage.completion_tokens += response.usage.completion_tokens
         message.usage.prompt_tokens = response.usage.prompt_tokens + (this.offsetTotals?.prompt_tokens || 0)
-        message.usage.total_tokens += response.usage.total_tokens + (this.offsetTotals?.total_tokens || 0)
+        message.usage.total_tokens = response.usage.total_tokens + (this.offsetTotals?.total_tokens || 0)
       } else {
         message.content = choice.message.content
         message.usage = response.usage
