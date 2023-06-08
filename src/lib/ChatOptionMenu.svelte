@@ -24,6 +24,7 @@
   import { clickOutside } from 'svelte-use-click-outside'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
+  import { startNewChatWithWarning } from './Util.svelte'
 
   export let chatId
   export const show = (showHide:boolean = true) => {
@@ -120,7 +121,7 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={$apiKeyStorage ? '#/chat/new' : '#/'} class:is-disabled={!$apiKeyStorage} on:click={() => close()} class="dropdown-item">
+      <a href={'#'} class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { $apiKeyStorage && close(); $apiKeyStorage && startNewChatWithWarning(chatId) }} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>

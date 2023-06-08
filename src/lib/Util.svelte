@@ -2,6 +2,9 @@
   import { compare } from 'stacking-order'
   import { openModal } from 'svelte-modals'
   import PromptNotice from './PromptNotice.svelte'
+  import { getChat } from './Storage.svelte'
+  import { replace } from 'svelte-spa-router'
+  import PromptConfirm from './PromptConfirm.svelte'
   export const sizeTextElements = () => {
     const els = document.querySelectorAll('textarea.auto-size')
     for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
@@ -98,6 +101,22 @@
       asHtml: true,
       onConfirm: () => {}
     })
+  }
+
+  export const startNewChatWithWarning = (activeChatId: number|undefined) => {
+    if (activeChatId && getChat(activeChatId).settings.isDirty) {
+      openModal(PromptConfirm, {
+        title: 'Unsaved Profile',
+        message: '<p>There are unsaved changes to your current profile that will be lost.</p><p>Discard these changes and continue with new chat?</p>',
+        asHtml: true,
+        class: 'is-warning',
+        onConfirm: () => {
+          replace('#/chat/new')
+        }
+      })
+    } else {
+      replace('#/chat/new')
+    }
   }
 
 </script> 

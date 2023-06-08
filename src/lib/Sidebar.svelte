@@ -7,10 +7,11 @@
   import ChatOptionMenu from './ChatOptionMenu.svelte'
   import logo from '../assets/logo.svg'
   import { clickOutside } from 'svelte-use-click-outside'
+  import { startNewChatWithWarning } from './Util.svelte'
 
   $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
-  
+
 </script>
 
 <aside class="menu main-menu" class:pinned={$pinMainMenu} use:clickOutside={() => { $pinMainMenu = false }}>
@@ -46,9 +47,9 @@
             ></div>
           {:else}
           <div class="level-item">
-            <a href={'#/chat/new'} class="panel-block" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
-              ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</a
-            ></div>
+            <button on:click={() => { startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
+              ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</button>
+            </div>
           {/if}
         </div>
       </li>
