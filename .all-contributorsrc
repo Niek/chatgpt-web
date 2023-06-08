@@ -127,11 +127,22 @@
         "design",
         "code"
       ]
+    },
+    {
+      "login": "felixschwamm",
+      "name": "felixschwamm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50438383?v=4",
+      "profile": "https://github.com/felixschwamm",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "files": [
     "README.md"
   ],
   "commitConvention": "angular",
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
