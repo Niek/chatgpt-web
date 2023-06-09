@@ -48,6 +48,7 @@
   import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
   import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
   import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
+  import type { ServerResponse } from 'http'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
@@ -387,6 +388,17 @@
         signal
       }
 
+      const handleError = async (response) => {
+        let errorResponse
+        try {
+          const errObj = await response.json()
+          errorResponse = errObj?.error?.code || 'Unexpected Response'
+        } catch (e) {
+          errorResponse = 'Unknown Response'
+        }
+        throw new Error(`${response.status} - ${errorResponse}`)
+      }
+
       // fetchEventSource doesn't seem to throw on abort, so...
       const abortListener = (e:Event) => {
         controller = new AbortController()
@@ -431,14 +443,7 @@
               // everything's good
             } else {
               // client-side errors are usually non-retriable:
-              let errorResponse
-              try {
-                const errObj = await response.json()
-                errorResponse = errObj?.error?.code || 'Unexpected Response'
-              } catch (e) {
-                errorResponse = 'Unknown Response'
-              }
-              throw new Error(`${response.status} - ${errorResponse}`)
+              await handleError(response)
             }
           }
         }).catch(err => {
@@ -447,18 +452,10 @@
         })
       } else {
         const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
-        const json = await response.json()
         if (!response.ok) {
-          // client-side errors are usually non-retriable:
-          let errorResponse
-          try {
-            errorResponse = json?.error?.code || 'Unexpected Response'
-          } catch (e) {
-            errorResponse = 'Unknown Response'
-          }
-          throw new Error(`${response.status} - ${errorResponse}`)
+          await handleError(response)
         }
-  
+        const json = await response.json()
         // Remove updating indicator
         updating = false
         updatingMessage = ''
