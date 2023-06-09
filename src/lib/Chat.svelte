@@ -46,7 +46,7 @@
   import { openModal } from 'svelte-modals'
   import PromptInput from './PromptInput.svelte'
   import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
-  import { fetchEventSource } from '@microsoft/fetch-event-source'
+  import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
   import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
 
   export let params = { chatId: '' }
@@ -263,6 +263,7 @@
           summarizeReq.push(summaryMessage)
           summaryPromptSize = countPromptTokens(summarizeReq, model)
 
+          // Create a message the summary will be loaded into
           const summaryResponse:Message = {
             role: 'assistant',
             content: '',
@@ -272,7 +273,7 @@
           }
           summaryResponse.model = model
 
-          // Insert summary prompt
+          // Insert summary completion prompt
           insertMessages(chatId, endPrompt, [summaryResponse])
           if (opts.streaming) setTimeout(() => scrollToMessage(summaryResponse.uuid, 150, true, true), 0)
 
@@ -374,6 +375,8 @@
 
       const signal = controller.signal
 
+      console.log('apikey', $apiKeyStorage)
+
       const fetchOptions = {
         method: 'POST',
         headers: {
@@ -422,6 +425,21 @@
           onerror (err) {
             console.error(err)
             throw err
+          },
+          async onopen (response) {
+            if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+              // everything's good
+            } else {
+              // client-side errors are usually non-retriable:
+              let errorResponse
+              try {
+                const errObj = await response.json()
+                errorResponse = errObj?.error?.code || 'Unexpected Response'
+              } catch (e) {
+                errorResponse = 'Unknown Response'
+              }
+              throw new Error(`${response.status} - ${errorResponse}`)
+            }
           }
         }).catch(err => {
           chatResponse.updateFromError(err.message)
@@ -430,6 +448,16 @@
       } else {
         const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
         const json = await response.json()
+        if (!response.ok) {
+          // client-side errors are usually non-retriable:
+          let errorResponse
+          try {
+            errorResponse = json?.error?.code || 'Unexpected Response'
+          } catch (e) {
+            errorResponse = 'Unknown Response'
+          }
+          throw new Error(`${response.status} - ${errorResponse}`)
+        }
   
         // Remove updating indicator
         updating = false
@@ -438,7 +466,7 @@
         scrollToBottom()
       }
     } catch (e) {
-      console.error(e)
+      // console.error(e)
       updating = false
       updatingMessage = ''
       chatResponse.updateFromError(e.message)
