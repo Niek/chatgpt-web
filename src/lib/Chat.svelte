@@ -555,7 +555,7 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Can you give me a 5 word summary of this conversation's topic?",
+      content: "Using appropriate language, please give a 5 word summary of this conversation's topic.",
       uuid: uuidv4()
     }
 
@@ -565,7 +565,9 @@
     const response = await sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
-      streaming: false
+      streaming: false,
+      summaryRequest: true,
+      maxTokens: 10
     })
     await response.promiseToFinish()
 
@@ -577,10 +579,10 @@
       })
     } else {
       response.getMessages().forEach(m => {
-        chat.name = m.content
+        const name = m.content.split(/\s+/).slice(0, 8).join(' ').trim()
+        if (name) chat.name = name
       })
       saveChatStore()
-      $checkStateChange++
     }
   }
 
