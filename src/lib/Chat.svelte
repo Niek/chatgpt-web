@@ -502,7 +502,6 @@
   }
 
   const ttsStop = () => {
-    // Use TTS to read the response, if query was recorded
     if ('SpeechSynthesisUtterance' in window) {
       window.speechSynthesis.cancel()
     }
