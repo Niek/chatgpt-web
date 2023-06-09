@@ -191,6 +191,7 @@
     const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
   
     if (hiddenPromptPrefix && filtered.length && filtered[filtered.length - 1].role === 'user') {
+      // update estimate with hiddenPromptPrefix token count
       promptTokenCount += encode(hiddenPromptPrefix + '\n\n').length
     }
 
@@ -346,17 +347,21 @@
       }
     }
 
+    const messagePayload = filtered.map((m, i) => {
+      const r = { role: m.role, content: m.content }
+      if (i === filtered.length - 1 && m.role === 'user' && hiddenPromptPrefix && !opts.summaryRequest) {
+        // If the last prompt is a user prompt, and we have a hiddenPromptPrefix, inject it
+        r.content = hiddenPromptPrefix + '\n\n' + m.content
+      }
+      return r
+    }) as Message[]
+
+    // Update token count with actual
+    promptTokenCount = countPromptTokens(messagePayload, model)
+
     try {
       const request: Request = {
-        messages: filtered.map((m, i) => {
-          const r = { role: m.role, content: m.content }
-          if (i === filtered.length - 1 && m.role === 'user' && hiddenPromptPrefix && !opts.summaryRequest) {
-            // If the last prompt is a user prompt, and we have a hiddenPromptPrefix, inject it
-            r.content = hiddenPromptPrefix + '\n\n' + m.content
-          }
-          return r
-        }) as Message[],
-
+        messages: messagePayload,
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...getRequestSettingList().reduce((acc, setting) => {
           const key = setting.key
@@ -403,7 +408,11 @@
         let errorResponse
         try {
           const errObj = await response.json()
-          errorResponse = errObj?.error?.code || 'Unexpected Response'
+          errorResponse = errObj?.error?.code
+          if (!errorResponse && response.choices && response.choices[0]) {
+            errorResponse = response.choices[0]?.message?.content
+          }
+          errorResponse = errorResponse || 'Unexpected Response'
         } catch (e) {
           errorResponse = 'Unknown Response'
         }
