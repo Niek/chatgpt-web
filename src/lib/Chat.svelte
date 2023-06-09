@@ -37,7 +37,7 @@
     faLightbulb,
     faCommentSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  // import { encode } from 'gpt-tokenizer'
+  import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
   import { autoGrowInputOnEvent, scrollToMessage, sizeTextElements } from './Util.svelte'
@@ -184,11 +184,15 @@
     let filtered = messages.filter(messageFilter)
   
     // Get an estimate of the total prompt size we're sending
-    const promptTokenCount:number = countPromptTokens(filtered, model)
+    let promptTokenCount:number = countPromptTokens(filtered, model)
   
     let summarySize = chatSettings.summarySize
 
     const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
+  
+    if (hiddenPromptPrefix && filtered.length && filtered[filtered.length - 1].role === 'user') {
+      promptTokenCount += encode(hiddenPromptPrefix + '\n\n').length
+    }
 
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
