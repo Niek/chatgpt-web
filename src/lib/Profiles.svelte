@@ -70,22 +70,25 @@ export const getProfile = (key:string, forReset:boolean = false):ChatSettings =>
     return clone
 }
 
+export const mergeProfileFields = (settings: ChatSettings, content: string|undefined, maxWords: number|undefined = undefined): string => {
+    if (!content?.toString) return ''
+    content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'ChatGPT')
+    if (maxWords) content = (content + '').replaceAll('[[MAX_WORDS]]', maxWords.toString())
+    return content
+}
+
 export const prepareProfilePrompt = (chatId:number) => {
     const settings = getChatSettings(chatId)
-    const characterName = settings.characterName
-    const currentProfilePrompt = settings.systemPrompt
-    return currentProfilePrompt.replaceAll('[[CHARACTER_NAME]]', characterName)
+    return mergeProfileFields(settings, settings.systemPrompt).trim()
 }
 
 export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxTokens:number|undefined = undefined) => {
     const settings = getChatSettings(chatId)
-    const characterName = settings.characterName || 'ChatGPT'
     maxTokens = maxTokens || settings.summarySize
     maxTokens = Math.min(Math.floor(promptsSize / 4), maxTokens) // Make sure we're shrinking by at least a 4th
     const currentSummaryPrompt = settings.summaryPrompt
-    return currentSummaryPrompt
-      .replaceAll('[[CHARACTER_NAME]]', characterName)
-      .replaceAll('[[MAX_WORDS]]', Math.floor(maxTokens * 0.75).toString()) // ~.75 words per token.  May need to reduce
+    // ~.75 words per token.  May need to reduce
+    return mergeProfileFields(settings, currentSummaryPrompt, Math.floor(maxTokens * 0.75)).trim()
 }
 
 // Restart currently loaded profile

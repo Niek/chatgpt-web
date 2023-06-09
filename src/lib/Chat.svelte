@@ -24,7 +24,7 @@
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
+  import { mergeProfileFields, prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
 
   import { afterUpdate, onMount, onDestroy } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
@@ -188,6 +188,8 @@
   
     let summarySize = chatSettings.summarySize
 
+    const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
+
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
     if (chatSettings.continuousChat && !opts.didSummary &&
@@ -342,7 +344,14 @@
 
     try {
       const request: Request = {
-        messages: filtered.map(m => { return { role: m.role, content: m.content } }) as Message[],
+        messages: filtered.map((m, i) => {
+          const r = { role: m.role, content: m.content }
+          if (i === filtered.length - 1 && m.role === 'user' && hiddenPromptPrefix && !opts.summaryRequest) {
+            // If the last prompt is a user prompt, and we have a hiddenPromptPrefix, inject it
+            r.content = hiddenPromptPrefix + '\n\n' + m.content
+          }
+          return r
+        }) as Message[],
 
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...getRequestSettingList().reduce((acc, setting) => {
@@ -351,16 +360,15 @@
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
-          if (opts.summaryRequest && opts.maxTokens) {
-            // requesting summary. do overrides
-            if (key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
-            if (key === 'n') value = 1 // never more than one completion for summary
+          if (opts.maxTokens) {
+            if (key === 'max_tokens') value = opts.maxTokens // only as large as requested
           }
-          if (opts.streaming) {
+          if (opts.streaming || opts.summaryRequest) {
             /*
             Streaming goes insane with more than one completion.
             Doesn't seem like there's any way to separate the jumbled mess of deltas for the
             different completions.
+            Summary should only have one completion
             */
             if (key === 'n') value = 1
           }

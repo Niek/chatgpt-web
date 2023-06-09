@@ -84,6 +84,7 @@ const defaults:ChatSettings = {
   systemPrompt: '',
   autoStartSession: false,
   trainingPrompts: [],
+  hiddenPromptPrefix: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -164,6 +165,14 @@ const systemPromptSettings: ChatSetting[] = [
         name: 'System Prompt',
         title: 'First prompt to send.',
         placeholder: 'Enter the first prompt to send here.  You can tell ChatGPT how to act.',
+        type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
+      },
+      {
+        key: 'hiddenPromptPrefix',
+        name: 'Hidden Prompt Prefix',
+        title: 'A prompt that will be silently injected before every user prompt.',
+        placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
