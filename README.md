@@ -79,6 +79,9 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/shivan2418"><img src="https://avatars.githubusercontent.com/u/40603805?v=4?s=100" width="100px;" alt="Emil Elgaard"/><br /><sub><b>Emil Elgaard</b></sub></a><br /><a href="#ideas-shivan2418" title="Ideas, Planning, & Feedback">🤔</a> <a href="#design-shivan2418" title="Design">🎨</a> <a href="https://github.com/Niek/chatgpt-web/commits?author=shivan2418" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/felixschwamm"><img src="https://avatars.githubusercontent.com/u/50438383?v=4?s=100" width="100px;" alt="felixschwamm"/><br /><sub><b>felixschwamm</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=felixschwamm" title="Code">💻</a> <a href="#ideas-felixschwamm" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Webifi"><img src="https://avatars.githubusercontent.com/u/5082671?v=4?s=100" width="100px;" alt="Webifi"/><br /><sub><b>Webifi</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Webifi" title="Code">💻</a> <a href="#ideas-Webifi" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
   </tbody>
 </table>
 
