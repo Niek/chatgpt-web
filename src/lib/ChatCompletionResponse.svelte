@@ -56,6 +56,7 @@ export class ChatCompletionResponse {
   }
 
   updateFromSyncResponse (response: Response) {
+    this.setModel(response.model)
     response.choices.forEach((choice, i) => {
       const exitingMessage = this.messages[i]
       const message = exitingMessage || choice.message
@@ -81,7 +82,6 @@ export class ChatCompletionResponse {
       message.finish_reason = choice.finish_reason
       message.role = choice.message.role
       message.model = response.model
-      this.setModel(response.model)
       this.messages[i] = message
       if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
     })
@@ -91,6 +91,7 @@ export class ChatCompletionResponse {
 
   updateFromAsyncResponse (response: Response) {
     let completionTokenCount = 0
+    this.setModel(response.model)
     response.choices.forEach((choice, i) => {
       const message = this.messages[i] || {
         role: 'assistant',
@@ -108,7 +109,6 @@ export class ChatCompletionResponse {
       }
       completionTokenCount += encode(message.content).length
       message.model = response.model
-      this.setModel(response.model)
       message.finish_reason = choice.finish_reason
       message.streaming = choice.finish_reason === null && !this.finished
       this.messages[i] = message
@@ -186,14 +186,11 @@ export class ChatCompletionResponse {
         subtractRunningTotal(this.chat.id, this.offsetTotals, model)
       }
       updateRunningTotal(this.chat.id, message.usage as Usage, model)
-    } else {
+    } else if (this.model) {
       // If no messages it's probably because of an error or user initiated abort.
-      // We could miss counting the cost of the prompts sent.
-      // To deal with this accurately, we'd need to figure out how far the request
-      // made it before ending, and that may not be practical or possible to do reliably.
-      // For now, to error on the side of caution, we'll just count the prompts we
-      // sent / attempted to send.  This will over-count in many error cases,
-      // and may under-count in others.
+      // this.model is set when we received a valid response. If we've made it that
+      //  far, we'll assume we've been charged for the prompts sent.
+      // This could under-count in some cases.
       const usage:Usage = {
         prompt_tokens: this.promptTokenCount,
         completion_tokens: 0, // We have no idea if there are any to count
