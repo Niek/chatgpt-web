@@ -5,7 +5,8 @@ services:
     container_name: chatgpt_web
     restart: always
     depends_on:
-      - mocked_api
+    #   - mocked_api
+      - llama_api
     env_file:
       - .env
     ports:
@@ -16,11 +17,19 @@ services:
       context: "."
       dockerfile: Dockerfile
 
-  mocked_api:
-    container_name: mocked_api
-    build:
-        context: "."
-        dockerfile: mocked_api/Dockerfile-mockapi
-    restart: always
+  # mocked_api:
+  #   container_name: mocked_api
+  #   build:
+  #       context: "."
+  #       dockerfile: mocked_api/Dockerfile-mockapi
+  #   restart: always
+  #   ports:
+  #     - 5174:5174
+
+  llama_api:
+    image:   quay.io/go-skynet/llama-cli:latest
     ports:
-      - 5174:5174
+      - 5174:8080
+    volumes:
+      - ./models/:/models:cached
+    command: api --context-size 700 --threads 10 --models-path /models/7B --default-model /models/7B/ggml-vicuna-7b-4bit.bin
