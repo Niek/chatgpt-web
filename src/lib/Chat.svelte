@@ -48,7 +48,6 @@
   import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
   import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
   import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
-  import type { ServerResponse } from 'http'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
