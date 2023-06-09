@@ -1,126 +1,118 @@
 <script lang="ts">
-  // import { fetchEventSource } from '@microsoft/fetch-event-source'
-
-  import { apiKeyStorage, chatsStorage, addMessage, clearMessages } from './Storage.svelte'
+  // This beast needs to be broken down into multiple components before it gets any worse.
+  import {
+    saveChatStore,
+    apiKeyStorage,
+    chatsStorage,
+    addMessage,
+    insertMessages,
+    getChatSettingValueNullDefault,
+    updateChatSettings,
+    checkStateChange,
+    showSetChatSettings,
+    submitExitingPromptsNow,
+    deleteMessage,
+    continueMessage,
+    getMessage
+  } from './Storage.svelte'
+  import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
     type Request,
-    type Response,
     type Message,
-    type Settings,
-    type ResponseModels,
-    type SettingsSelect,
     type Chat,
-    supportedModels
+    type ChatCompletionOpts
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
+  import { prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
 
-  import { afterUpdate, onMount } from 'svelte'
-  import { replace } from 'svelte-spa-router'
-
-  // This makes it possible to override the OpenAI API base URL in the .env file
-  const apiBase = import.meta.env.VITE_API_BASE || 'https://api.openai.com'
+  import { afterUpdate, onMount, onDestroy } from 'svelte'
+  import Fa from 'svelte-fa/src/fa.svelte'
+  import {
+    faArrowUpFromBracket,
+    faPaperPlane,
+    faGear,
+    faPenToSquare,
+    faMicrophone,
+    faLightbulb,
+    faCommentSlash
+  } from '@fortawesome/free-solid-svg-icons/index'
+  // import { encode } from 'gpt-tokenizer'
+  import { v4 as uuidv4 } from 'uuid'
+  import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
+  import { autoGrowInputOnEvent, scrollToMessage, sizeTextElements } from './Util.svelte'
+  import ChatSettingsModal from './ChatSettingsModal.svelte'
+  import Footer from './Footer.svelte'
+  import { openModal } from 'svelte-modals'
+  import PromptInput from './PromptInput.svelte'
+  import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
+  import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
+  import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
-  
-  let updating: boolean = false
+
+  let controller:AbortController = new AbortController()
+
+  let updating: boolean|number = false
+  let updatingMessage: string = ''
   let input: HTMLTextAreaElement
-  let settings: HTMLDivElement
-  let chatNameSettings: HTMLFormElement
   let recognition: any = null
   let recording = false
-
-  const modelSetting: Settings & SettingsSelect = {
-    key: 'model',
-    name: 'Model',
-    default: 'gpt-3.5-turbo',
-    title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-    options: supportedModels,
-    type: 'select'
-  }
-
-  let settingsMap: Settings[] = [
-    modelSetting,
-    {
-      key: 'temperature',
-      name: 'Sampling Temperature',
-      default: 1,
-      title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
-              '\n' +
-              'We generally recommend altering this or top_p but not both.',
-      min: 0,
-      max: 2,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'top_p',
-      name: 'Nucleus Sampling',
-      default: 1,
-      title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
-              '\n' +
-              'We generally recommend altering this or temperature but not both',
-      min: 0,
-      max: 1,
-      step: 0.1,
-      type: 'number'
-    },
-    {
-      key: 'n',
-      name: 'Number of Messages',
-      default: 1,
-      title: 'How many chat completion choices to generate for each input message.',
-      min: 1,
-      max: 10,
-      step: 1,
-      type: 'number'
-    },
-    {
-      key: 'max_tokens',
-      name: 'Max Tokens',
-      title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
-      default: 0,
-      min: 0,
-      max: 32768,
-      step: 1024,
-      type: 'number'
-    },
-    {
-      key: 'presence_penalty',
-      name: 'Presence Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    },
-    {
-      key: 'frequency_penalty',
-      name: 'Frequency Penalty',
-      default: 0,
-      title: 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.',
-      min: -2,
-      max: 2,
-      step: 0.2,
-      type: 'number'
-    }
-  ]
+  let lastSubmitRecorded = false
 
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
+  $: chatSettings = chat?.settings
+  let showSettingsModal
+
+  let scDelay
+  const onStateChange = (...args:any) => {
+    if (!chat) return
+    clearTimeout(scDelay)
+    setTimeout(() => {
+      if (chat.startSession) {
+        restartProfile(chatId)
+        if (chat.startSession) {
+          chat.startSession = false
+          saveChatStore()
+          // Auto start the session
+          submitForm(false, true)
+        }
+      }
+      if ($showSetChatSettings) {
+        $showSetChatSettings = false
+        showSettingsModal()
+      }
+      if ($submitExitingPromptsNow) {
+        $submitExitingPromptsNow = false
+        submitForm(false, true)
+      }
+      if ($continueMessage) {
+        const message = getMessage(chat, $continueMessage)
+        $continueMessage = ''
+        if (message && chat.messages.indexOf(message) === (chat.messages.length - 1)) {
+          submitForm(lastSubmitRecorded, true, message)
+        }
+      }
+    })
+  }
+  
+  $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
+
+  // Make sure chat object is ready to go
+  updateChatSettings(chatId)
+
+  onDestroy(async () => {
+    // clean up
+    // abort any pending requests.
+    controller.abort()
+    ttsStop()
+  })
 
   onMount(async () => {
-    // Pre-select the last used model
-    if (chat.messages.length > 0) {
-      modelSetting.default = chat.messages[chat.messages.length - 1].model || modelSetting.default
-      settingsMap = settingsMap
-    }
-
+    if (!chat) return
     // Focus the input on mount
-    input.focus()
+    focusInput()
 
     // Try to detect speech recognition support
     if ('SpeechRecognition' in window) {
@@ -148,214 +140,467 @@
     } else {
       console.log('Speech recognition not supported')
     }
+    if (chat.startSession) {
+      restartProfile(chatId)
+      if (chat.startSession) {
+        chat.startSession = false
+        saveChatStore()
+        // Auto start the session
+        setTimeout(() => { submitForm(false, true) }, 0)
+      }
+    }
   })
 
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
+    sizeTextElements()
     // Scroll to the bottom of the page after any updates to the messages array
-    document.querySelector('#content')?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-    input.focus()
+    // focusInput()
   })
 
+  // Scroll to the bottom of the chat on update
+  const focusInput = () => {
+    input.focus()
+    scrollToBottom()
+  }
+
+  const scrollToBottom = (instant:boolean = false) => {
+    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' }), 0)
+  }
 
   // Send API request
-  const sendRequest = async (messages: Message[]): Promise<Response> => {
+  const sendRequest = async (messages: Message[], opts:ChatCompletionOpts): Promise<ChatCompletionResponse> => {
     // Show updating bar
+    opts.chat = chat
+    const chatResponse = new ChatCompletionResponse(opts)
     updating = true
 
-    let response: Response
+    const model = chat.settings.model || defaultModel
+    const maxTokens = getModelMaxTokens(model) // max tokens for model
+
+    const messageFilter = (m:Message) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
+
+    // Submit only the role and content of the messages, provide the previous messages as well for context
+    let filtered = messages.filter(messageFilter)
+  
+    // Get an estimate of the total prompt size we're sending
+    const promptTokenCount:number = countPromptTokens(filtered, model)
+  
+    let summarySize = chatSettings.summarySize
+
+    // console.log('Estimated',promptTokenCount,'prompt token for this request')
+
+    if (chatSettings.continuousChat && !opts.didSummary &&
+          !opts.summaryRequest && !opts.maxTokens &&
+          promptTokenCount > chatSettings.summaryThreshold) {
+      // Too many tokens -- well need to summarize some past ones else we'll run out of space
+      // Get a block of past prompts we'll summarize
+      let pinTop = chatSettings.pinTop
+      const tp = chatSettings.trainingPrompts
+      pinTop = Math.max(pinTop, tp ? 1 : 0)
+      let pinBottom = chatSettings.pinBottom
+      const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
+      const mlen = filtered.length - systemPad // always keep system prompt
+      let diff = mlen - (pinTop + pinBottom)
+      const useFIFO = chatSettings.continuousChat === 'fifo' || !prepareSummaryPrompt(chatId, 0)
+      if (!useFIFO) {
+        while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
+          // Not enough prompts exposed to summarize
+          // try to open up pinTop and pinBottom to see if we can get more to summarize
+          if (pinTop === 1 && pinBottom > 1) {
+            // If we have a pin top, try to keep some of it as long as we can
+            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+          } else {
+            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
+            pinTop = Math.max(Math.floor(pinTop / 2), 0)
+          }
+          diff = mlen - (pinTop + pinBottom)
+        }
+      }
+      if (!useFIFO && diff > 0) {
+        // We've found at least one prompt we can try to summarize
+        // Reduce to prompts we'll send in for summary
+        // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
+        const summarize = filtered.slice(0, filtered.length - pinBottom)
+        // Estimate token count of what we'll be summarizing
+        let sourceTokenCount = countPromptTokens(summarize, model)
+        // build summary prompt message
+        let summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+  
+        const summaryMessage = {
+          role: 'user',
+          content: summaryPrompt
+        } as Message
+        // get an estimate of how many tokens this request + max completions could be
+        let summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
+        // reduce summary size to make sure we're not requesting a summary larger than our prompts
+        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        // Make sure our prompt + completion request isn't too large
+        while (summarize.length - (pinTop + systemPad) >= 3 && summaryPromptSize + summarySize > maxTokens && summarySize >= 4) {
+          summarize.pop()
+          sourceTokenCount = countPromptTokens(summarize, model)
+          summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
+          summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        }
+        // See if we have to adjust our max summarySize
+        if (summaryPromptSize + summarySize > maxTokens) {
+          summarySize = maxTokens - summaryPromptSize
+        }
+        // Always try to end the prompts being summarized with a user prompt.  Seems to work better.
+        while (summarize.length - (pinTop + systemPad) >= 4 && summarize[summarize.length - 1].role !== 'user') {
+          summarize.pop()
+        }
+        // update with actual
+        sourceTokenCount = countPromptTokens(summarize, model)
+        summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
+        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
+        summaryMessage.content = summaryPrompt
+        if (sourceTokenCount > 20 && summaryPrompt && summarySize > 4) {
+          // get prompt we'll be inserting after
+          const endPrompt = summarize[summarize.length - 1]
+          // Add a prompt to ask to summarize them
+          const summarizeReq = summarize.slice()
+          summarizeReq.push(summaryMessage)
+          summaryPromptSize = countPromptTokens(summarizeReq, model)
+
+          // Create a message the summary will be loaded into
+          const summaryResponse:Message = {
+            role: 'assistant',
+            content: '',
+            uuid: uuidv4(),
+            streaming: opts.streaming,
+            summary: []
+          }
+          summaryResponse.model = model
+
+          // Insert summary completion prompt
+          insertMessages(chatId, endPrompt, [summaryResponse])
+          if (opts.streaming) setTimeout(() => scrollToMessage(summaryResponse.uuid, 150, true, true), 0)
+
+          // Wait for the summary completion
+          updatingMessage = 'Summarizing...'
+          const summary = await sendRequest(summarizeReq, {
+            summaryRequest: true,
+            streaming: opts.streaming,
+            maxTokens: summarySize,
+            fillMessage: summaryResponse,
+            autoAddMessages: true,
+            onMessageChange: (m) => {
+              if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
+            }
+          } as ChatCompletionOpts)
+          if (!summary.hasFinished()) await summary.promiseToFinish()
+          if (summary.hasError()) {
+            // Failed to some API issue. let the original caller handle it.
+            deleteMessage(chatId, summaryResponse.uuid)
+            return summary
+          } else {
+            // Looks like we got our summarized messages.
+            // get ids of messages we summarized
+            const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
+            // Mark the new summaries as such
+            summaryResponse.summary = summarizedIds
+
+            const summaryIds = [summaryResponse.uuid]
+            // Disable the messages we summarized so they still show in history
+            summarize.forEach((m, i) => {
+              if (i - systemPad >= pinTop) {
+                m.summarized = summaryIds
+              }
+            })
+            saveChatStore()
+            // Re-run request with summarized prompts
+            // return { error: { message: "End for now" } } as Response
+            updatingMessage = 'Continuing...'
+            opts.didSummary = true
+            return await sendRequest(chat.messages, opts)
+          }
+        } else if (!summaryPrompt) {
+          addMessage(chatId, { role: 'error', content: 'Unable to summarize. No summary prompt defined.', uuid: uuidv4() })
+        } else if (sourceTokenCount <= 20) {
+          addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough words in past content to summarize.', uuid: uuidv4() })
+        }
+      } else if (!useFIFO && diff < 1) {
+        addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
+      } else {
+        // roll-off/fifo mode
+        const top = filtered.slice(0, pinTop + systemPad)
+        const rollaway = filtered.slice(pinTop + systemPad)
+        let promptTokenCount = countPromptTokens(top.concat(rollaway), model)
+        // suppress messages we're rolling off
+        while (rollaway.length > (((promptTokenCount + (chatSettings.max_tokens || 1)) > maxTokens) ? pinBottom || 1 : 1) &&
+            promptTokenCount >= chatSettings.summaryThreshold) {
+          const rollOff = rollaway.shift()
+          if (rollOff) rollOff.suppress = true
+          promptTokenCount = countPromptTokens(top.concat(rollaway), model)
+        }
+        saveChatStore()
+        // get a new list now excluding them
+        filtered = messages.filter(messageFilter)
+      }
+    }
+
     try {
       const request: Request = {
-        // Submit only the role and content of the messages, provide the previous messages as well for context
-        messages: messages
-          .map((message): Message => {
-            const { role, content } = message
-            return { role, content }
-          })
-          // Skip error messages
-          .filter((message) => message.role !== 'error'),
+        messages: filtered.map(m => { return { role: m.role, content: m.content } }) as Message[],
 
         // Provide the settings by mapping the settingsMap to key/value pairs
-        ...settingsMap.reduce((acc, setting) => {
-          const value = (settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement).value
-          if (value) {
-            acc[setting.key] = setting.type === 'number' ? parseFloat(value) : value
+        ...getRequestSettingList().reduce((acc, setting) => {
+          const key = setting.key
+          let value = getChatSettingValueNullDefault(chatId, setting)
+          if (typeof setting.apiTransform === 'function') {
+            value = setting.apiTransform(chatId, setting, value)
           }
+          if (opts.summaryRequest && opts.maxTokens) {
+            // requesting summary. do overrides
+            if (key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
+            if (key === 'n') value = 1 // never more than one completion for summary
+          }
+          if (opts.streaming) {
+            /*
+            Streaming goes insane with more than one completion.
+            Doesn't seem like there's any way to separate the jumbled mess of deltas for the
+            different completions.
+            */
+            if (key === 'n') value = 1
+          }
+          if (value !== null) acc[key] = value
           return acc
         }, {})
       }
 
-      // Not working yet: a way to get the response as a stream
-      /*
-      request.stream = true
-      await fetchEventSource(apiBase + '/v1/chat/completions', {
+      request.stream = opts.streaming
+
+      chatResponse.setPromptTokenCount(promptTokenCount) // streaming needs this
+
+      const signal = controller.signal
+
+      console.log('apikey', $apiKeyStorage)
+
+      const fetchOptions = {
         method: 'POST',
         headers: {
-          Authorization:
-          `Bearer ${$apiKeyStorage}`,
+          Authorization: `Bearer ${$apiKeyStorage}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(request),
-        onmessage (ev) {
-          const data = JSON.parse(ev.data)
-          console.log(data)
-        },
-        onerror (err) {
-          throw err
-        }
-      })
-      */
+        signal
+      }
 
-      response = await (
-        await fetch(apiBase + '/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${$apiKeyStorage}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(request)
+      const handleError = async (response) => {
+        let errorResponse
+        try {
+          const errObj = await response.json()
+          errorResponse = errObj?.error?.code || 'Unexpected Response'
+        } catch (e) {
+          errorResponse = 'Unknown Response'
+        }
+        throw new Error(`${response.status} - ${errorResponse}`)
+      }
+
+      // fetchEventSource doesn't seem to throw on abort, so...
+      const abortListener = (e:Event) => {
+        controller = new AbortController()
+        chatResponse.updateFromError('User aborted request.')
+        signal.removeEventListener('abort', abortListener)
+      }
+      signal.addEventListener('abort', abortListener)
+
+      if (opts.streaming) {
+        chatResponse.onFinish(() => {
+          updating = false
+          updatingMessage = ''
+          scrollToBottom()
         })
-      ).json()
+        fetchEventSource(getApiBase() + getEndpointCompletions(), {
+          ...fetchOptions,
+          openWhenHidden: true,
+          onmessage (ev) {
+            // Remove updating indicator
+            updating = 1 // hide indicator, but still signal we're updating
+            updatingMessage = ''
+            // console.log('ev.data', ev.data)
+            if (!chatResponse.hasFinished()) {
+              if (ev.data === '[DONE]') {
+                // ?? anything to do when "[DONE]"?
+              } else {
+                const data = JSON.parse(ev.data)
+                // console.log('data', data)
+                window.requestAnimationFrame(() => { chatResponse.updateFromAsyncResponse(data) })
+              }
+            }
+          },
+          onclose () {
+            chatResponse.updateFromClose()
+          },
+          onerror (err) {
+            console.error(err)
+            throw err
+          },
+          async onopen (response) {
+            if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+              // everything's good
+            } else {
+              // client-side errors are usually non-retriable:
+              await handleError(response)
+            }
+          }
+        }).catch(err => {
+          chatResponse.updateFromError(err.message)
+          scrollToBottom()
+        })
+      } else {
+        const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
+        if (!response.ok) {
+          await handleError(response)
+        } else {
+          const json = await response.json()
+          // Remove updating indicator
+          updating = false
+          updatingMessage = ''
+          chatResponse.updateFromSyncResponse(json)
+          scrollToBottom()
+        }
+      }
     } catch (e) {
-      response = { error: { message: e.message } } as Response
+      // console.error(e)
+      updating = false
+      updatingMessage = ''
+      chatResponse.updateFromError(e.message)
+      scrollToBottom()
     }
 
-    // Hide updating bar
-    updating = false
-
-    return response
+    return chatResponse
   }
 
-
-  const submitForm = async (recorded: boolean = false): Promise<void> => {
-    // Compose the system prompt message if there are no messages yet - disabled for now
-    /*
+  const addNewMessage = () => {
+    if (updating) return
+    let inputMessage: Message
+    const lastMessage = chat.messages[chat.messages.length - 1]
+    const uuid = uuidv4()
     if (chat.messages.length === 0) {
-      const systemPrompt: Message = { role: 'system', content: 'You are a helpful assistant.' }
-      addMessage(chatId, systemPrompt)
+      inputMessage = { role: 'system', content: input.value, uuid }
+    } else if (lastMessage && lastMessage.role === 'user') {
+      inputMessage = { role: 'assistant', content: input.value, uuid }
+    } else {
+      inputMessage = { role: 'user', content: input.value, uuid }
     }
-    */
-  
-    // Compose the input message
-    const inputMessage: Message = { role: 'user', content: input.value }
     addMessage(chatId, inputMessage)
 
     // Clear the input value
     input.value = ''
-    input.blur()
+    // input.blur()
+    focusInput()
+  }
 
-    // Resize back to single line height
-    input.style.height = 'auto'
-
-    const response = await sendRequest(chat.messages)
-
-    if (response.error) {
-      addMessage(chatId, {
-        role: 'error',
-        content: `Error: ${response.error.message}`
-      })
-    } else {
-      response.choices.forEach((choice) => {
-        // Store usage and model in the message
-        choice.message.usage = response.usage
-        choice.message.model = response.model
-  
-        // Remove whitespace around the message that the OpenAI API sometimes returns
-        choice.message.content = choice.message.content.trim()
-        addMessage(chatId, choice.message)
-        // Use TTS to read the response, if query was recorded
-        if (recorded && 'SpeechSynthesisUtterance' in window) {
-          const utterance = new SpeechSynthesisUtterance(choice.message.content)
-          window.speechSynthesis.speak(utterance)
-        }
-      })
+  const ttsStart = (text:string, recorded:boolean) => {
+    // Use TTS to read the response, if query was recorded
+    if (recorded && 'SpeechSynthesisUtterance' in window) {
+      const utterance = new SpeechSynthesisUtterance(text)
+      window.speechSynthesis.speak(utterance)
     }
+  }
+
+  const ttsStop = () => {
+    if ('SpeechSynthesisUtterance' in window) {
+      window.speechSynthesis.cancel()
+    }
+  }
+
+  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
+    // Compose the system prompt message if there are no messages yet - disabled for now
+    if (updating) return
+
+    lastSubmitRecorded = recorded
+  
+    if (!skipInput) {
+      chat.sessionStarted = true
+      saveChatStore()
+      if (input.value !== '') {
+        // Compose the input message
+        const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
+        addMessage(chatId, inputMessage)
+      } else if (!fillMessage && chat.messages.length && chat.messages[chat.messages.length - 1].finish_reason === 'length') {
+        fillMessage = chat.messages[chat.messages.length - 1]
+      }
+
+      if (fillMessage && fillMessage.content) fillMessage.content += ' ' // add a space
+
+      // Clear the input value
+      input.value = ''
+      input.blur()
+  
+      // Resize back to single line height
+      input.style.height = 'auto'
+    }
+    focusInput()
+
+    const response = await sendRequest(chat.messages, {
+      chat,
+      autoAddMessages: true, // Auto-add and update messages in array
+      streaming: chatSettings.stream,
+      fillMessage,
+      onMessageChange: (messages) => {
+        scrollToBottom(true)
+      }
+    })
+    await response.promiseToFinish()
+    const message = response.getMessages()[0]
+    if (message) {
+      ttsStart(message.content, recorded)
+    }
+    focusInput()
   }
 
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Can you give me a 5 word summary of this conversation's topic?"
+      content: "Can you give me a 5 word summary of this conversation's topic?",
+      uuid: uuidv4()
     }
-    addMessage(chatId, suggestMessage)
 
-    const response = await sendRequest(chat.messages)
+    const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
+    suggestMessages.push(suggestMessage)
 
-    if (response.error) {
+    const response = await sendRequest(suggestMessages, {
+      chat,
+      autoAddMessages: false,
+      streaming: false
+    })
+    await response.promiseToFinish()
+
+    if (response.hasError()) {
       addMessage(chatId, {
         role: 'error',
-        content: `Error: ${response.error.message}`
+        content: `Unable to get suggested name: ${response.getError()}`,
+        uuid: uuidv4()
       })
     } else {
-      response.choices.forEach((choice) => {
-        choice.message.usage = response.usage
-        addMessage(chatId, choice.message)
-        chat.name = choice.message.content
-        chatsStorage.set($chatsStorage)
+      response.getMessages().forEach(m => {
+        chat.name = m.content
       })
+      saveChatStore()
+      $checkStateChange++
     }
   }
 
-  const deleteChat = () => {
-    if (window.confirm('Are you sure you want to delete this chat?')) {
-      replace('/').then(() => {
-        chatsStorage.update((chats) => chats.filter((chat) => chat.id !== chatId))
-      })
-    }
-  }
-
-  const showChatNameSettings = () => {
-    chatNameSettings.classList.add('is-active');
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).focus();
-    (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).select()
-  }
-
-  const saveChatNameSettings = () => {
-    const newChatName = (chatNameSettings.querySelector('#settings-chat-name') as HTMLInputElement).value
-    // save if changed
-    if (newChatName && newChatName !== chat.name) {
-      chat.name = newChatName
-      chatsStorage.set($chatsStorage)
-    }
-    closeChatNameSettings()
-  }
-
-  const closeChatNameSettings = () => {
-    chatNameSettings.classList.remove('is-active')
-  }
-
-  const showSettings = async () => {
-    settings.classList.add('is-active')
-
-    // Load available models from OpenAI
-    const allModels = (await (
-      await fetch(apiBase + '/v1/models', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    ).json()) as ResponseModels
-    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
-
-    // Update the models in the settings
-    modelSetting.options = filteredModels
-    settingsMap = settingsMap
-  }
-
-  const closeSettings = () => {
-    settings.classList.remove('is-active')
-  }
-
-  const clearSettings = () => {
-    settingsMap.forEach((setting) => {
-      const input = settings.querySelector(`#settings-${setting.key}`) as HTMLInputElement
-      input.value = ''
+  function promptRename () {
+    openModal(PromptInput, {
+      title: 'Enter Name for Chat',
+      label: 'Name',
+      value: chat.name,
+      class: 'is-info',
+      onSubmit: (value) => {
+        chat.name = (value || '').trim() || chat.name
+        saveChatStore()
+        $checkStateChange++
+      }
     })
   }
 
   const recordToggle = () => {
+    ttsStop()
+    if (updating) return
     // Check if already recording - if so, stop - else start
     if (recording) {
       recognition?.stop()
@@ -364,163 +609,96 @@
       recognition?.start()
     }
   }
-</script>
 
+</script>
+{#if chat}
+<ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
+<div class="chat-page" style="--running-totals: {Object.entries(chat.usage || {}).length}">
+<div class="chat-content">
 <nav class="level chat-header">
   <div class="level-left">
     <div class="level-item">
       <p class="subtitle is-5">
-        {chat.name || `Chat ${chat.id}`}
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={showChatNameSettings}>✏️</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}>💡</a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}>🗑️</a>
+        <span>{chat.name || `Chat ${chat.id}`}</span>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
+        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
+        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
       </p>
     </div>
   </div>
 
   <div class="level-right">
-    <p class="level-item">
-      <button class="button is-warning" on:click={() => { clearMessages(chatId) }}><span class="greyscale mr-2">🗑️</span> Clear messages</button>
-    </p>
+    <div class="level-item">
+      <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
+    </div>
   </div>
 </nav>
 
-<Messages bind:input messages={chat.messages} defaultModel={modelSetting.default} />
+<Messages messages={chat.messages} chatId={chatId} />
 
-{#if updating}
+{#if updating === true}
   <article class="message is-success assistant-message">
     <div class="message-body content">
-      <span class="is-loading" />
+      <span class="is-loading" ></span>
+      <span>{updatingMessage}</span>
     </div>
   </article>
 {/if}
 
-{#if chat.messages.length === 0}
+{#if chat.messages.length === 0 || (chat.messages.length === 1 && chat.messages[0].role === 'system')}
   <Prompts bind:input />
 {/if}
-
-<form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
-  <p class="control is-expanded">
-    <textarea
-      class="input is-info is-focused chat-input"
-      placeholder="Type your message here..."
-      rows="1"
-      on:keydown={(e) => {
-        // Only send if Enter is pressed, not Shift+Enter
-        if (e.key === 'Enter' && !e.shiftKey) {
-          submitForm()
-          e.preventDefault()
-        }
-      }}
-      on:input={(e) => {
-        // Resize the textarea to fit the content - auto is important to reset the height after deleting content
-        input.style.height = 'auto'
-        input.style.height = input.scrollHeight + 'px'
-      }}
-      bind:this={input}
-    />
-  </p>
-  <p class="control" class:is-hidden={!recognition}>
-    <button class="button" class:is-pulse={recording} on:click|preventDefault={recordToggle}
-      ><span class="greyscale">🎤</span></button
-    >
-  </p>
-  <p class="control">
-    <button class="button" on:click|preventDefault={showSettings}><span class="greyscale">⚙️</span></button>
-  </p>
-  <p class="control">
-    <button class="button is-info" type="submit">Send</button>
-  </p>
-</form>
-
-<svelte:window
-  on:keydown={(event) => {
-    if (event.key === 'Escape') {
-      closeSettings()
-      closeChatNameSettings()
-    }
-  }}
-/>
-
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="modal" bind:this={settings}>
-  <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Settings</p>
-    </header>
-    <section class="modal-card-body">
-      <p class="notification is-warning">Below are the settings that OpenAI allows to be changed for the API calls. See the <a href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.</p>
-      {#each settingsMap as setting}
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label" for="settings-{setting.key}">{setting.name}</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              {#if setting.type === 'number'}
-                <input
-                  class="input"
-                  inputmode="decimal"
-                  type={setting.type}
-                  title="{setting.title}"
-                  id="settings-{setting.key}"
-                  min={setting.min}
-                  max={setting.max}
-                  step={setting.step}
-                  placeholder={String(setting.default)}
-                />
-              {:else if setting.type === 'select'}
-                <div class="select">
-                  <select id="settings-{setting.key}" title="{setting.title}">
-                    {#each setting.options as option}
-                      <option value={option} selected={option === setting.default}>{option}</option>
-                    {/each}
-                  </select>
-                </div>
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/each}
-    </section>
-
-    <footer class="modal-card-foot">
-      <button class="button is-info" on:click={closeSettings}>Close settings</button>
-      <button class="button" on:click={clearSettings}>Clear settings</button>
-    </footer>
-  </div>
 </div>
-
-<!-- rename modal -->
-<form class="modal" bind:this={chatNameSettings} on:submit={saveChatNameSettings}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click={closeChatNameSettings} />
-  <div class="modal-card">
-    <header class="modal-card-head">
-      <p class="modal-card-title">Enter a new name for this chat</p>
-    </header>
-    <section class="modal-card-body">
-      <div class="field is-horizontal">
-        <div class="field-label is-normal">
-          <label class="label" for="settings-chat-name">New name:</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <input
-              class="input"
-              type="text"
-              id="settings-chat-name"
-              value={chat.name}
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-    <footer class="modal-card-foot">
-      <input type="submit" class="button is-info" value="Save" />
-      <button class="button" on:click={closeChatNameSettings}>Cancel</button>
-    </footer>
+<Footer class="prompt-input-container" strongMask={true}>
+  <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
+    <p class="control is-expanded">
+      <textarea
+        class="input is-info is-focused chat-input auto-size"
+        placeholder="Type your message here..."
+        rows="1"
+        on:keydown={e => {
+          // Only send if Enter is pressed, not Shift+Enter
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.stopPropagation()
+            submitForm()
+            e.preventDefault()
+          }
+        }}
+        on:input={e => autoGrowInputOnEvent(e)}
+        bind:this={input}
+      />
+    </p>
+    <p class="control mic" class:is-hidden={!recognition}>
+      <button class="button" class:is-disabled={updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
+        ><span class="icon"><Fa icon={faMicrophone} /></span></button
+      >
+    </p>
+    <p class="control settings">
+      <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
+    </p>
+    <p class="control queue">
+      <button title="Queue message, don't send yet" class:is-disabled={updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
+    </p>
+    {#if updating}
+    <p class="control send">
+      <button title="Cancel Response" class="button is-danger" type="button" on:click={() => { controller.abort() }}><span class="icon"><Fa icon={faCommentSlash} /></span></button>
+    </p>
+    {:else}
+    <p class="control send">
+      <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
+    </p>
+    {/if}
+  </form>
+  <!-- a target to scroll to -->
+  <div class="content has-text-centered running-total-container">
+    {#each Object.entries(chat.usage || {}) as [model, usage]}
+    <p class="is-size-7 running-totals">
+      <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+      tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
+    </p>
+    {/each}
   </div>
-</form>
-<!-- end -->
+</Footer>
+</div>
+{/if}
