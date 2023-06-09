@@ -453,13 +453,14 @@
         const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
         if (!response.ok) {
           await handleError(response)
+        } else {
+          const json = await response.json()
+          // Remove updating indicator
+          updating = false
+          updatingMessage = ''
+          chatResponse.updateFromSyncResponse(json)
+          scrollToBottom()
         }
-        const json = await response.json()
-        // Remove updating indicator
-        updating = false
-        updatingMessage = ''
-        chatResponse.updateFromSyncResponse(json)
-        scrollToBottom()
       }
     } catch (e) {
       // console.error(e)
