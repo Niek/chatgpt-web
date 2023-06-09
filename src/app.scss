@@ -231,16 +231,16 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 
 .menu-list {
   a:hover {
-    .delete-button {
+    .delete-button, .edit-button {
       display: block !important;
       background-color: initial;
     }
   }
-  .delete-button {
+  .delete-button, .edit-button {
     opacity: .8;
   }
   
-  .delete-button:hover {
+  .delete-button:hover, .edit-button {
     opacity: 1;
   }
 }
@@ -319,6 +319,17 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   position: absolute;
   right: .4em;
   z-index: 200;
+}
+
+.chat-menu-item .edit-button {
+  position: absolute;
+  right: 2em;
+  z-index: 200;
+}
+
+.chat-name-editor {
+  margin: .5em;
+  padding:.1em;
 }
 
 /* Overrides for main layout  */
