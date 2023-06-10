@@ -58,7 +58,6 @@
     profileName: string,
     profileDescription: string,
     continuousChat: (''|'fifo'|'summary');
-    // useSummarization: boolean;
     summaryThreshold: number;
     summarySize: number;
     pinTop: number;
@@ -67,6 +66,7 @@
     useSystemPrompt: boolean;
     systemPrompt: string;
     autoStartSession: boolean;
+    hiddenPromptPrefix: string;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];

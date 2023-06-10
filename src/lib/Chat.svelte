@@ -24,7 +24,7 @@
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
+  import { mergeProfileFields, prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
 
   import { afterUpdate, onMount, onDestroy } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
@@ -37,7 +37,7 @@
     faLightbulb,
     faCommentSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  // import { encode } from 'gpt-tokenizer'
+  import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
   import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
   import { autoGrowInputOnEvent, scrollToMessage, sizeTextElements } from './Util.svelte'
@@ -184,9 +184,16 @@
     let filtered = messages.filter(messageFilter)
   
     // Get an estimate of the total prompt size we're sending
-    const promptTokenCount:number = countPromptTokens(filtered, model)
+    let promptTokenCount:number = countPromptTokens(filtered, model)
   
     let summarySize = chatSettings.summarySize
+
+    const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
+  
+    if (hiddenPromptPrefix && filtered.length && filtered[filtered.length - 1].role === 'user') {
+      // update estimate with hiddenPromptPrefix token count
+      promptTokenCount += encode(hiddenPromptPrefix + '\n\n').length
+    }
 
     // console.log('Estimated',promptTokenCount,'prompt token for this request')
 
@@ -340,10 +347,21 @@
       }
     }
 
+    const messagePayload = filtered.map((m, i) => {
+      const r = { role: m.role, content: m.content }
+      if (i === filtered.length - 1 && m.role === 'user' && hiddenPromptPrefix && !opts.summaryRequest) {
+        // If the last prompt is a user prompt, and we have a hiddenPromptPrefix, inject it
+        r.content = hiddenPromptPrefix + '\n\n' + m.content
+      }
+      return r
+    }) as Message[]
+
+    // Update token count with actual
+    promptTokenCount = countPromptTokens(messagePayload, model)
+
     try {
       const request: Request = {
-        messages: filtered.map(m => { return { role: m.role, content: m.content } }) as Message[],
-
+        messages: messagePayload,
         // Provide the settings by mapping the settingsMap to key/value pairs
         ...getRequestSettingList().reduce((acc, setting) => {
           const key = setting.key
@@ -351,16 +369,15 @@
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
-          if (opts.summaryRequest && opts.maxTokens) {
-            // requesting summary. do overrides
-            if (key === 'max_tokens') value = opts.maxTokens // only as large as we need for summary
-            if (key === 'n') value = 1 // never more than one completion for summary
+          if (opts.maxTokens) {
+            if (key === 'max_tokens') value = opts.maxTokens // only as large as requested
           }
-          if (opts.streaming) {
+          if (opts.streaming || opts.summaryRequest) {
             /*
             Streaming goes insane with more than one completion.
             Doesn't seem like there's any way to separate the jumbled mess of deltas for the
             different completions.
+            Summary should only have one completion
             */
             if (key === 'n') value = 1
           }
@@ -391,7 +408,11 @@
         let errorResponse
         try {
           const errObj = await response.json()
-          errorResponse = errObj?.error?.code || 'Unexpected Response'
+          errorResponse = errObj?.error?.code
+          if (!errorResponse && response.choices && response.choices[0]) {
+            errorResponse = response.choices[0]?.message?.content
+          }
+          errorResponse = errorResponse || 'Unexpected Response'
         } catch (e) {
           errorResponse = 'Unknown Response'
         }
@@ -555,7 +576,7 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Can you give me a 5 word summary of this conversation's topic?",
+      content: "Using appropriate language, please give a 5 word summary of this conversation's topic.",
       uuid: uuidv4()
     }
 
@@ -565,7 +586,9 @@
     const response = await sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
-      streaming: false
+      streaming: false,
+      summaryRequest: true,
+      maxTokens: 10
     })
     await response.promiseToFinish()
 
@@ -577,10 +600,10 @@
       })
     } else {
       response.getMessages().forEach(m => {
-        chat.name = m.content
+        const name = m.content.split(/\s+/).slice(0, 8).join(' ').trim()
+        if (name) chat.name = name
       })
       saveChatStore()
-      $checkStateChange++
     }
   }
 
