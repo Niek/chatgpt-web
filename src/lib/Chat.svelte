@@ -392,7 +392,7 @@
 
       const signal = controller.signal
 
-      console.log('apikey', $apiKeyStorage)
+      // console.log('apikey', $apiKeyStorage)
 
       const fetchOptions = {
         method: 'POST',
@@ -408,7 +408,7 @@
         let errorResponse
         try {
           const errObj = await response.json()
-          errorResponse = errObj?.error?.code
+          errorResponse = errObj?.error?.message || errObj?.error?.code
           if (!errorResponse && response.choices && response.choices[0]) {
             errorResponse = response.choices[0]?.message?.content
           }
