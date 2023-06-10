@@ -22,7 +22,10 @@
     type Chat,
     type ChatCompletionOpts,
 
-    type Model
+    type Model,
+
+    type ChatSettings
+
 
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
@@ -172,7 +175,7 @@
   }
 
   // Send API request
-  const sendRequest = async (messages: Message[], opts:ChatCompletionOpts): Promise<ChatCompletionResponse> => {
+  const sendRequest = async (messages: Message[], opts:ChatCompletionOpts, overrides:ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> => {
     // Show updating bar
     opts.chat = chat
     const chatResponse = new ChatCompletionResponse(opts)
@@ -298,7 +301,13 @@
             onMessageChange: (m) => {
               if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
             }
-          } as ChatCompletionOpts)
+          } as ChatCompletionOpts, {
+            temperature: 0, // make summary more deterministic
+            top_p: 0.2,
+            presence_penalty: -0.5,
+            frequency_penalty: 0,
+            ...overrides
+          } as ChatSettings)
           if (!summary.hasFinished()) await summary.promiseToFinish()
           if (summary.hasError()) {
             // Failed to some API issue. let the original caller handle it.
@@ -370,14 +379,13 @@
         ...getRequestSettingList().reduce((acc, setting) => {
           const key = setting.key
           let value = getChatSettingValueNullDefault(chatId, setting)
+          if (key in overrides) value = overrides[key]
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
           if (key === 'max_tokens') {
-            if (opts.maxTokens) {
-              value = opts.maxTokens // only as large as requested
-            }
-            if (value > maxAllowed || value < 1) value = null
+            if (opts.maxTokens) value = opts.maxTokens // only as large as requested
+            if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
           }
           if (key === 'n') {
             if (opts.streaming || opts.summaryRequest) {
