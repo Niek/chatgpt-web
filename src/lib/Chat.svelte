@@ -20,7 +20,10 @@
     type Request,
     type Message,
     type Chat,
-    type ChatCompletionOpts
+    type ChatCompletionOpts,
+
+    type Model
+
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
@@ -358,6 +361,7 @@
 
     // Update token count with actual
     promptTokenCount = countPromptTokens(messagePayload, model)
+    const maxAllowed = getModelMaxTokens(chatSettings.model as Model) - (promptTokenCount + 1)
 
     try {
       const request: Request = {
@@ -369,17 +373,22 @@
           if (typeof setting.apiTransform === 'function') {
             value = setting.apiTransform(chatId, setting, value)
           }
-          if (opts.maxTokens) {
-            if (key === 'max_tokens') value = opts.maxTokens // only as large as requested
+          if (key === 'max_tokens') {
+            if (opts.maxTokens) {
+              value = opts.maxTokens // only as large as requested
+            }
+            if (value > maxAllowed || value < 1) value = null
           }
-          if (opts.streaming || opts.summaryRequest) {
-            /*
-            Streaming goes insane with more than one completion.
-            Doesn't seem like there's any way to separate the jumbled mess of deltas for the
-            different completions.
-            Summary should only have one completion
-            */
-            if (key === 'n') value = 1
+          if (key === 'n') {
+            if (opts.streaming || opts.summaryRequest) {
+              /*
+              Streaming goes insane with more than one completion.
+              Doesn't seem like there's any way to separate the jumbled mess of deltas for the
+              different completions.
+              Summary should only have one completion
+              */
+              value = 1
+            }
           }
           if (value !== null) acc[key] = value
           return acc
