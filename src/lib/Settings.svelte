@@ -171,7 +171,7 @@ const systemPromptSettings: ChatSetting[] = [
       {
         key: 'hiddenPromptPrefix',
         name: 'Hidden Prompt Prefix',
-        title: 'A prompt that will be silently injected before every user prompt.',
+        title: 'A user prompt that will be silently injected before every new user prompt, then removed from history.',
         placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
@@ -251,7 +251,7 @@ const summarySettings: ChatSetting[] = [
       },
       {
         key: 'summaryPrompt',
-        name: 'Summary Generation Prompt (Empty will use FIFO instead.)',
+        name: 'Summary Generation Prompt',
         title: 'A prompt used to summarize past prompts.',
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',

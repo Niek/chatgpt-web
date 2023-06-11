@@ -38,7 +38,7 @@
   }
 
   export type Request = {
-    model?: Model;
+    model: Model;
     messages?: Message[];
     temperature?: number;
     top_p?: number;

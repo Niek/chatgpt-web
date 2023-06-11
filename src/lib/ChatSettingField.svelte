@@ -174,7 +174,7 @@
             min={setting.min}
             max={setting.max}
             step={setting.step}
-            placeholder={String(setting.placeholder)}
+            placeholder={String(setting.placeholder || chatDefaults[setting.key])}
             on:change={e => queueSettingValueChange(e, setting)}
           />
         {:else if setting.type === 'select'}

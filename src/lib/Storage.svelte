@@ -19,6 +19,10 @@
 
   const chatDefaults = getChatDefaults()
 
+  export const getApiKey = (): string => {
+    return get(apiKeyStorage)
+  }
+
   export const newChatID = (): number => {
     const chats = get(chatsStorage)
     const chatId = chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1
@@ -203,6 +207,10 @@
     chatsStorage.set(chats)
   }
 
+  export const addError = (chatId: number, error: string) => {
+    addMessage(chatId, { content: error } as Message)
+  }
+
   export const addMessage = (chatId: number, message: Message) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -232,6 +240,7 @@
       console.error("Couldn't insert after message:", insertAfter)
       return
     }
+    newMessages.forEach(m => { m.uuid = m.uuid || uuidv4() })
     chat.messages.splice(index + 1, 0, ...newMessages)
     chatsStorage.set(chats)
   }

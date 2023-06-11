@@ -60,6 +60,11 @@
     }
   }
 
+  export const scrollToBottom = (instant:boolean = false) => {
+    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' }), 0)
+  }
+
+
   export const checkModalEsc = (event:KeyboardEvent|undefined):boolean|void => {
     if (!event || event.key !== 'Escape') return
     dispatchModalEsc()
