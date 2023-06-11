@@ -406,7 +406,7 @@
   }
 
   export const deleteCustomProfile = (chatId:number, profileId:string) => {
-    if (isStaticProfile(profileId as any)) {
+    if (isStaticProfile(profileId)) {
       throw new Error('Sorry, you can\'t delete a static profile.')
     }
     const chats = get(chatsStorage)
@@ -440,7 +440,7 @@
     if (!profile.characterName || profile.characterName.length < 3) {
       throw new Error('Your profile\'s character needs a valid name.')
     }
-    if (isStaticProfile(profile.profile as any)) {
+    if (isStaticProfile(profile.profile)) {
       // throw new Error('Sorry, you can\'t modify a static profile. You can clone it though!')
       // Save static profile as new custom
       profile.profileName = newNameForProfile(profile.profileName)

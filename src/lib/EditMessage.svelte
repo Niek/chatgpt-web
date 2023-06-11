@@ -37,7 +37,7 @@
 
   onMount(() => {
     original = message.content
-    defaultModel = chatSettings.model as any
+    defaultModel = chatSettings.model
   })
 
   const edit = () => {
