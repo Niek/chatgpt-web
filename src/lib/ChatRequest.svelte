@@ -8,6 +8,7 @@
     import { getRequestSettingList, defaultModel } from './Settings.svelte'
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
     import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
+    import { v4 as uuidv4 } from 'uuid'
 
 export class ChatRequest {
       constructor () {
@@ -302,16 +303,18 @@ export class ChatRequest {
           const getSS = ():number => (ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
             : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
-          let promptSummary = prepareSummaryPrompt(chatId, reductionPoolSize)
+          let maxSummaryTokens = getSS()
+          let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
           const summaryRequest = { role: 'user', content: promptSummary } as Message
           let promptSummarySize = countMessageTokens(summaryRequest, model)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
-          while ((reductionPoolSize + promptSummarySize + getSS()) >= maxTokens ||
+          while ((reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
               (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user')) {
             bottom.unshift(rw.pop() as Message)
             reductionPoolSize = countPromptTokens(rw, model)
-            promptSummary = prepareSummaryPrompt(chatId, reductionPoolSize)
+            maxSummaryTokens = getSS()
+            promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
             summaryRequest.content = promptSummary
             promptSummarySize = countMessageTokens(summaryRequest, model)
           }
@@ -321,13 +324,15 @@ export class ChatRequest {
           }
 
           // Create a message the summary will be loaded into
-          const summaryResponse = {
+          const srid = uuidv4()
+          const summaryResponse:Message = {
             role: 'assistant',
             content: '',
+            uuid: srid,
             streaming: opts.streaming,
             summary: [] as string[],
             model
-          } as Message
+          }
 
           // Insert summary completion prompt after that last message we're summarizing
           insertMessages(chatId, rw[rw.length - 1], [summaryResponse])
@@ -335,44 +340,51 @@ export class ChatRequest {
 
           // Request and load the summarization prompt
           _this.updatingMessage = 'Summarizing...'
-          const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]), {
-            summaryRequest: true,
-            streaming: opts.streaming,
-            maxTokens: chatSettings.summarySize,
-            fillMessage: summaryResponse,
-            autoAddMessages: true,
-            onMessageChange: (m) => {
-              if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
-            }
-          } as ChatCompletionOpts, {
-            temperature: 0, // make summary more deterministic
-            top_p: 0.5,
-            presence_penalty: 0,
-            frequency_penalty: 0,
-            ...overrides
-          } as ChatSettings)
-          // Wait for the response to complete
-          if (!summary.hasFinished()) await summary.promiseToFinish()
-          if (summary.hasError()) {
+          try {
+            const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]), {
+              summaryRequest: true,
+              streaming: opts.streaming,
+              maxTokens: maxSummaryTokens,
+              fillMessage: summaryResponse,
+              autoAddMessages: true,
+              onMessageChange: (m) => {
+                if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
+              }
+            } as ChatCompletionOpts, {
+              temperature: 0, // make summary more deterministic
+              top_p: 0.5,
+              presence_penalty: 0,
+              frequency_penalty: 0,
+              ...overrides
+            } as ChatSettings)
+            // Wait for the response to complete
+            if (!summary.hasFinished()) await summary.promiseToFinish()
+            if (summary.hasError()) {
             // Failed to some API issue. let the original caller handle it.
-            deleteMessage(chatId, summaryResponse.uuid)
-            return summary
-          } else {
+              deleteMessage(chatId, summaryResponse.uuid)
+              return summary
+            } else {
             // Looks like we got our summarized messages.
             // Mark the new summaries as such
-            summaryResponse.summary = rw.map(m => m.uuid)
-            const summaryIds = [summaryResponse.uuid]
-            // Disable the messages we summarized so they still show in history
-            rw.forEach((m, i) => { m.summarized = summaryIds })
-            saveChatStore()
-            // Re-run request with summarized prompts
-            // return { error: { message: "End for now" } } as Response
-            _this.updatingMessage = 'Continuing...'
-            scrollToBottom(true)
-            return await _this.sendRequest(chat.messages, {
-              ...opts,
-              didSummary: true
-            })
+              summaryResponse.summary = rw.map(m => m.uuid)
+              const summaryIds = [summaryResponse.uuid]
+              // Disable the messages we summarized so they still show in history
+              rw.forEach((m, i) => { m.summarized = summaryIds })
+              saveChatStore()
+              // Re-run request with summarized prompts
+              // return { error: { message: "End for now" } } as Response
+              _this.updatingMessage = 'Continuing...'
+              scrollToBottom(true)
+              return await _this.sendRequest(chat.messages, {
+                ...opts,
+                didSummary: true
+              })
+            }
+          } catch (e) {
+            _this.updating = false
+            _this.updatingMessage = ''
+            deleteMessage(chatId, srid)
+            throw e
           }
         } else {
           /***************

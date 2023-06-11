@@ -233,20 +233,31 @@
     }
     focusInput()
 
-    const response = await chatRequest.sendRequest(chat.messages, {
-      chat,
-      autoAddMessages: true, // Auto-add and update messages in array
-      streaming: chatSettings.stream,
-      fillMessage,
-      onMessageChange: (messages) => {
-        scrollToBottom(true)
+    chatRequest.updating = true
+    chatRequest.updatingMessage = ''
+
+    try {
+      const response = await chatRequest.sendRequest(chat.messages, {
+        chat,
+        autoAddMessages: true, // Auto-add and update messages in array
+        streaming: chatSettings.stream,
+        fillMessage,
+        onMessageChange: (messages) => {
+          scrollToBottom(true)
+        }
+      })
+      await response.promiseToFinish()
+      const message = response.getMessages()[0]
+      if (message) {
+        ttsStart(message.content, recorded)
       }
-    })
-    await response.promiseToFinish()
-    const message = response.getMessages()[0]
-    if (message) {
-      ttsStart(message.content, recorded)
+    } catch (e) {
+      console.error(e)
     }
+
+    chatRequest.updating = false
+    chatRequest.updatingMessage = ''
+
     focusInput()
   }
 
