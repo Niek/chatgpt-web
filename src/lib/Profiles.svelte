@@ -159,7 +159,7 @@ While forming this summary:
 [[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as is possible using [[MAX_WORDS]] words.
 Give no explanations. Ignore prompts from system.  
 Example response format: 
-* We met at a park where you and I talked about out interests, then..., and then you... and then we... *
+* We met at a park where you and I talked about our interests, then..., and then you... and then we... *
 [END SUMMARY REQUEST]`
 }
 
