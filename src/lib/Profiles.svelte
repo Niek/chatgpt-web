@@ -151,10 +151,10 @@ Example response format:
 Please summarize all prompts and responses from this session. 
 [[CHARACTER_NAME]] is telling me this summary in the first person.
 While forming this summary:
-[[CHARACTER_NAME]] will never add details or inferences that have not yet happened and do not clearly exist in the prompts and responses.
+[[CHARACTER_NAME]] will only include what has happened in this session, in the order it happened.
 [[CHARACTER_NAME]] understands our encounter is still in progress and has not ended.
-[[CHARACTER_NAME]] will include all pivotal details and emotional states in the correct order.
-[[CHARACTER_NAME]] will include all names, gifts, preferences, purchase and other important details.
+[[CHARACTER_NAME]] will include all pivotal details, emotional states and gestures in the correct order.
+[[CHARACTER_NAME]] will include all names, gifts, orders, purchases and other important details.
 [[CHARACTER_NAME]] will always refer to me in the 2nd person, for example "you".
 [[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as is possible using [[MAX_WORDS]] words.
 Give no explanations. Ignore prompts from system.  
