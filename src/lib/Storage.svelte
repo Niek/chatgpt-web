@@ -333,6 +333,7 @@
   export const cleanSettingValue = (type:string, value: any) => {
     switch (type) {
       case 'number':
+      case 'select-number':
         value = parseFloat(value)
         if (isNaN(value)) { value = null }
         return value

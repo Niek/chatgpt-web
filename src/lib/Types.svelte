@@ -60,6 +60,7 @@
     continuousChat: (''|'fifo'|'summary');
     summaryThreshold: number;
     summarySize: number;
+    summaryExtend: number;
     pinTop: number;
     pinBottom: number;
     summaryPrompt: string;
@@ -141,16 +142,21 @@
   };
 
   export type SelectOption = {
-    value: string;
+    value: string|number;
     text: string;
   };
 
-type SettingBoolean = {
-  type: 'boolean';
-};
+  type SettingBoolean = {
+    type: 'boolean';
+  };
 
   export type SettingSelect = {
     type: 'select';
+    options: SelectOption[];
+  };
+
+  export type SettingSelectNumber = {
+    type: 'select-number';
     options: SelectOption[];
   };
 
@@ -199,7 +205,7 @@ type SettingBoolean = {
     fieldControls?: FieldControl[];
     beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
     afterChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
-  } & (SettingNumber | SettingSelect | SettingBoolean | SettingText | SettingTextArea | SettingOther | SubSetting);
+  } & (SettingNumber | SettingSelect | SettingSelectNumber | SettingBoolean | SettingText | SettingTextArea | SettingOther | SubSetting);
 
 
   export type GlobalSetting = {

@@ -177,7 +177,7 @@
             placeholder={String(setting.placeholder || chatDefaults[setting.key])}
             on:change={e => queueSettingValueChange(e, setting)}
           />
-        {:else if setting.type === 'select'}
+        {:else if setting.type === 'select' || setting.type === 'select-number'}
           <!-- <div class="select"> -->
             <div class="select" class:control={fieldControls.length}>
             <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >

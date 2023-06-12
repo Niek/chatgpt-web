@@ -58,50 +58,48 @@ export class ChatRequest {
         const chatResponse = new ChatCompletionResponse(opts)
         const promptTokenCount = countPromptTokens(messagePayload, model)
         const maxAllowed = maxTokens - (promptTokenCount + 1)
-
-        // Build and make the request
-        try {
-          // Build the API request body
-          const request: Request = {
-            model: chatSettings.model,
-            messages: messagePayload,
-            // Provide the settings by mapping the settingsMap to key/value pairs
-            ...getRequestSettingList().reduce((acc, setting) => {
-              const key = setting.key
-              let value = getChatSettingValueNullDefault(chatId, setting)
-              if (key in overrides) value = overrides[key]
-              if (typeof setting.apiTransform === 'function') {
-                value = setting.apiTransform(chatId, setting, value)
-              }
-              if (key === 'max_tokens') {
-                if (opts.maxTokens) value = opts.maxTokens // only as large as requested
-                if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
-              }
-              if (key === 'n') {
-                if (opts.streaming || opts.summaryRequest) {
+    
+        // Build the API request body
+        const request: Request = {
+          model: chatSettings.model,
+          messages: messagePayload,
+          // Provide the settings by mapping the settingsMap to key/value pairs
+          ...getRequestSettingList().reduce((acc, setting) => {
+            const key = setting.key
+            let value = getChatSettingValueNullDefault(chatId, setting)
+            if (key in overrides) value = overrides[key]
+            if (typeof setting.apiTransform === 'function') {
+              value = setting.apiTransform(chatId, setting, value)
+            }
+            if (key === 'max_tokens') {
+              if (opts.maxTokens) value = opts.maxTokens // only as large as requested
+              if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
+            }
+            if (key === 'n') {
+              if (opts.streaming || opts.summaryRequest) {
                 /*
                 Streaming goes insane with more than one completion.
                 Doesn't seem like there's any way to separate the jumbled mess of deltas for the
                 different completions.
                 Summary should only have one completion
                 */
-                  value = 1
-                }
+                value = 1
               }
-              if (value !== null) acc[key] = value
-              return acc
-            }, {}),
-            stream: opts.streaming
-          }
+            }
+            if (value !== null) acc[key] = value
+            return acc
+          }, {}),
+          stream: opts.streaming
+        }
 
+        // Set-up and make the request
+        try {
           // Add out token count to the response handler
           // (streaming doesn't return counts, so we need to do it client side)
           chatResponse.setPromptTokenCount(promptTokenCount)
 
           const signal = _this.controller.signal
-
-          // console.log('apikey', $apiKeyStorage)
-
+    
           const fetchOptions = {
             method: 'POST',
             headers: {
@@ -297,6 +295,7 @@ export class ChatRequest {
            */
     
           const bottom = rw.slice(0 - pinBottom)
+          let continueCounter = chatSettings.summaryExtend + 1
           rw = rw.slice(0, 0 - pinBottom)
           let reductionPoolSize = countPromptTokens(rw, model)
           const ss = chatSettings.summarySize
@@ -340,53 +339,67 @@ export class ChatRequest {
 
           // Request and load the summarization prompt
           _this.updatingMessage = 'Summarizing...'
-          try {
-            const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]), {
-              summaryRequest: true,
-              streaming: opts.streaming,
-              maxTokens: maxSummaryTokens,
-              fillMessage: summaryResponse,
-              autoAddMessages: true,
-              onMessageChange: (m) => {
-                if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
+          const summarizedIds = rw.map(m => m.uuid)
+          const summaryIds = [summaryResponse.uuid]
+          while (continueCounter-- > 0) {
+            try {
+              const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]), {
+                summaryRequest: true,
+                streaming: opts.streaming,
+                maxTokens: maxSummaryTokens,
+                fillMessage: summaryResponse,
+                autoAddMessages: true,
+                onMessageChange: (m) => {
+                  if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
+                }
+              } as ChatCompletionOpts, {
+                temperature: 0.1, // make summary more deterministic
+                top_p: 1,
+                presence_penalty: 0,
+                frequency_penalty: 0,
+                ...overrides
+              } as ChatSettings)
+              // Wait for the response to complete
+              if (!summary.hasFinished()) await summary.promiseToFinish()
+              if (summary.hasError()) {
+                // Failed for some API issue. let the original caller handle it.
+                _this.updating = false
+                _this.updatingMessage = ''
+                deleteMessage(chatId, srid)
+                return summary
               }
-            } as ChatCompletionOpts, {
-              temperature: 0, // make summary more deterministic
-              top_p: 0.5,
-              presence_penalty: 0,
-              frequency_penalty: 0,
-              ...overrides
-            } as ChatSettings)
-            // Wait for the response to complete
-            if (!summary.hasFinished()) await summary.promiseToFinish()
-            if (summary.hasError()) {
-            // Failed to some API issue. let the original caller handle it.
-              deleteMessage(chatId, summaryResponse.uuid)
-              return summary
-            } else {
-            // Looks like we got our summarized messages.
-            // Mark the new summaries as such
-              summaryResponse.summary = rw.map(m => m.uuid)
-              const summaryIds = [summaryResponse.uuid]
-              // Disable the messages we summarized so they still show in history
-              rw.forEach((m, i) => { m.summarized = summaryIds })
-              saveChatStore()
-              // Re-run request with summarized prompts
-              // return { error: { message: "End for now" } } as Response
-              _this.updatingMessage = 'Continuing...'
-              scrollToBottom(true)
-              return await _this.sendRequest(chat.messages, {
-                ...opts,
-                didSummary: true
-              },
-              overrides)
+              // Looks like we got our summarized messages.
+              // Mark the new summaries as such
+              // Need more?
+              if (summaryResponse.finish_reason === 'length' && continueCounter > 0) {
+                // Our summary was truncated
+                // Try to get more of it
+                delete summaryResponse.finish_reason
+                _this.updatingMessage = 'Summarizing more...'
+                continue
+              } else {
+                // We're done
+                continueCounter = 0
+              }
+            } catch (e) {
+              _this.updating = false
+              _this.updatingMessage = ''
+              deleteMessage(chatId, srid)
+              throw e
             }
-          } catch (e) {
-            _this.updating = false
-            _this.updatingMessage = ''
-            deleteMessage(chatId, srid)
-            throw e
           }
+          summaryResponse.summary = summarizedIds
+          // Disable the messages we summarized so they still show in history
+          rw.forEach((m, i) => { m.summarized = summaryIds })
+          saveChatStore()
+          // Re-run request with summarized prompts
+          _this.updatingMessage = 'Continuing...'
+          scrollToBottom(true)
+          return await _this.sendRequest(chat.messages, {
+            ...opts,
+            didSummary: true
+          },
+          overrides)
         } else {
           /***************
            * Unknown mode.
