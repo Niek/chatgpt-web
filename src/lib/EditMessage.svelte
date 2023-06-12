@@ -1,6 +1,6 @@
 <script lang="ts">
   import Code from './Code.svelte'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
   import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore, continueMessage } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
@@ -38,6 +38,10 @@
   onMount(() => {
     original = message.content
     defaultModel = chatSettings.model
+  })
+
+  afterUpdate(() => {
+    original = message.content
   })
 
   const edit = () => {
