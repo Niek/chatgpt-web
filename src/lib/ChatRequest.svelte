@@ -159,7 +159,7 @@ export class ChatRequest {
                   // ?? anything to do when "[DONE]"?
                   } else {
                     const data = JSON.parse(ev.data)
-                    // console.log('data', data)
+                    console.log('data', data)
                     window.requestAnimationFrame(() => { chatResponse.updateFromAsyncResponse(data) })
                   }
                 }
@@ -378,7 +378,8 @@ export class ChatRequest {
               return await _this.sendRequest(chat.messages, {
                 ...opts,
                 didSummary: true
-              })
+              },
+              overrides)
             }
           } catch (e) {
             _this.updating = false
