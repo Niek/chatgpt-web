@@ -167,7 +167,7 @@
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = getProfileSelect()
     chatDefaults.profile = getDefaultProfileKey()
-    chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model || '')
+    chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model)
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
     defaultProfile = getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile

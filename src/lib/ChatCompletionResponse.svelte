@@ -34,7 +34,7 @@ export class ChatCompletionResponse {
 
   private setModel = (model: Model) => {
     if (!model) return
-    !this.model && setLatestKnownModel(this.chat.settings.model as Model, model)
+    !this.model && setLatestKnownModel(this.chat.settings.model, model)
     this.lastModel = this.model || model
     this.model = model
   }
@@ -51,6 +51,15 @@ export class ChatCompletionResponse {
   private messageChangeListeners: ((m: Message[]) => void)[] = []
   private finishListeners: ((m: Message[]) => void)[] = []
 
+  private initialFillMerge (existingContent:string, newContent:string):string {
+    if (!this.didFill && this.isFill && existingContent && !newContent.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
+      // add a trailing space if our new content isn't a contraction
+      existingContent += ' '
+    }
+    this.didFill = true
+    return existingContent
+  }
+
   setPromptTokenCount (tokens:number) {
     this.promptTokenCount = tokens
   }
@@ -61,11 +70,7 @@ export class ChatCompletionResponse {
       const exitingMessage = this.messages[i]
       const message = exitingMessage || choice.message
       if (exitingMessage) {
-        if (!this.didFill && this.isFill && choice.message.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
-          // deal with merging contractions since we've added an extra space to your fill message
-          message.content.replace(/ $/, '')
-        }
-        this.didFill = true
+        message.content = this.initialFillMerge(message.content, choice.message.content)
         message.content += choice.message.content
         message.usage = message.usage || {
           prompt_tokens: 0,
@@ -100,11 +105,7 @@ export class ChatCompletionResponse {
       } as Message
       choice.delta?.role && (message.role = choice.delta.role)
       if (choice.delta?.content) {
-        if (!this.didFill && this.isFill && choice.delta.content.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
-          // deal with merging contractions since we've added an extra space to your fill message
-          message.content.replace(/([a-z]) $/i, '$1')
-        }
-        this.didFill = true
+        message.content = this.initialFillMerge(message.content, choice.delta?.content)
         message.content += choice.delta.content
       }
       completionTokenCount += encode(message.content).length
@@ -179,7 +180,7 @@ export class ChatCompletionResponse {
     this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
     saveChatStore()
     const message = this.messages[0]
-    const model = this.model || getLatestKnownModel(this.chat.settings.model as Model)
+    const model = this.model || getLatestKnownModel(this.chat.settings.model)
     if (message) {
       if (this.isFill && this.lastModel === this.model && this.offsetTotals && model && message.usage) {
         // Need to subtract some previous message totals before we add new combined message totals

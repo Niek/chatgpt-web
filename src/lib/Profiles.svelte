@@ -82,10 +82,8 @@ export const prepareProfilePrompt = (chatId:number) => {
     return mergeProfileFields(settings, settings.systemPrompt).trim()
 }
 
-export const prepareSummaryPrompt = (chatId:number, promptsSize:number, maxTokens:number|undefined = undefined) => {
+export const prepareSummaryPrompt = (chatId:number, maxTokens:number) => {
     const settings = getChatSettings(chatId)
-    maxTokens = maxTokens || settings.summarySize
-    maxTokens = Math.min(Math.floor(promptsSize / 4), maxTokens) // Make sure we're shrinking by at least a 4th
     const currentSummaryPrompt = settings.summaryPrompt
     // ~.75 words per token.  May need to reduce
     return mergeProfileFields(settings, currentSummaryPrompt, Math.floor(maxTokens * 0.75)).trim()
@@ -132,42 +130,37 @@ export const applyProfile = (chatId:number, key:string = '', resetChat:boolean =
 
 const summaryPrompts = {
 
-    // General use
-    general: `Please summarize all prompts and responses from this session. 
+    // General assistant use
+    general: `[START SUMMARY REQUEST]
+Please summarize all prompts and responses from this session. 
 [[CHARACTER_NAME]] is telling me this summary in the first person.
-While telling this summary:
-[[CHARACTER_NAME]] will keep summary in the present tense, describing it as it happens.
-[[CHARACTER_NAME]] will always refer to me in the second person as "you" or "we".
-[[CHARACTER_NAME]] will never refer to me in the third person.
-[[CHARACTER_NAME]] will never refer to me as the user.
-[[CHARACTER_NAME]] will include all interactions and requests.
-[[CHARACTER_NAME]] will keep correct order of interactions.
-[[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as possible in a compact form.
-[[CHARACTER_NAME]] will describe interactions in detail.
-[[CHARACTER_NAME]] will never end with epilogues or summations.
-[[CHARACTER_NAME]] will  always include key details.
-[[CHARACTER_NAME]]'s summary will be [[MAX_WORDS]] words.
-[[CHARACTER_NAME]] will never add details or inferences that do not clearly exist in the prompts and responses.
-Give no explanations.`,
+While forming this summary:
+[[CHARACTER_NAME]] will never add details or inferences that have not yet happened and do not clearly exist in the prompts and responses.
+[[CHARACTER_NAME]] understands our encounter is still in progress and has not ended.
+[[CHARACTER_NAME]] will include all pivotal details in the correct order.
+[[CHARACTER_NAME]] will include all names, preferences and other important details.
+[[CHARACTER_NAME]] will always refer to me in the 2nd person, for example "you".
+[[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as is possible using [[MAX_WORDS]] words.
+Give no explanations. Ignore prompts from system.  
+Example response format: 
+* You asked about..., then..., and then you... and then I... *
+[END SUMMARY REQUEST]`,
 
     // Used for relationship profiles
-    friend: `Please summarize all prompts and responses from this session. 
+    friend: `[START SUMMARY REQUEST]
+Please summarize all prompts and responses from this session. 
 [[CHARACTER_NAME]] is telling me this summary in the first person.
-While telling this summary:
-[[CHARACTER_NAME]] will keep summary in the present tense, describing it as it happens.
-[[CHARACTER_NAME]] will always refer to me in the second person as "you" or "we".
-[[CHARACTER_NAME]] will never refer to me in the third person.
-[[CHARACTER_NAME]] will never refer to me as the user.
-[[CHARACTER_NAME]] will include all relationship interactions, first meeting, what we do, what we say, where we go, etc.
-[[CHARACTER_NAME]] will include all interactions, thoughts and emotional states.
-[[CHARACTER_NAME]] will keep correct order of interactions.
-[[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as possible in a compact form.
-[[CHARACTER_NAME]] will describe interactions in detail.
-[[CHARACTER_NAME]] will never end with epilogues or summations.
-[[CHARACTER_NAME]] will include all pivotal details.
-[[CHARACTER_NAME]]'s summary will be [[MAX_WORDS]] words.
-[[CHARACTER_NAME]] will never add details or inferences that do not clearly exist in the prompts and responses.
-Give no explanations.`
+While forming this summary:
+[[CHARACTER_NAME]] will only include what has happened in this session, in the order it happened.
+[[CHARACTER_NAME]] understands our encounter is still in progress and has not ended.
+[[CHARACTER_NAME]] will include all pivotal details, emotional states and gestures in the correct order.
+[[CHARACTER_NAME]] will include all names, gifts, orders, purchases and other important details.
+[[CHARACTER_NAME]] will always refer to me in the 2nd person, for example "you".
+[[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as is possible using [[MAX_WORDS]] words.
+Give no explanations. Ignore prompts from system.  
+Example response format: 
+* We met at a park where you and I talked about our interests, then..., and then you... and then we... *
+[END SUMMARY REQUEST]`
 }
 
 const profiles:Record<string, ChatSettings> = {

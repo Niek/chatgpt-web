@@ -2,33 +2,22 @@
   // This beast needs to be broken down into multiple components before it gets any worse.
   import {
     saveChatStore,
-    apiKeyStorage,
     chatsStorage,
     addMessage,
-    insertMessages,
-    getChatSettingValueNullDefault,
     updateChatSettings,
     checkStateChange,
     showSetChatSettings,
     submitExitingPromptsNow,
-    deleteMessage,
     continueMessage,
     getMessage
   } from './Storage.svelte'
-  import { getRequestSettingList, defaultModel } from './Settings.svelte'
   import {
-    type Request,
     type Message,
-    type Chat,
-    type ChatCompletionOpts,
-
-    type Model
-
+    type Chat
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { mergeProfileFields, prepareSummaryPrompt, restartProfile } from './Profiles.svelte'
-
+  import { restartProfile } from './Profiles.svelte'
   import { afterUpdate, onMount, onDestroy } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
@@ -38,27 +27,29 @@
     faPenToSquare,
     faMicrophone,
     faLightbulb,
-    faCommentSlash
+    faCommentSlash,
+
+    faCircleCheck
+
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { encode } from 'gpt-tokenizer'
   import { v4 as uuidv4 } from 'uuid'
-  import { countPromptTokens, getModelMaxTokens, getPrice } from './Stats.svelte'
-  import { autoGrowInputOnEvent, scrollToMessage, sizeTextElements } from './Util.svelte'
+  import { getPrice } from './Stats.svelte'
+  import { autoGrowInputOnEvent, scrollToBottom, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
   import Footer from './Footer.svelte'
   import { openModal } from 'svelte-modals'
   import PromptInput from './PromptInput.svelte'
-  import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
-  import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-  import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
+  import { ChatRequest } from './ChatRequest.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
 
-  let controller:AbortController = new AbortController()
+  let chatRequest = new ChatRequest()
 
-  let updating: boolean|number = false
-  let updatingMessage: string = ''
+  // let controller:AbortController
+
+  // let updating: boolean|number = false
+  // let updatingMessage: string = ''
   let input: HTMLTextAreaElement
   let recognition: any = null
   let recording = false
@@ -108,12 +99,15 @@
   onDestroy(async () => {
     // clean up
     // abort any pending requests.
-    controller.abort()
+    chatRequest.controller.abort()
     ttsStop()
   })
 
   onMount(async () => {
     if (!chat) return
+
+    chatRequest = new ChatRequest()
+    chatRequest.setChat(chat)
     // Focus the input on mount
     focusInput()
 
@@ -167,344 +161,8 @@
     scrollToBottom()
   }
 
-  const scrollToBottom = (instant:boolean = false) => {
-    setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' }), 0)
-  }
-
-  // Send API request
-  const sendRequest = async (messages: Message[], opts:ChatCompletionOpts): Promise<ChatCompletionResponse> => {
-    // Show updating bar
-    opts.chat = chat
-    const chatResponse = new ChatCompletionResponse(opts)
-    updating = true
-
-    const model = chat.settings.model || defaultModel
-    const maxTokens = getModelMaxTokens(model) // max tokens for model
-
-    const messageFilter = (m:Message) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
-
-    // Submit only the role and content of the messages, provide the previous messages as well for context
-    let filtered = messages.filter(messageFilter)
-  
-    // Get an estimate of the total prompt size we're sending
-    let promptTokenCount:number = countPromptTokens(filtered, model)
-  
-    let summarySize = chatSettings.summarySize
-
-    const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
-  
-    if (hiddenPromptPrefix && filtered.length && filtered[filtered.length - 1].role === 'user') {
-      // update estimate with hiddenPromptPrefix token count
-      promptTokenCount += encode(hiddenPromptPrefix + '\n\n').length
-    }
-
-    // console.log('Estimated',promptTokenCount,'prompt token for this request')
-
-    if (chatSettings.continuousChat && !opts.didSummary &&
-          !opts.summaryRequest && !opts.maxTokens &&
-          promptTokenCount > chatSettings.summaryThreshold) {
-      // Too many tokens -- well need to summarize some past ones else we'll run out of space
-      // Get a block of past prompts we'll summarize
-      let pinTop = chatSettings.pinTop
-      const tp = chatSettings.trainingPrompts
-      pinTop = Math.max(pinTop, tp ? 1 : 0)
-      let pinBottom = chatSettings.pinBottom
-      const systemPad = (filtered[0] || {} as Message).role === 'system' ? 1 : 0
-      const mlen = filtered.length - systemPad // always keep system prompt
-      let diff = mlen - (pinTop + pinBottom)
-      const useFIFO = chatSettings.continuousChat === 'fifo' || !prepareSummaryPrompt(chatId, 0)
-      if (!useFIFO) {
-        while (diff <= 3 && (pinTop > 0 || pinBottom > 1)) {
-          // Not enough prompts exposed to summarize
-          // try to open up pinTop and pinBottom to see if we can get more to summarize
-          if (pinTop === 1 && pinBottom > 1) {
-            // If we have a pin top, try to keep some of it as long as we can
-            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
-          } else {
-            pinBottom = Math.max(Math.floor(pinBottom / 2), 0)
-            pinTop = Math.max(Math.floor(pinTop / 2), 0)
-          }
-          diff = mlen - (pinTop + pinBottom)
-        }
-      }
-      if (!useFIFO && diff > 0) {
-        // We've found at least one prompt we can try to summarize
-        // Reduce to prompts we'll send in for summary
-        // (we may need to update this to not include the pin-top, but the context it provides seems to help in the accuracy of the summary)
-        const summarize = filtered.slice(0, filtered.length - pinBottom)
-        // Estimate token count of what we'll be summarizing
-        let sourceTokenCount = countPromptTokens(summarize, model)
-        // build summary prompt message
-        let summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
-  
-        const summaryMessage = {
-          role: 'user',
-          content: summaryPrompt
-        } as Message
-        // get an estimate of how many tokens this request + max completions could be
-        let summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
-        // reduce summary size to make sure we're not requesting a summary larger than our prompts
-        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
-        // Make sure our prompt + completion request isn't too large
-        while (summarize.length - (pinTop + systemPad) >= 3 && summaryPromptSize + summarySize > maxTokens && summarySize >= 4) {
-          summarize.pop()
-          sourceTokenCount = countPromptTokens(summarize, model)
-          summaryPromptSize = countPromptTokens(summarize.concat(summaryMessage), model)
-          summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
-        }
-        // See if we have to adjust our max summarySize
-        if (summaryPromptSize + summarySize > maxTokens) {
-          summarySize = maxTokens - summaryPromptSize
-        }
-        // Always try to end the prompts being summarized with a user prompt.  Seems to work better.
-        while (summarize.length - (pinTop + systemPad) >= 4 && summarize[summarize.length - 1].role !== 'user') {
-          summarize.pop()
-        }
-        // update with actual
-        sourceTokenCount = countPromptTokens(summarize, model)
-        summaryPrompt = prepareSummaryPrompt(chatId, sourceTokenCount)
-        summarySize = Math.floor(Math.min(summarySize, sourceTokenCount / 4))
-        summaryMessage.content = summaryPrompt
-        if (sourceTokenCount > 20 && summaryPrompt && summarySize > 4) {
-          // get prompt we'll be inserting after
-          const endPrompt = summarize[summarize.length - 1]
-          // Add a prompt to ask to summarize them
-          const summarizeReq = summarize.slice()
-          summarizeReq.push(summaryMessage)
-          summaryPromptSize = countPromptTokens(summarizeReq, model)
-
-          // Create a message the summary will be loaded into
-          const summaryResponse:Message = {
-            role: 'assistant',
-            content: '',
-            uuid: uuidv4(),
-            streaming: opts.streaming,
-            summary: []
-          }
-          summaryResponse.model = model
-
-          // Insert summary completion prompt
-          insertMessages(chatId, endPrompt, [summaryResponse])
-          if (opts.streaming) setTimeout(() => scrollToMessage(summaryResponse.uuid, 150, true, true), 0)
-
-          // Wait for the summary completion
-          updatingMessage = 'Summarizing...'
-          const summary = await sendRequest(summarizeReq, {
-            summaryRequest: true,
-            streaming: opts.streaming,
-            maxTokens: summarySize,
-            fillMessage: summaryResponse,
-            autoAddMessages: true,
-            onMessageChange: (m) => {
-              if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
-            }
-          } as ChatCompletionOpts)
-          if (!summary.hasFinished()) await summary.promiseToFinish()
-          if (summary.hasError()) {
-            // Failed to some API issue. let the original caller handle it.
-            deleteMessage(chatId, summaryResponse.uuid)
-            return summary
-          } else {
-            // Looks like we got our summarized messages.
-            // get ids of messages we summarized
-            const summarizedIds = summarize.slice(pinTop + systemPad).map(m => m.uuid)
-            // Mark the new summaries as such
-            summaryResponse.summary = summarizedIds
-
-            const summaryIds = [summaryResponse.uuid]
-            // Disable the messages we summarized so they still show in history
-            summarize.forEach((m, i) => {
-              if (i - systemPad >= pinTop) {
-                m.summarized = summaryIds
-              }
-            })
-            saveChatStore()
-            // Re-run request with summarized prompts
-            // return { error: { message: "End for now" } } as Response
-            updatingMessage = 'Continuing...'
-            opts.didSummary = true
-            return await sendRequest(chat.messages, opts)
-          }
-        } else if (!summaryPrompt) {
-          addMessage(chatId, { role: 'error', content: 'Unable to summarize. No summary prompt defined.', uuid: uuidv4() })
-        } else if (sourceTokenCount <= 20) {
-          addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough words in past content to summarize.', uuid: uuidv4() })
-        }
-      } else if (!useFIFO && diff < 1) {
-        addMessage(chatId, { role: 'error', content: 'Unable to summarize. Not enough messages in past content to summarize.', uuid: uuidv4() })
-      } else {
-        // roll-off/fifo mode
-        const top = filtered.slice(0, pinTop + systemPad)
-        const rollaway = filtered.slice(pinTop + systemPad)
-        let promptTokenCount = countPromptTokens(top.concat(rollaway), model)
-        // suppress messages we're rolling off
-        while (rollaway.length > (((promptTokenCount + (chatSettings.max_tokens || 1)) > maxTokens) ? pinBottom || 1 : 1) &&
-            promptTokenCount >= chatSettings.summaryThreshold) {
-          const rollOff = rollaway.shift()
-          if (rollOff) rollOff.suppress = true
-          promptTokenCount = countPromptTokens(top.concat(rollaway), model)
-        }
-        saveChatStore()
-        // get a new list now excluding them
-        filtered = messages.filter(messageFilter)
-      }
-    }
-
-    const messagePayload = filtered.map((m, i) => {
-      const r = { role: m.role, content: m.content }
-      if (i === filtered.length - 1 && m.role === 'user' && hiddenPromptPrefix && !opts.summaryRequest) {
-        // If the last prompt is a user prompt, and we have a hiddenPromptPrefix, inject it
-        r.content = hiddenPromptPrefix + '\n\n' + m.content
-      }
-      return r
-    }) as Message[]
-
-    // Update token count with actual
-    promptTokenCount = countPromptTokens(messagePayload, model)
-    const maxAllowed = getModelMaxTokens(chatSettings.model as Model) - (promptTokenCount + 1)
-
-    try {
-      const request: Request = {
-        messages: messagePayload,
-        // Provide the settings by mapping the settingsMap to key/value pairs
-        ...getRequestSettingList().reduce((acc, setting) => {
-          const key = setting.key
-          let value = getChatSettingValueNullDefault(chatId, setting)
-          if (typeof setting.apiTransform === 'function') {
-            value = setting.apiTransform(chatId, setting, value)
-          }
-          if (key === 'max_tokens') {
-            if (opts.maxTokens) {
-              value = opts.maxTokens // only as large as requested
-            }
-            if (value > maxAllowed || value < 1) value = null
-          }
-          if (key === 'n') {
-            if (opts.streaming || opts.summaryRequest) {
-              /*
-              Streaming goes insane with more than one completion.
-              Doesn't seem like there's any way to separate the jumbled mess of deltas for the
-              different completions.
-              Summary should only have one completion
-              */
-              value = 1
-            }
-          }
-          if (value !== null) acc[key] = value
-          return acc
-        }, {})
-      }
-
-      request.stream = opts.streaming
-
-      chatResponse.setPromptTokenCount(promptTokenCount) // streaming needs this
-
-      const signal = controller.signal
-
-      // console.log('apikey', $apiKeyStorage)
-
-      const fetchOptions = {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${$apiKeyStorage}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(request),
-        signal
-      }
-
-      const handleError = async (response) => {
-        let errorResponse
-        try {
-          const errObj = await response.json()
-          errorResponse = errObj?.error?.message || errObj?.error?.code
-          if (!errorResponse && response.choices && response.choices[0]) {
-            errorResponse = response.choices[0]?.message?.content
-          }
-          errorResponse = errorResponse || 'Unexpected Response'
-        } catch (e) {
-          errorResponse = 'Unknown Response'
-        }
-        throw new Error(`${response.status} - ${errorResponse}`)
-      }
-
-      // fetchEventSource doesn't seem to throw on abort, so...
-      const abortListener = (e:Event) => {
-        controller = new AbortController()
-        chatResponse.updateFromError('User aborted request.')
-        signal.removeEventListener('abort', abortListener)
-      }
-      signal.addEventListener('abort', abortListener)
-
-      if (opts.streaming) {
-        chatResponse.onFinish(() => {
-          updating = false
-          updatingMessage = ''
-          scrollToBottom()
-        })
-        fetchEventSource(getApiBase() + getEndpointCompletions(), {
-          ...fetchOptions,
-          openWhenHidden: true,
-          onmessage (ev) {
-            // Remove updating indicator
-            updating = 1 // hide indicator, but still signal we're updating
-            updatingMessage = ''
-            // console.log('ev.data', ev.data)
-            if (!chatResponse.hasFinished()) {
-              if (ev.data === '[DONE]') {
-                // ?? anything to do when "[DONE]"?
-              } else {
-                const data = JSON.parse(ev.data)
-                // console.log('data', data)
-                window.requestAnimationFrame(() => { chatResponse.updateFromAsyncResponse(data) })
-              }
-            }
-          },
-          onclose () {
-            chatResponse.updateFromClose()
-          },
-          onerror (err) {
-            console.error(err)
-            throw err
-          },
-          async onopen (response) {
-            if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
-              // everything's good
-            } else {
-              // client-side errors are usually non-retriable:
-              await handleError(response)
-            }
-          }
-        }).catch(err => {
-          chatResponse.updateFromError(err.message)
-          scrollToBottom()
-        })
-      } else {
-        const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
-        if (!response.ok) {
-          await handleError(response)
-        } else {
-          const json = await response.json()
-          // Remove updating indicator
-          updating = false
-          updatingMessage = ''
-          chatResponse.updateFromSyncResponse(json)
-          scrollToBottom()
-        }
-      }
-    } catch (e) {
-      // console.error(e)
-      updating = false
-      updatingMessage = ''
-      chatResponse.updateFromError(e.message)
-      scrollToBottom()
-    }
-
-    return chatResponse
-  }
-
   const addNewMessage = () => {
-    if (updating) return
+    if (chatRequest.updating) return
     let inputMessage: Message
     const lastMessage = chat.messages[chat.messages.length - 1]
     const uuid = uuidv4()
@@ -537,9 +195,21 @@
     }
   }
 
+  let waitingForCancel:any = 0
+
+  const cancelRequest = () => {
+    if (!waitingForCancel) {
+      // wait a second for another click to avoid accidental cancel
+      waitingForCancel = setTimeout(() => { waitingForCancel = 0 }, 1000)
+      return
+    }
+    clearTimeout(waitingForCancel); waitingForCancel = 0
+    chatRequest.controller.abort()
+  }
+
   const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
     // Compose the system prompt message if there are no messages yet - disabled for now
-    if (updating) return
+    if (chatRequest.updating) return
 
     lastSubmitRecorded = recorded
   
@@ -553,9 +223,7 @@
       } else if (!fillMessage && chat.messages.length && chat.messages[chat.messages.length - 1].finish_reason === 'length') {
         fillMessage = chat.messages[chat.messages.length - 1]
       }
-
-      if (fillMessage && fillMessage.content) fillMessage.content += ' ' // add a space
-
+  
       // Clear the input value
       input.value = ''
       input.blur()
@@ -565,20 +233,31 @@
     }
     focusInput()
 
-    const response = await sendRequest(chat.messages, {
-      chat,
-      autoAddMessages: true, // Auto-add and update messages in array
-      streaming: chatSettings.stream,
-      fillMessage,
-      onMessageChange: (messages) => {
-        scrollToBottom(true)
+    chatRequest.updating = true
+    chatRequest.updatingMessage = ''
+
+    try {
+      const response = await chatRequest.sendRequest(chat.messages, {
+        chat,
+        autoAddMessages: true, // Auto-add and update messages in array
+        streaming: chatSettings.stream,
+        fillMessage,
+        onMessageChange: (messages) => {
+          scrollToBottom(true)
+        }
+      })
+      await response.promiseToFinish()
+      const message = response.getMessages()[0]
+      if (message) {
+        ttsStart(message.content, recorded)
       }
-    })
-    await response.promiseToFinish()
-    const message = response.getMessages()[0]
-    if (message) {
-      ttsStart(message.content, recorded)
+    } catch (e) {
+      console.error(e)
     }
+
+    chatRequest.updating = false
+    chatRequest.updatingMessage = ''
+
     focusInput()
   }
 
@@ -592,7 +271,7 @@
     const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
 
-    const response = await sendRequest(suggestMessages, {
+    const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
       streaming: false,
@@ -632,7 +311,7 @@
 
   const recordToggle = () => {
     ttsStop()
-    if (updating) return
+    if (chatRequest.updating) return
     // Check if already recording - if so, stop - else start
     if (recording) {
       recognition?.stop()
@@ -669,11 +348,11 @@
 
 <Messages messages={chat.messages} chatId={chatId} />
 
-{#if updating === true}
+{#if chatRequest.updating === true}
   <article class="message is-success assistant-message">
     <div class="message-body content">
       <span class="is-loading" ></span>
-      <span>{updatingMessage}</span>
+      <span>{chatRequest.updatingMessage}</span>
     </div>
   </article>
 {/if}
@@ -702,7 +381,7 @@
       />
     </p>
     <p class="control mic" class:is-hidden={!recognition}>
-      <button class="button" class:is-disabled={updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
+      <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
         ><span class="icon"><Fa icon={faMicrophone} /></span></button
       >
     </p>
@@ -710,11 +389,17 @@
       <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
     </p>
     <p class="control queue">
-      <button title="Queue message, don't send yet" class:is-disabled={updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
+      <button title="Queue message, don't send yet" class:is-disabled={chatRequest.updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
-    {#if updating}
+    {#if chatRequest.updating}
     <p class="control send">
-      <button title="Cancel Response" class="button is-danger" type="button" on:click={() => { controller.abort() }}><span class="icon"><Fa icon={faCommentSlash} /></span></button>
+      <button title="Cancel Response" class="button is-danger" type="button" on:click={cancelRequest}><span class="icon">
+        {#if waitingForCancel}
+        <Fa icon={faCircleCheck} />
+        {:else}
+        <Fa icon={faCommentSlash} />
+        {/if}
+      </span></button>
     </p>
     {:else}
     <p class="control send">
