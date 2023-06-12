@@ -60,7 +60,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_tokens: 512,
+  max_tokens: 500,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -222,7 +222,7 @@ const summarySettings: ChatSetting[] = [
         name: 'Max Summary Size',
         title: 'Maximum number of tokens allowed for summary response.',
         min: 128,
-        max: 2048,
+        max: 512,
         step: 1,
         type: 'number',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
