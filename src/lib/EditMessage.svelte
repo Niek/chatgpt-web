@@ -45,8 +45,9 @@
   })
 
   const edit = () => {
-    if (message.summarized || message.streaming) return
+    if (message.summarized || message.streaming || editing) return
     editing = true
+    original = message.content
     setTimeout(() => {
       const el = document.getElementById('edit-' + message.uuid)
       el && el.focus()
@@ -77,6 +78,7 @@
 
   const keydown = (event:KeyboardEvent) => {
     if (event.key === 'Escape') {
+      if (!editing) return
       event.stopPropagation()
       event.preventDefault()
       message.content = original
