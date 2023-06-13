@@ -60,7 +60,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_tokens: 500,
+  max_tokens: 512,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -77,6 +77,7 @@ const defaults:ChatSettings = {
   continuousChat: 'fifo',
   summaryThreshold: 3000,
   summarySize: 1000,
+  summaryExtend: 0,
   pinTop: 0,
   pinBottom: 6,
   summaryPrompt: '',
@@ -222,9 +223,21 @@ const summarySettings: ChatSetting[] = [
         name: 'Max Summary Size',
         title: 'Maximum number of tokens allowed for summary response.',
         min: 128,
-        max: 512,
+        max: 1024,
         step: 1,
         type: 'number',
+        hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
+      },
+      {
+        key: 'summaryExtend',
+        name: 'Summary Extend',
+        title: 'Number of times a truncated summary can be extended.',
+        type: 'select-number',
+        options: [
+          { value: 0, text: '0 - Summary must fit in first call.' },
+          { value: 1, text: '1 - Allow one extra API call to extend.' },
+          { value: 2, text: '2 - Allow two extra API calls to extend.' }
+        ],
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       },
       {
