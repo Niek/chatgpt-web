@@ -302,13 +302,14 @@ export class ChatRequest {
           const getSS = ():number => (ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
             : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
+          const topSize = countPromptTokens(top, model)
           let maxSummaryTokens = getSS()
           let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
           const summaryRequest = { role: 'user', content: promptSummary } as Message
           let promptSummarySize = countMessageTokens(summaryRequest, model)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
-          while ((reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
+          while ((topSize + reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
               (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user')) {
             bottom.unshift(rw.pop() as Message)
             reductionPoolSize = countPromptTokens(rw, model)
