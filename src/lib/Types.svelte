@@ -1,15 +1,13 @@
 <script context="module" lang="ts">
-  // import type internal from "stream";
+  import type { supportedModelKeys } from './Models.svelte'
 
-  export const supportedModels = [ // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
-    'gpt-4',
-    'gpt-4-0314',
-    'gpt-4-32k',
-    'gpt-4-32k-0314',
-    'gpt-3.5-turbo',
-    'gpt-3.5-turbo-0301'
-  ]
-  export type Model = typeof supportedModels[number];
+  export type Model = typeof supportedModelKeys[number];
+
+  export type ModelDetail = {
+    prompt: number;
+    completion: number;
+    max: number;
+  };
 
   export type Usage = {
     completion_tokens: number;

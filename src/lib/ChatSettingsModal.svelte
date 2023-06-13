@@ -13,7 +13,7 @@
     checkStateChange,
     addChat
   } from './Storage.svelte'
-  import { supportedModels, type Chat, type ChatSetting, type ResponseModels, type SettingSelect, type SelectOption, type ChatSettings } from './Types.svelte'
+  import type { Chat, ChatSetting, ResponseModels, SettingSelect, SelectOption, ChatSettings } from './Types.svelte'
   import { errorNotice, sizeTextElements } from './Util.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
@@ -37,6 +37,7 @@
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
   import { getApiBase, getEndpointModels } from './ApiUtil.svelte'
+  import { supportedModelKeys } from './Models.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -194,7 +195,7 @@
         }
       })
     ).json()) as ResponseModels
-    const filteredModels = supportedModels.filter((model) => allModels.data.find((m) => m.id === model))
+    const filteredModels = supportedModelKeys.filter((model) => allModels.data.find((m) => m.id === model))
 
     const modelOptions:SelectOption[] = filteredModels.reduce((a, m) => {
       const o:SelectOption = {
