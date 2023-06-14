@@ -86,6 +86,7 @@ const defaults:ChatSettings = {
   autoStartSession: false,
   trainingPrompts: [],
   hiddenPromptPrefix: '',
+  imageGenerationSize: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -96,6 +97,12 @@ const excludeFromProfile = {
   user: true,
   isDirty: true
 }
+
+export const imageGenerationSizes = [
+  '1024x1024', '512x512', '256x256'
+]
+
+export const imageGenerationSizeTypes = ['', ...imageGenerationSizes]
 
 const profileSetting: ChatSetting & SettingSelect = {
       key: 'profile',
@@ -269,6 +276,18 @@ const summarySettings: ChatSetting[] = [
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
+      },
+      {
+        key: 'imageGenerationSize',
+        name: 'Image Generation Size',
+        header: 'Image Generation',
+        headerClass: 'is-info',
+        title: 'Prompt an image with: show me an image of ...',
+        type: 'select',
+        options: [
+          { value: '', text: 'OFF - Disable Image Generation' },
+          ...imageGenerationSizes.map(s => { return { value: s, text: s } })
+        ]
       }
 ]
 

@@ -31,6 +31,24 @@ const modelDetails : Record<string, ModelDetail> = {
       }
 }
 
+const imageModels : Record<string, ModelDetail> = {
+      'dall-e-1024x1024': {
+        prompt: 0.00,
+        completion: 0.020, // $0.020 per image
+        max: 1000 // 1000 char prompt, max
+      },
+      'dall-e-512x512': {
+        prompt: 0.00,
+        completion: 0.018, // $0.018 per image
+        max: 1000 // 1000 char prompt, max
+      },
+      'dall-e-256x256': {
+        prompt: 0.00,
+        completion: 0.016, // $0.016 per image
+        max: 1000 // 1000 char prompt, max
+      }
+}
+
 const unknownDetail = {
   prompt: 0,
   completion: 0,
@@ -51,11 +69,12 @@ export const supportedModels : Record<string, ModelDetail> = {
 }
 
 const lookupList = {
+  ...imageModels,
   ...modelDetails,
   ...supportedModels
 }
 
-export const supportedModelKeys = Object.keys(supportedModels)
+export const supportedModelKeys = Object.keys({ ...supportedModels, ...imageModels })
 
 const tpCache : Record<string, ModelDetail> = {}
 

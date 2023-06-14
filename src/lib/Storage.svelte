@@ -6,7 +6,10 @@
   import { v4 as uuidv4 } from 'uuid'
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
   import { errorNotice } from './Util.svelte'
+  import { deleteImage, setImage } from './ImageStore.svelte'
 
+  // TODO: move chatsStorage to indexedDB with localStorage as a fallback for private browsing.
+  //       Enough long chats will overflow localStorage.
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
@@ -53,7 +56,7 @@
     return chatId
   }
 
-  export const addChatFromJSON = (json: string): number => {
+  export const addChatFromJSON = async (json: string): Promise<number> => {
     const chats = get(chatsStorage)
 
     // Find the max chatId
@@ -72,6 +75,10 @@
     }
 
     chat.id = chatId
+
+    // Make sure images are moved to indexedDB store,
+    // else they would clobber local storage
+    await updateChatImages(chatId, chat)
 
     // Add a new chat
     chats.push(chat)
@@ -154,7 +161,10 @@
   }
 
   export const clearChats = () => {
-    chatsStorage.set([])
+    const chats = get(chatsStorage)
+    chats.forEach(c => deleteChat(c.id)) // make sure images are removed
+    // TODO: add a clear images option to make this faster
+    // chatsStorage.set([])
   }
   export const saveChatStore = () => {
     const chats = get(chatsStorage)
@@ -268,12 +278,15 @@
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const index = chat.messages.findIndex((m) => m.uuid === uuid)
     const message = getMessage(chat, uuid)
-    if (message && message.summarized) throw new Error('Unable to delete summarized message')
-    if (message && message.summary) throw new Error('Unable to directly delete message summary')
+    if (message?.summarized) throw new Error('Unable to delete summarized message')
+    if (message?.summary) throw new Error('Unable to directly delete message summary')
     // const found = chat.messages.filter((m) => m.uuid === uuid)
     if (index < 0) {
       console.error(`Unable to find and delete message with ID: ${uuid}`)
       return
+    }
+    if (message?.image) {
+      deleteImage(chatId, message.image.id)
     }
     // console.warn(`Deleting message with ID: ${uuid}`, found, index)
     chat.messages.splice(index, 1) // remove item
@@ -303,10 +316,21 @@
 
   export const deleteChat = (chatId: number) => {
     const chats = get(chatsStorage)
+    const chat = getChat(chatId)
+    chat?.messages?.forEach(m => {
+      if (m.image) deleteImage(chatId, m.image.id)
+    })
     chatsStorage.set(chats.filter((chat) => chat.id !== chatId))
   }
 
-  export const copyChat = (chatId: number) => {
+  export const updateChatImages = async (chatId: number, chat: Chat) => {
+    for (let i = 0; i < chat.messages.length; i++) {
+      const m = chat.messages[i]
+      if (m.image) m.image = await setImage(chatId, m.image)
+    }
+  }
+
+  export const copyChat = async (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
@@ -322,6 +346,8 @@
     chatCopy.id = newChatID()
     // Set new name
     chatCopy.name = cname
+
+    await updateChatImages(chatId, chatCopy)
 
     // Add a new chat
     chats.push(chatCopy)

@@ -6,10 +6,11 @@
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
+  import { getImage } from './ImageStore.svelte'
 
   export let message:Message
   export let chatId:number
@@ -22,6 +23,7 @@
   const isSystem = message.role === 'system'
   const isUser = message.role === 'user'
   const isAssistant = message.role === 'assistant'
+  const isImage = message.role === 'image'
 
   // Marked options
   const markdownOptions = {
@@ -34,9 +36,15 @@
   let editing = false
   let original:string
   let defaultModel:Model
+  let imageUrl:string
 
   onMount(() => {
     defaultModel = chatSettings.model
+    if (message?.image) {
+      getImage(message.image.id).then(i => {
+        imageUrl = 'data:image/png;base64, ' + i.b64image
+      })
+    }
   })
 
   const edit = () => {
@@ -168,17 +176,28 @@
     saveChatStore()
   }
 
+  const downloadImage = () => {
+    const filename = (message?.content || `${chat.name}-image-${message?.image?.id}`)
+      .replace(/([^a-z0-9- ]|\.)+/gi, '_').trim().slice(0, 80)
+    const a = document.createElement('a')
+    a.download = `${filename}.png`
+    a.href = imageUrl
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
 </script>
 
 <article
   id="{'message-' + message.uuid}"
   class="message chat-message" 
   class:is-info={isUser}
-  class:is-success={isAssistant}
+  class:is-success={isAssistant || isImage}
   class:is-warning={isSystem}
   class:is-danger={isError}
   class:user-message={isUser || isSystem}
-  class:assistant-message={isError || isAssistant}
+  class:assistant-message={isError || isAssistant || isImage}
   class:summarized={message.summarized}
   class:suppress={message.suppress} 
   class:editing={editing}
@@ -192,6 +211,9 @@
         <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
         on:input={update} on:blur={exit} />
       </form>
+        {#if imageUrl}
+          <img src={imageUrl} alt="">
+        {/if}
     {:else}
       <div 
         class="message-display" 
@@ -207,6 +229,9 @@
           options={markdownOptions} 
           renderers={{ code: Code, html: Code }}
         />
+        {#if imageUrl}
+          <img src={imageUrl} alt="">
+        {/if}
     </div>
     {/if}
     {#if isSystem}
@@ -261,7 +286,7 @@
       <a
         href={'#'}
         title="Delete this message"
-        class=" msg-delete button is-small"
+        class="msg-delete button is-small"
         on:click|preventDefault={() => {
           checkDelete()
         }}
@@ -273,11 +298,11 @@
       {/if}
       </a>
       {/if}
-      {#if !message.summarized && !isError}
+      {#if !isImage && !message.summarized && !isError}
         <a
           href={'#'}
           title="Truncate from here and send"
-          class=" msg-truncate button is-small"
+          class="msg-truncate button is-small"
           on:click|preventDefault={() => {
             checkTruncate()
           }}
@@ -289,11 +314,11 @@
         {/if}
         </a>
       {/if}
-      {#if !message.summarized && !isSystem && !isError}
+      {#if !isImage && !message.summarized && !isSystem && !isError}
         <a
           href={'#'}
           title={(message.suppress ? 'Uns' : 'S') + 'uppress message from submission'}
-          class=" msg-supress button is-small"
+          class="msg-supress button is-small"
           on:click|preventDefault={() => {
             setSuppress(!message.suppress)
           }}
@@ -303,6 +328,18 @@
         {:else}
         <span class="icon"><Fa icon={faEyeSlash} /></span>
         {/if}
+        </a>
+      {/if}
+      {#if imageUrl}
+        <a
+          href={'#'}
+          title="Download Image"
+          class="msg-image button is-small"
+          on:click|preventDefault={() => {
+            downloadImage()
+          }}
+        >
+        <span class="icon"><Fa icon={faDownload} /></span>
         </a>
       {/if}
       </div>

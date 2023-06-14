@@ -1,7 +1,8 @@
 <script context="module" lang="ts">
+import { setImage } from './ImageStore.svelte'
 // TODO: Integrate API calls
 import { addMessage, getLatestKnownModel, saveChatStore, setLatestKnownModel, subtractRunningTotal, updateRunningTotal } from './Storage.svelte'
-import type { Chat, ChatCompletionOpts, Message, Model, Response, Usage } from './Types.svelte'
+import type { Chat, ChatCompletionOpts, ChatImage, Message, Model, Response, ResponseImage, Usage } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -62,6 +63,29 @@ export class ChatCompletionResponse {
 
   setPromptTokenCount (tokens:number) {
     this.promptTokenCount = tokens
+  }
+
+  async updateImageFromSyncResponse (response: ResponseImage, prompt: string, model: Model) {
+    this.setModel(model)
+    for (let i = 0; i < response.data.length; i++) {
+      const d = response.data[i]
+      const message = {
+        role: 'image',
+        uuid: uuidv4(),
+        content: prompt,
+        image: await setImage(this.chat.id, { b64image: d.b64_json } as ChatImage),
+        model,
+        usage: {
+          prompt_tokens: 0,
+          completion_tokens: 1,
+          total_tokens: 1
+        } as Usage
+      } as Message
+      this.messages[i] = message
+      if (this.opts.autoAddMessages) addMessage(this.chat.id, message)
+    }
+    this.notifyMessageChange()
+    this.finish()
   }
 
   updateFromSyncResponse (response: Response) {
