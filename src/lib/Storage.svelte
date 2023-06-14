@@ -6,7 +6,7 @@
   import { v4 as uuidv4 } from 'uuid'
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
   import { errorNotice } from './Util.svelte'
-  import { deleteImage, setImage } from './ImageStore.svelte'
+  import { clearAllImages, deleteImage, setImage } from './ImageStore.svelte'
 
   // TODO: move chatsStorage to indexedDB with localStorage as a fallback for private browsing.
   //       Enough long chats will overflow localStorage.
@@ -161,10 +161,8 @@
   }
 
   export const clearChats = () => {
-    const chats = get(chatsStorage)
-    chats.forEach(c => deleteChat(c.id)) // make sure images are removed
-    // TODO: add a clear images option to make this faster
-    // chatsStorage.set([])
+    chatsStorage.set([])
+    clearAllImages()
   }
   export const saveChatStore = () => {
     const chats = get(chatsStorage)
@@ -293,6 +291,12 @@
     chatsStorage.set(chats)
   }
 
+  const clearImages = (chatId: number, messages: Message[]) => {
+    messages.forEach(m => {
+      if (m.image) deleteImage(chatId, m.image.id)
+    })
+  }
+
   export const truncateFromMessage = (chatId: number, uuid: string) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
@@ -303,13 +307,15 @@
     if (index < 0) {
       throw new Error(`Unable to find message with ID: ${uuid}`)
     }
-    chat.messages.splice(index + 1) // remove every item after
+    const truncated = chat.messages.splice(index + 1) // remove every item after
+    clearImages(chatId, truncated)
     chatsStorage.set(chats)
   }
 
   export const clearMessages = (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
+    clearImages(chatId, chat.messages)
     chat.messages = []
     chatsStorage.set(chats)
   }
@@ -317,9 +323,7 @@
   export const deleteChat = (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = getChat(chatId)
-    chat?.messages?.forEach(m => {
-      if (m.image) deleteImage(chatId, m.image.id)
-    })
+    clearImages(chatId, chat?.messages || [])
     chatsStorage.set(chats.filter((chat) => chat.id !== chatId))
   }
 

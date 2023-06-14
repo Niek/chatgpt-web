@@ -7,7 +7,7 @@
   const dbCheck = _hasIndexedDb && window.indexedDB.open('test')
   if (_hasIndexedDb) dbCheck.onerror = () => { _hasIndexedDb = false }
   
-  const imageCache: Record<string, ChatImage> = {}
+  let imageCache: Record<string, ChatImage> = {}
 
   class ChatImageStore extends Dexie {
     images!: Table<ChatImage>
@@ -43,6 +43,13 @@
       } else if (stored) {
         await setImage(chatId, stored)
       }
+    }
+  }
+
+  export const clearAllImages = async (): Promise<void> => {
+    imageCache = {}
+    if (_hasIndexedDb) {
+      imageDb.images.clear()
     }
   }
 
