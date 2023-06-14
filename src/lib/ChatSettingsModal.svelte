@@ -282,11 +282,11 @@
       <button class="delete" aria-label="close" on:click={closeSettings}></button>
     </header>
     <section class="modal-card-body">
-      {#key showSettingsModal}
       {#each settingsList as setting}
-        <ChatSettingField on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
+      <!-- {#key showSettingsModal} -->
+        <ChatSettingField rkey={showSettingsModal} on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
+      <!-- {/key} -->
       {/each}
-      {/key}
     </section>
 
     <footer class="modal-card-foot">
