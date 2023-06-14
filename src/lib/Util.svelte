@@ -21,6 +21,13 @@
     const anyEl = el as any // Oh how I hate typescript.  All the markup of Java with no real payoff..
     if (!anyEl.__didAutoGrow) el.style.height = '38px' // don't use "auto" here.  Firefox will over-size.
     el.style.height = el.scrollHeight + 'px'
+    setTimeout(() => {
+      if (el.scrollHeight > el.getBoundingClientRect().height + 5) {
+        el.style.overflowY = 'auto'
+      } else {
+        el.style.overflowY = ''
+      }
+    }, 0)
     anyEl.__didAutoGrow = true // don't resize this one again unless it's via an event
   }
 

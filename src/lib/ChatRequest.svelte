@@ -2,12 +2,12 @@
     import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
     import { mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
-    import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request } from './Types.svelte'
+    import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request, RequestImageGeneration } from './Types.svelte'
     import { deleteMessage, getChatSettingValueNullDefault, insertMessages, saveChatStore, getApiKey, addError } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getRequestSettingList, defaultModel } from './Settings.svelte'
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-    import { getApiBase, getEndpointCompletions } from './ApiUtil.svelte'
+    import { getApiBase, getEndpointCompletions, getEndpointGenerations } from './ApiUtil.svelte'
     import { v4 as uuidv4 } from 'uuid'
 
 export class ChatRequest {
@@ -25,7 +25,67 @@ export class ChatRequest {
       setChat (chat: Chat) {
         this.chat = chat
       }
+
+      // Common error handler
+      async handleError (response) {
+        let errorResponse
+        try {
+          const errObj = await response.json()
+          errorResponse = errObj?.error?.message || errObj?.error?.code
+          if (!errorResponse && response.choices && response.choices[0]) {
+            errorResponse = response.choices[0]?.message?.content
+          }
+          errorResponse = errorResponse || 'Unexpected Response'
+        } catch (e) {
+          errorResponse = 'Unknown Response'
+        }
+        throw new Error(`${response.status} - ${errorResponse}`)
+      }
     
+      async imageRequest (message: Message, prompt: string, count:number, messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> {
+        const _this = this
+        count = count || 1
+        _this.updating = true
+        _this.updatingMessage = 'Generating Image...'
+        const signal = _this.controller.signal
+        const size = this.chat.settings.imageGenerationSize
+        const request: RequestImageGeneration = {
+          prompt,
+          response_format: 'b64_json',
+          size,
+          n: count
+        }
+        const fetchOptions = {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${getApiKey()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(request),
+          signal
+        }
+        const chatResponse = new ChatCompletionResponse(opts)
+
+        try {
+          const response = await fetch(getApiBase() + getEndpointGenerations(), fetchOptions)
+          if (!response.ok) {
+            await _this.handleError(response)
+          } else {
+            const json = await response.json()
+            // Remove updating indicator
+            _this.updating = false
+            _this.updatingMessage = ''
+            // console.log('image json', json, json?.data[0])
+            chatResponse.updateImageFromSyncResponse(json, prompt, 'dall-e-' + size)
+          }
+        } catch (e) {
+          chatResponse.updateFromError(e)
+          throw e
+        }
+        message.suppress = true
+        return chatResponse
+      }
+
       /**
        * Send API request
        * @param messages
@@ -38,11 +98,33 @@ export class ChatRequest {
         const chat = _this.chat
         const chatSettings = _this.chat.settings
         const chatId = chat.id
+        const imagePromptDetect = /^\s*(please|can\s+you|will\s+you)*\s*(give|generate|create|show|build|design)\s+(me)*\s*(an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(image|photo|picture|pic)s*\s*(for\s+me)*\s*(of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i
         opts.chat = chat
         _this.updating = true
+
+        const lastMessage = messages[messages.length - 1]
+
+        if (chatSettings.imageGenerationSize && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
+          const im = lastMessage.content.match(imagePromptDetect)
+          if (im) {
+            // console.log('image prompt request', im)
+            let n = parseInt((im[5] || '').toLowerCase().trim()
+              .replace(/one/ig, '1')
+              .replace(/two/ig, '2')
+              .replace(/three/ig, '3')
+              .replace(/four/ig, '4')
+            )
+            if (isNaN(n)) n = 1
+            n = Math.min(Math.max(1, n), 4)
+            return await this.imageRequest(lastMessage, im[9], n, messages, opts, overrides)
+            // throw new Error('Image prompt:' + im[7])
+          }
+        }
     
         // Submit only the role and content of the messages, provide the previous messages as well for context
-        const messageFilter = (m:Message) => !m.suppress && m.role !== 'error' && m.content && !m.summarized
+        const messageFilter = (m:Message) => !m.suppress &&
+          ['user', 'assistant', 'system'].includes(m.role) &&
+          m.content && !m.summarized
         const filtered = messages.filter(messageFilter)
     
         // If we're doing continuous chat, do it
@@ -110,22 +192,6 @@ export class ChatRequest {
             signal
           }
 
-          // Common error handler
-          const handleError = async (response) => {
-            let errorResponse
-            try {
-              const errObj = await response.json()
-              errorResponse = errObj?.error?.message || errObj?.error?.code
-              if (!errorResponse && response.choices && response.choices[0]) {
-                errorResponse = response.choices[0]?.message?.content
-              }
-              errorResponse = errorResponse || 'Unexpected Response'
-            } catch (e) {
-              errorResponse = 'Unknown Response'
-            }
-            throw new Error(`${response.status} - ${errorResponse}`)
-          }
-
           // fetchEventSource doesn't seem to throw on abort,
           // so we deal with it ourselves
           const abortListener = (e:Event) => {
@@ -174,7 +240,7 @@ export class ChatRequest {
                 // everything's good
                 } else {
                 // client-side errors are usually non-retriable:
-                  await handleError(response)
+                  await _this.handleError(response)
                 }
               }
             }).catch(err => {
@@ -187,7 +253,7 @@ export class ChatRequest {
              */
             const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
             if (!response.ok) {
-              await handleError(response)
+              await _this.handleError(response)
             } else {
               const json = await response.json()
               // Remove updating indicator

@@ -14,10 +14,38 @@ const modelDetails : Record<string, ModelDetail> = {
         completion: 0.00006, // $0.06 per 1000 tokens completion
         max: 8192 // 8k max token buffer
       },
+      'gpt-3.5-turbo-0613': {
+        prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
+        completion: 0.0000015, // $0.0015 per 1000 tokens completion
+        max: 4096 // 4k max token buffer
+      },
       'gpt-3.5': {
         prompt: 0.000002, // $0.002 per 1000 tokens prompt
         completion: 0.000002, // $0.002 per 1000 tokens completion
         max: 4096 // 4k max token buffer
+      },
+      'gpt-3.5-turbo-16k': {
+        prompt: 0.000003, // $0.003 per 1000 tokens prompt
+        completion: 0.000004, // $0.004 per 1000 tokens completion
+        max: 16384 // 16k max token buffer
+      }
+}
+
+const imageModels : Record<string, ModelDetail> = {
+      'dall-e-1024x1024': {
+        prompt: 0.00,
+        completion: 0.020, // $0.020 per image
+        max: 1000 // 1000 char prompt, max
+      },
+      'dall-e-512x512': {
+        prompt: 0.00,
+        completion: 0.018, // $0.018 per image
+        max: 1000 // 1000 char prompt, max
+      },
+      'dall-e-256x256': {
+        prompt: 0.00,
+        completion: 0.016, // $0.016 per image
+        max: 1000 // 1000 char prompt, max
       }
 }
 
@@ -35,15 +63,18 @@ export const supportedModels : Record<string, ModelDetail> = {
       'gpt-4-32k': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0314': modelDetails['gpt-4-32k'],
       'gpt-3.5-turbo': modelDetails['gpt-3.5'],
-      'gpt-3.5-turbo-0301': modelDetails['gpt-3.5']
+      'gpt-3.5-turbo-16k': modelDetails['gpt-3.5-turbo-16k'],
+      'gpt-3.5-turbo-0301': modelDetails['gpt-3.5'],
+      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5-turbo-0613']
 }
 
 const lookupList = {
+  ...imageModels,
   ...modelDetails,
   ...supportedModels
 }
 
-export const supportedModelKeys = Object.keys(supportedModels)
+export const supportedModelKeys = Object.keys({ ...supportedModels, ...imageModels })
 
 const tpCache : Record<string, ModelDetail> = {}
 

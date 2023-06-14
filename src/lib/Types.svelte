@@ -1,7 +1,10 @@
 <script context="module" lang="ts">
-  import type { supportedModelKeys } from './Models.svelte'
+  import { supportedModelKeys } from './Models.svelte'
+  import { imageGenerationSizeTypes } from './Settings.svelte'
 
   export type Model = typeof supportedModelKeys[number];
+
+  export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
 
   export type ModelDetail = {
     prompt: number;
@@ -15,8 +18,14 @@
     total_tokens: number;
   };
 
+  export interface ChatImage {
+    id: string;
+    b64image: string;
+    chats: number[];
+  }
+
   export type Message = {
-    role: 'user' | 'assistant' | 'system' | 'error';
+    role: 'user' | 'assistant' | 'system' | 'error' | 'image';
     content: string;
     uuid: string;
     usage?: Usage;
@@ -27,12 +36,30 @@
     suppress?: boolean;
     finish_reason?: string;
     streaming?: boolean;
+    image?: ChatImage;
   };
 
   export type ResponseAlteration = {
     type: 'prompt' | 'replace';
     match: string;
     replace: string;
+  }
+
+  export type ResponseImageDetail = {
+    url: string;
+    b64_json: string;
+  }
+
+  export type ResponseImage = {
+    created: number;
+    data: ResponseImageDetail[];
+  }
+
+  export type RequestImageGeneration = {
+    prompt: string;
+    n?: number;
+    size?: ImageGenerationSizes;
+    response_format?: keyof ResponseImageDetail;
   }
 
   export type Request = {
@@ -66,6 +93,7 @@
     systemPrompt: string;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
+    imageGenerationSize: ImageGenerationSizes;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];

@@ -245,8 +245,6 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
 }
 
-
-
 /* Loading chat messages */
 .is-loading {
   opacity: 0.5;
@@ -461,6 +459,10 @@ aside.menu.main-menu .menu-expanse {
 
   .control.send .button {
     width: 60px;
+  }
+  textarea {
+    max-height: calc(100vh - (var(--chatContentPaddingBottom) + var(--runningTotalLineHeight) * var(--running-totals))) !important;
+    min-height: 38px !important;
   }
 }
 

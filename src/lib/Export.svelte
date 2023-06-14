@@ -1,8 +1,9 @@
 <script context="module" lang="ts">
   import { get } from 'svelte/store'
   import type { Chat } from './Types.svelte'
-  import { chatsStorage } from './Storage.svelte'
+  import { chatsStorage, getChat } from './Storage.svelte'
   import { getExcludeFromProfile } from './Settings.svelte'
+  import { getImage } from './ImageStore.svelte'
 
   export const exportAsMarkdown = (chatId: number) => {
     const chats = get(chatsStorage)
@@ -27,9 +28,13 @@
     document.body.removeChild(a)
   }
 
-  export const exportChatAsJSON = (chatId: number) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
+  export const exportChatAsJSON = async (chatId: number) => {
+    const chat = JSON.parse(JSON.stringify(getChat(chatId))) as Chat
+    for (let i = 0; i < chat.messages.length; i++) {
+      // Pull images out of indexedDB store for JSON download
+      const m = chat.messages[i]
+      if (m.image) m.image = await getImage(m.image.id)
+    }
     const exportContent = JSON.stringify(chat)
     const blob = new Blob([exportContent], { type: 'text/json' })
     const url = URL.createObjectURL(blob)
