@@ -74,6 +74,7 @@
   }
 
   const confirmClearChats = () => {
+    if (!sortedChats.length) return
     close()
     openModal(PromptConfirm, {
       title: 'Delete ALL Chat',
@@ -148,7 +149,7 @@
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); delChat() }}>
         <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Chat
       </a>
-      <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { if (chatId) confirmClearChats() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={$chatsStorage && !$chatsStorage[0]} on:click|preventDefault={() => { confirmClearChats() }}>
         <span class="menu-icon"><Fa icon={faTrashCan}/></span> Delete ALL Chats
       </a>
       <hr class="dropdown-divider">
