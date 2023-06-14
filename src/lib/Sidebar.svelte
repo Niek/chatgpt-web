@@ -47,7 +47,7 @@
             ></div>
           {:else}
           <div class="level-item">
-            <button on:click={() => { startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
+            <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
               ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</button>
             </div>
           {/if}

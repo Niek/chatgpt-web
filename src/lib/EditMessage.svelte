@@ -1,6 +1,6 @@
 <script lang="ts">
   import Code from './Code.svelte'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
   import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore, continueMessage } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
@@ -37,6 +37,7 @@
   let original:string
   let defaultModel:Model
   let imageUrl:string
+  let refreshCounter = 0
 
   onMount(() => {
     defaultModel = chatSettings.model
@@ -45,6 +46,10 @@
         imageUrl = 'data:image/png;base64, ' + i.b64image
       })
     }
+  })
+
+  afterUpdate(() => {
+    if (message.content.slice(-5).match(/```/)) refreshCounter++
   })
 
   const edit = () => {
@@ -224,11 +229,13 @@
         {#if message.summary && !message.summary.length}
         <p><b>Summarizing...</b></p>
         {/if}
+        {#key refreshCounter}
         <SvelteMarkdown 
           source={message.content} 
           options={markdownOptions} 
           renderers={{ code: Code, html: Code }}
         />
+        {/key}
         {#if imageUrl}
           <img src={imageUrl} alt="">
         {/if}
