@@ -14,13 +14,8 @@ const modelDetails : Record<string, ModelDetail> = {
         completion: 0.00006, // $0.06 per 1000 tokens completion
         max: 8192 // 8k max token buffer
       },
-      'gpt-3.5-turbo-0613': {
-        prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
-        completion: 0.000002, // $0.002 per 1000 tokens completion
-        max: 4096 // 4k max token buffer
-      },
       'gpt-3.5': {
-        prompt: 0.000002, // $0.002 per 1000 tokens prompt
+        prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
         completion: 0.000002, // $0.002 per 1000 tokens completion
         max: 4096 // 4k max token buffer
       },
@@ -67,7 +62,7 @@ export const supportedModels : Record<string, ModelDetail> = {
       'gpt-3.5-turbo': modelDetails['gpt-3.5'],
       'gpt-3.5-turbo-16k': modelDetails['gpt-3.5-turbo-16k'],
       'gpt-3.5-turbo-0301': modelDetails['gpt-3.5'],
-      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5-turbo-0613']
+      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5']
 }
 
 const lookupList = {
