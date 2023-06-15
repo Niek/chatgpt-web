@@ -300,7 +300,7 @@
           <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
           <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
           <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
-          <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat</button>
+          <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat <span class="is-hidden-mobile">&nbsp;from Current</span></button>
         </div>
         <div class="level-right">
           <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
@@ -325,7 +325,7 @@
                   <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
-                  <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat Using Profile
+                  <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat from Current
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
                   <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
