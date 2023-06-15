@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect } from './Profiles.svelte'
+  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, setSystemPrompt } from './Profiles.svelte'
   import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile } from './Settings.svelte'
   import {
     saveChatStore,
@@ -25,9 +25,8 @@
     faDownload,
     faUpload,
     faSquarePlus,
-
-    faRotateLeft
-
+    faRotateLeft,
+    faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
@@ -271,6 +270,12 @@
     chatSettings.isDirty = !deepEqual(profile, chatSettings)
   }
 
+  const applyToChat = () => {
+    if (chatSettings.useSystemPrompt) {
+      setSystemPrompt(chatId)
+    }
+  }
+
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -321,6 +326,9 @@
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat Using Profile
+                </a>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
+                  <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
                 </a>
                 <hr class="dropdown-divider">
                 <a href={'#'} 

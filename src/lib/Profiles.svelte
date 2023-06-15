@@ -2,7 +2,7 @@
   import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
   import { get, writable } from 'svelte/store'
   // Profile definitions
-  import { addMessage, clearMessages, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, newName, resetChatSettings, saveChatStore, setGlobalSettingValueByKey, updateProfile } from './Storage.svelte'
+  import { addMessage, clearMessages, deleteMessage, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, newName, resetChatSettings, saveChatStore, setGlobalSettingValueByKey, updateProfile } from './Storage.svelte'
   import type { Message, SelectOption, ChatSettings } from './Types.svelte'
   import { v4 as uuidv4 } from 'uuid'
 
@@ -89,6 +89,18 @@ export const prepareSummaryPrompt = (chatId:number, maxTokens:number) => {
     return mergeProfileFields(settings, currentSummaryPrompt, Math.floor(maxTokens * 0.75)).trim()
 }
 
+export const setSystemPrompt = (chatId: number) => {
+    const chat = getChat(chatId)
+    const systemPromptMessage:Message = {
+      role: 'system',
+      content: prepareProfilePrompt(chatId),
+      uuid: uuidv4()
+    }
+    if (chat.messages[0]?.role === 'system') deleteMessage(chatId, chat.messages[0].uuid)
+    chat.messages.unshift(systemPromptMessage)
+    saveChatStore()
+}
+
 // Restart currently loaded profile
 export const restartProfile = (chatId:number, noApply:boolean = false) => {
     const settings = getChatSettings(chatId)
@@ -96,12 +108,7 @@ export const restartProfile = (chatId:number, noApply:boolean = false) => {
     // Clear current messages
     clearMessages(chatId)
     // Add the system prompt
-    const systemPromptMessage:Message = {
-      role: 'system',
-      content: prepareProfilePrompt(chatId),
-      uuid: uuidv4()
-    }
-    addMessage(chatId, systemPromptMessage)
+    setSystemPrompt(chatId)
 
     // Add trainingPrompts, if any
     if (settings.trainingPrompts) {
