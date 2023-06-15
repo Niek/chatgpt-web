@@ -47,7 +47,6 @@ export class ChatRequest {
         count = count || 1
         _this.updating = true
         _this.updatingMessage = 'Generating Image...'
-        const signal = _this.controller.signal
         const size = this.chat.settings.imageGenerationSize
         const request: RequestImageGeneration = {
           prompt,
@@ -55,6 +54,16 @@ export class ChatRequest {
           size,
           n: count
         }
+        // fetchEventSource doesn't seem to throw on abort,
+        // so we deal with it ourselves
+        _this.controller = new AbortController()
+        const signal = _this.controller.signal
+        const abortListener = (e:Event) => {
+          chatResponse.updateFromError('User aborted request.')
+          signal.removeEventListener('abort', abortListener)
+        }
+        signal.addEventListener('abort', abortListener)
+        // Create request
         const fetchOptions = {
           method: 'POST',
           headers: {
@@ -180,7 +189,15 @@ export class ChatRequest {
           // (streaming doesn't return counts, so we need to do it client side)
           chatResponse.setPromptTokenCount(promptTokenCount)
 
+          // fetchEventSource doesn't seem to throw on abort,
+          // so we deal with it ourselves
+          _this.controller = new AbortController()
           const signal = _this.controller.signal
+          const abortListener = (e:Event) => {
+            chatResponse.updateFromError('User aborted request.')
+            signal.removeEventListener('abort', abortListener)
+          }
+          signal.addEventListener('abort', abortListener)
     
           const fetchOptions = {
             method: 'POST',
@@ -191,15 +208,6 @@ export class ChatRequest {
             body: JSON.stringify(request),
             signal
           }
-
-          // fetchEventSource doesn't seem to throw on abort,
-          // so we deal with it ourselves
-          const abortListener = (e:Event) => {
-            _this.controller = new AbortController()
-            chatResponse.updateFromError('User aborted request.')
-            signal.removeEventListener('abort', abortListener)
-          }
-          signal.addEventListener('abort', abortListener)
 
           if (opts.streaming) {
             /**
