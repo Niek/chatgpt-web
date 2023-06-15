@@ -8,14 +8,25 @@
   import Fa from 'svelte-fa/src/fa.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
+  import { afterUpdate, onMount } from 'svelte'
 
   export let setting:ChatSetting
   export let chatSettings:ChatSettings
   export let chat:Chat
   export let chatDefaults:Record<string, any>
   export let originalProfile:String
+  export let rkey:number = 0
 
   const chatId = chat.id
+  let show = false
+
+  onMount(() => {
+    show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+  })
+
+  afterUpdate(() => {
+    show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+  })
 
   const fieldControls:ControlAction[] = (setting.fieldControls || [] as FieldControl[]).map(fc => {
     return fc.getAction(chatId, setting, chatSettings[setting.key])
@@ -124,7 +135,7 @@
 
 </script>
 
-{#if (typeof setting.hide !== 'function') || !setting.hide(chatId)}
+{#if show}
   {#if setting.header}
   <p class="notification {setting.headerClass}">
     {@html setting.header}
@@ -180,11 +191,13 @@
         {:else if setting.type === 'select' || setting.type === 'select-number'}
           <!-- <div class="select"> -->
             <div class="select" class:control={fieldControls.length}>
+            {#key rkey}
             <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
               {#each setting.options as option}
                 <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]}>{option.text}</option>
               {/each}
             </select>
+            {/key}
             </div>
             {#each fieldControls as cont}
             <div class="control">

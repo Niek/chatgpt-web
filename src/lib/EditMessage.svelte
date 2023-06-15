@@ -49,7 +49,7 @@
   })
 
   afterUpdate(() => {
-    if (message.content.slice(-5).match(/```/)) refreshCounter++
+    if (message.content.slice(-5).includes('```')) refreshCounter++
   })
 
   const edit = () => {
