@@ -3,12 +3,13 @@
     import { mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request, RequestImageGeneration } from './Types.svelte'
-    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, saveChatStore, getApiKey, addError } from './Storage.svelte'
+    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, getApiKey, addError, currentChatMessages, getMessages, updateMessages } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getRequestSettingList, defaultModel } from './Settings.svelte'
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
     import { getApiBase, getEndpointCompletions, getEndpointGenerations } from './ApiUtil.svelte'
     import { v4 as uuidv4 } from 'uuid'
+    import { get } from 'svelte/store'
 
 export class ChatRequest {
       constructor () {
@@ -317,7 +318,7 @@ export class ChatRequest {
         const maxTokens = getModelMaxTokens(model) // max tokens for model
 
         const continueRequest = async () => {
-          return await _this.sendRequest(chat.messages, {
+          return await _this.sendRequest(getMessages(chatId), {
             ...opts,
             didSummary: true
           }, overrides)
@@ -358,7 +359,7 @@ export class ChatRequest {
             promptSize = countPromptTokens(top.concat(rw), model) + countPadding
           }
           // Run a new request, now with the rolled messages hidden
-          return await _this.sendRequest(chat.messages, {
+          return await _this.sendRequest(get(currentChatMessages), {
             ...opts,
             didSummary: true // our "summary" was simply dropping some messages
           }, overrides)
@@ -466,11 +467,11 @@ export class ChatRequest {
           summaryResponse.summary = summarizedIds
           // Disable the messages we summarized so they still show in history
           rw.forEach((m, i) => { m.summarized = summaryIds })
-          saveChatStore()
+          updateMessages(chatId)
           // Re-run request with summarized prompts
           _this.updatingMessage = 'Continuing...'
           scrollToBottom(true)
-          return await _this.sendRequest(chat.messages, {
+          return await _this.sendRequest(get(currentChatMessages), {
             ...opts,
             didSummary: true
           },

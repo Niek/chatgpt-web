@@ -9,7 +9,12 @@
     showSetChatSettings,
     submitExitingPromptsNow,
     continueMessage,
-    getMessage
+    getMessage,
+    currentChatMessages,
+    setCurrentChat,
+
+    currentChatId
+
   } from './Storage.svelte'
   import {
     type Message,
@@ -82,9 +87,9 @@
         submitForm(false, true)
       }
       if ($continueMessage) {
-        const message = getMessage(chat, $continueMessage)
+        const message = getMessage(chatId, $continueMessage)
         $continueMessage = ''
-        if (message && chat.messages.indexOf(message) === (chat.messages.length - 1)) {
+        if (message && $currentChatMessages.indexOf(message) === ($currentChatMessages.length - 1)) {
           submitForm(lastSubmitRecorded, true, message)
         }
       }
@@ -93,6 +98,7 @@
   
   $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
 
+  setCurrentChat(0)
   // Make sure chat object is ready to go
   updateChatSettings(chatId)
 
@@ -105,6 +111,8 @@
 
   onMount(async () => {
     if (!chat) return
+
+    setCurrentChat(chatId)
 
     chatRequest = new ChatRequest()
     chatRequest.setChat(chat)
@@ -164,9 +172,9 @@
   const addNewMessage = () => {
     if (chatRequest.updating) return
     let inputMessage: Message
-    const lastMessage = chat.messages[chat.messages.length - 1]
+    const lastMessage = $currentChatMessages[$currentChatMessages.length - 1]
     const uuid = uuidv4()
-    if (chat.messages.length === 0) {
+    if ($currentChatMessages.length === 0) {
       inputMessage = { role: 'system', content: input.value, uuid }
     } else if (lastMessage && lastMessage.role === 'user') {
       inputMessage = { role: 'assistant', content: input.value, uuid }
@@ -220,8 +228,8 @@
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
-      } else if (!fillMessage && chat.messages.length && chat.messages[chat.messages.length - 1].finish_reason === 'length') {
-        fillMessage = chat.messages[chat.messages.length - 1]
+      } else if (!fillMessage && $currentChatMessages.length && $currentChatMessages[$currentChatMessages.length - 1].finish_reason === 'length') {
+        fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
       }
   
       // Clear the input value
@@ -237,7 +245,7 @@
     chatRequest.updatingMessage = ''
 
     try {
-      const response = await chatRequest.sendRequest(chat.messages, {
+      const response = await chatRequest.sendRequest($currentChatMessages, {
         chat,
         autoAddMessages: true, // Auto-add and update messages in array
         streaming: chatSettings.stream,
@@ -268,7 +276,7 @@
       uuid: uuidv4()
     }
 
-    const suggestMessages = chat.messages.slice(0, 10) // limit to first 10 messages
+    const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
 
     const response = await chatRequest.sendRequest(suggestMessages, {
@@ -346,9 +354,9 @@
   </div>
 </nav>
 
-<Messages messages={chat.messages} chatId={chatId} />
+<Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if chatRequest.updating === true}
+{#if chatRequest.updating === true || $currentChatId === 0}
   <article class="message is-success assistant-message">
     <div class="message-body content">
       <span class="is-loading" ></span>
@@ -357,7 +365,7 @@
   </article>
 {/if}
 
-{#if chat.messages.length === 0 || (chat.messages.length === 1 && chat.messages[0].role === 'system')}
+{#if $currentChatId !== 0 && ($currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system'))}
   <Prompts bind:input />
 {/if}
 </div>
