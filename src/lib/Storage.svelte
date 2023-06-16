@@ -19,6 +19,8 @@
   export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
   export let pinMainMenu = writable(false) // Show menu (for mobile use)
   export let continueMessage = writable('') //
+  export let currentChatMessages = writable([] as Message[])
+  export let currentChatId = writable(0)
 
   const chatDefaults = getChatDefaults()
 
@@ -215,70 +217,84 @@
     chatsStorage.set(chats)
   }
 
+  export const getMessages = (chatId: number): Message[] => {
+    if (get(currentChatId) === chatId) return get(currentChatMessages)
+    return getChat(chatId).messages
+  }
+
+  let setMessagesTimer: any
+  export const setMessages = (chatId: number, messages: Message[]) => {
+    if (get(currentChatId) === chatId) {
+      // update current message cache right away
+      currentChatMessages.set(messages)
+      clearTimeout(setMessagesTimer)
+      // delay expensive all chats update for a bit
+      setMessagesTimer = setTimeout(() => {
+        getChat(chatId).messages = messages
+        saveChatStore()
+      }, 100)
+    } else {
+      getChat(chatId).messages = messages
+      saveChatStore()
+    }
+  }
+
+  export const updateMessages = (chatId: number) => {
+    setMessages(chatId, getMessages(chatId))
+  }
+
   export const addError = (chatId: number, error: string) => {
     addMessage(chatId, { content: error } as Message)
   }
 
   export const addMessage = (chatId: number, message: Message) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
+    const messages = getMessages(chatId)
     if (!message.uuid) message.uuid = uuidv4()
-    if (chat.messages.indexOf(message) < 0) {
+    if (messages.indexOf(message) < 0) {
       // Don't have message, add it
-      chat.messages.push(message)
+      messages[messages.length] = message
     }
-    chatsStorage.set(chats)
+    setMessages(chatId, messages)
   }
 
-  export const getMessages = (chatId: number):Message[] => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    return chat.messages
-  }
-
-  export const getMessage = (chat: Chat, uuid:string):Message|undefined => {
-    return chat.messages.find((m) => m.uuid === uuid)
+  export const getMessage = (chatId: number, uuid:string):Message|undefined => {
+    return getMessages(chatId).find((m) => m.uuid === uuid)
   }
 
   export const insertMessages = (chatId: number, insertAfter: Message, newMessages: Message[]) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const index = chat.messages.findIndex((m) => m.uuid === insertAfter.uuid)
+    const messages = getMessages(chatId)
+    const index = messages.findIndex((m) => m.uuid === insertAfter.uuid)
     if (index === undefined || index < 0) {
       console.error("Couldn't insert after message:", insertAfter)
       return
     }
     newMessages.forEach(m => { m.uuid = m.uuid || uuidv4() })
-    chat.messages.splice(index + 1, 0, ...newMessages)
-    chatsStorage.set(chats)
+    messages.splice(index + 1, 0, ...newMessages)
+    setMessages(chatId, messages.filter(m => true))
   }
 
   export const deleteSummaryMessage = (chatId: number, uuid: string) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const message = getMessage(chat, uuid)
+    const message = getMessage(chatId, uuid)
     if (message && message.summarized) throw new Error('Unable to delete summarized message')
     if (message && message.summary) { // messages we summarized
       message.summary.forEach(sid => {
-        const m = getMessage(chat, sid)
+        const m = getMessage(chatId, sid)
         if (m) {
           delete m.summarized // unbind to this summary
         }
       })
       delete message.summary
     }
-    chatsStorage.set(chats)
+    updateMessages(chatId)
     deleteMessage(chatId, uuid)
   }
 
   export const deleteMessage = (chatId: number, uuid: string) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const index = chat.messages.findIndex((m) => m.uuid === uuid)
-    const message = getMessage(chat, uuid)
+    const messages = getMessages(chatId)
+    const index = messages.findIndex((m) => m.uuid === uuid)
+    const message = getMessage(chatId, uuid)
     if (message?.summarized) throw new Error('Unable to delete summarized message')
     if (message?.summary) throw new Error('Unable to directly delete message summary')
-    // const found = chat.messages.filter((m) => m.uuid === uuid)
     if (index < 0) {
       console.error(`Unable to find and delete message with ID: ${uuid}`)
       return
@@ -287,8 +303,8 @@
       deleteImage(chatId, message.image.id)
     }
     // console.warn(`Deleting message with ID: ${uuid}`, found, index)
-    chat.messages.splice(index, 1) // remove item
-    chatsStorage.set(chats)
+    messages.splice(index, 1) // remove item
+    setMessages(chatId, messages.filter(m => true))
   }
 
   const clearImages = (chatId: number, messages: Message[]) => {
@@ -298,38 +314,33 @@
   }
 
   export const truncateFromMessage = (chatId: number, uuid: string) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const index = chat.messages.findIndex((m) => m.uuid === uuid)
-    const message = getMessage(chat, uuid)
+    const messages = getMessages(chatId)
+    const index = messages.findIndex((m) => m.uuid === uuid)
+    const message = getMessage(chatId, uuid)
     if (message && message.summarized) throw new Error('Unable to truncate from a summarized message')
-    // const found = chat.messages.filter((m) => m.uuid === uuid)
     if (index < 0) {
       throw new Error(`Unable to find message with ID: ${uuid}`)
     }
-    const truncated = chat.messages.splice(index + 1) // remove every item after
+    const truncated = messages.splice(index + 1) // remove every item after
     clearImages(chatId, truncated)
-    chatsStorage.set(chats)
+    setMessages(chatId, messages.filter(m => true))
   }
 
   export const clearMessages = (chatId: number) => {
-    const chats = get(chatsStorage)
-    const chat = chats.find((chat) => chat.id === chatId) as Chat
-    clearImages(chatId, chat.messages)
-    chat.messages = []
-    chatsStorage.set(chats)
+    clearImages(chatId, getMessages(chatId))
+    setMessages(chatId, [])
   }
 
   export const deleteChat = (chatId: number) => {
     const chats = get(chatsStorage)
-    const chat = getChat(chatId)
-    clearImages(chatId, chat?.messages || [])
+    clearImages(chatId, getMessages(chatId) || [])
     chatsStorage.set(chats.filter((chat) => chat.id !== chatId))
   }
 
   export const updateChatImages = async (chatId: number, chat: Chat) => {
-    for (let i = 0; i < chat.messages.length; i++) {
-      const m = chat.messages[i]
+    const messages = getMessages(chatId)
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i]
       if (m.image) m.image = await setImage(chatId, m.image)
     }
   }

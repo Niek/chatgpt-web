@@ -1,7 +1,7 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, saveChatStore, continueMessage } from './Storage.svelte'
+  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
@@ -178,7 +178,7 @@
       return
     }
     message.suppress = value
-    saveChatStore()
+    updateMessages(chatId)
   }
 
   const downloadImage = () => {
