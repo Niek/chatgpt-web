@@ -1,7 +1,7 @@
 <script lang="ts">
   import Code from './Code.svelte'
   import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
-  import { deleteMessage, chatsStorage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
+  import { deleteMessage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
@@ -14,9 +14,8 @@
 
   export let message:Message
   export let chatId:number
+  export let chat:Chat
 
-
-  $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat.settings
 
   const isError = message.role === 'error'
@@ -49,7 +48,7 @@
   })
 
   afterUpdate(() => {
-    if (message.content.slice(-5).includes('```')) refreshCounter++
+    if (message.streaming && message.content.slice(-5).includes('```')) refreshCounter++
   })
 
   const edit = () => {

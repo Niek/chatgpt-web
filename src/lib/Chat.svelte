@@ -10,11 +10,10 @@
     submitExitingPromptsNow,
     continueMessage,
     getMessage,
+    currentChatMessages,
+    setCurrentChat,
 
-    currentChatId,
-
-    currentChatMessages
-
+    currentChatId
 
   } from './Storage.svelte'
   import {
@@ -99,6 +98,7 @@
   
   $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
 
+  setCurrentChat(0)
   // Make sure chat object is ready to go
   updateChatSettings(chatId)
 
@@ -112,8 +112,7 @@
   onMount(async () => {
     if (!chat) return
 
-    $currentChatId = chatId
-    $currentChatMessages = chat.messages
+    setCurrentChat(chatId)
 
     chatRequest = new ChatRequest()
     chatRequest.setChat(chat)
@@ -355,9 +354,9 @@
   </div>
 </nav>
 
-<Messages messages={$currentChatMessages} chatId={chatId} />
+<Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if chatRequest.updating === true}
+{#if chatRequest.updating === true || $currentChatId === 0}
   <article class="message is-success assistant-message">
     <div class="message-body content">
       <span class="is-loading" ></span>
@@ -366,7 +365,7 @@
   </article>
 {/if}
 
-{#if $currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system')}
+{#if $currentChatId !== 0 && ($currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system'))}
   <Prompts bind:input />
 {/if}
 </div>

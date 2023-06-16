@@ -222,6 +222,19 @@
     return getChat(chatId).messages
   }
 
+  let setChatTimer: any
+  export const setCurrentChat = (chatId: number) => {
+    clearTimeout(setChatTimer)
+    if (!chatId) {
+      currentChatId.set(0)
+      currentChatMessages.set([])
+    }
+    setChatTimer = setTimeout(() => {
+      currentChatId.set(chatId)
+      currentChatMessages.set(getChat(chatId).messages)
+    }, 10)
+  }
+
   let setMessagesTimer: any
   export const setMessages = (chatId: number, messages: Message[]) => {
     if (get(currentChatId) === chatId) {
