@@ -245,7 +245,7 @@
       setMessagesTimer = setTimeout(() => {
         getChat(chatId).messages = messages
         saveChatStore()
-      }, 100)
+      }, 200)
     } else {
       getChat(chatId).messages = messages
       saveChatStore()
