@@ -3,7 +3,7 @@
     import { mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request, RequestImageGeneration } from './Types.svelte'
-    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, getApiKey, addError, currentChatMessages, getMessages, updateMessages } from './Storage.svelte'
+    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, getApiKey, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getRequestSettingList, defaultModel } from './Settings.svelte'
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
@@ -418,7 +418,9 @@ export class ChatRequest {
           const summarizedIds = rw.map(m => m.uuid)
           const summaryIds = [summaryResponse.uuid]
           let loopCount = 0
+          let networkRetry = 2 // number of retries on network error
           while (continueCounter-- > 0) {
+            let error = false
             try {
               const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]).concat(loopCount > 0 ? [summaryResponse] : []), {
                 summaryRequest: true,
@@ -445,30 +447,35 @@ export class ChatRequest {
                 deleteMessage(chatId, srid)
                 return summary
               }
-              // Looks like we got our summarized messages.
-              // Mark the new summaries as such
-              // Need more?
-              if (summaryResponse.finish_reason === 'length' && continueCounter > 0) {
-                // Our summary was truncated
-                // Try to get more of it
-                delete summaryResponse.finish_reason
-                _this.updatingMessage = 'Summarizing more...'
-                let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
-                while (rw.length && (_recount + maxSummaryTokens >= maxTokens)) {
-                  rw.shift()
-                  _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
-                }
-                loopCount++
-                continue
-              } else {
-                // We're done
-                continueCounter = 0
-              }
             } catch (e) {
-              _this.updating = false
-              _this.updatingMessage = ''
-              deleteMessage(chatId, srid)
-              throw e
+              if (e.message?.includes('network error') && networkRetry > 0) {
+                networkRetry--
+                error = true
+              } else {
+                _this.updating = false
+                _this.updatingMessage = ''
+                deleteSummaryMessage(chatId, srid)
+                throw e
+              }
+            }
+            // Looks like we got our summarized messages.
+            // Mark the new summaries as such
+            // Need more?
+            if ((error || summaryResponse.finish_reason === 'length') && continueCounter > 0) {
+              // Our summary was truncated
+              // Try to get more of it
+              delete summaryResponse.finish_reason
+              _this.updatingMessage = 'Summarizing more...'
+              let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+              while (rw.length && (_recount + maxSummaryTokens >= maxTokens)) {
+                rw.shift()
+                _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+              }
+              loopCount++
+              continue
+            } else {
+              // We're done
+              continueCounter = 0
             }
           }
           summaryResponse.summary = summarizedIds
