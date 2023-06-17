@@ -33,9 +33,7 @@
     faMicrophone,
     faLightbulb,
     faCommentSlash,
-
     faCircleCheck
-
   } from '@fortawesome/free-solid-svg-icons/index'
   import { v4 as uuidv4 } from 'uuid'
   import { getPrice } from './Stats.svelte'
@@ -50,11 +48,6 @@
   const chatId: number = parseInt(params.chatId)
 
   let chatRequest = new ChatRequest()
-
-  // let controller:AbortController
-
-  // let updating: boolean|number = false
-  // let updatingMessage: string = ''
   let input: HTMLTextAreaElement
   let recognition: any = null
   let recording = false
@@ -97,6 +90,12 @@
   }
   
   $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
+
+  const afterChatLoad = (...args:any) => {
+    scrollToBottom()
+  }
+
+  $: afterChatLoad($currentChatId)
 
   setCurrentChat(0)
   // Make sure chat object is ready to go
