@@ -417,9 +417,10 @@ export class ChatRequest {
           _this.updatingMessage = 'Summarizing...'
           const summarizedIds = rw.map(m => m.uuid)
           const summaryIds = [summaryResponse.uuid]
+          let loopCount = 0
           while (continueCounter-- > 0) {
             try {
-              const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]), {
+              const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]).concat(loopCount > 0 ? [summaryResponse] : []), {
                 summaryRequest: true,
                 streaming: opts.streaming,
                 maxTokens: maxSummaryTokens,
@@ -452,6 +453,12 @@ export class ChatRequest {
                 // Try to get more of it
                 delete summaryResponse.finish_reason
                 _this.updatingMessage = 'Summarizing more...'
+                let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+                while (rw.length && (_recount + maxSummaryTokens >= maxTokens)) {
+                  rw.shift()
+                  _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+                }
+                loopCount++
                 continue
               } else {
                 // We're done

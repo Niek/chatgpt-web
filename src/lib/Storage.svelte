@@ -245,7 +245,7 @@
       setMessagesTimer = setTimeout(() => {
         getChat(chatId).messages = messages
         saveChatStore()
-      }, 100)
+      }, 200)
     } else {
       getChat(chatId).messages = messages
       saveChatStore()
@@ -351,7 +351,7 @@
   }
 
   export const updateChatImages = async (chatId: number, chat: Chat) => {
-    const messages = getMessages(chatId)
+    const messages = chat.messages
     for (let i = 0; i < messages.length; i++) {
       const m = messages[i]
       if (m.image) m.image = await setImage(chatId, m.image)
