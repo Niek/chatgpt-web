@@ -432,7 +432,7 @@ export class ChatRequest {
                   if (opts.streaming) scrollToMessage(summaryResponse.uuid, 150, true, true)
                 }
               } as ChatCompletionOpts, {
-                temperature: 0.1, // make summary more deterministic
+                temperature: chatSettings.summaryTemperature, // make summary more deterministic
                 top_p: 1,
                 presence_penalty: 0,
                 frequency_penalty: 0,
