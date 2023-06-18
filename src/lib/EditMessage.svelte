@@ -70,6 +70,7 @@
   const doChange = () => {
     if (message.content !== original) {
       dispatch('change', message)
+      updateMessages(chatId)
     }
   }
 
