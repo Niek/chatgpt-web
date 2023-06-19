@@ -166,6 +166,7 @@ export class ChatRequest {
             if (key === 'max_tokens') {
               if (opts.maxTokens) value = opts.maxTokens // only as large as requested
               if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
+              if (value) value = Math.floor(value)
             }
             if (key === 'n') {
               if (opts.streaming || opts.summaryRequest) {
