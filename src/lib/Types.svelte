@@ -86,6 +86,7 @@
     summaryThreshold: number;
     summarySize: number;
     summaryExtend: number;
+    summaryTemperature: number;
     pinTop: number;
     pinBottom: number;
     summaryPrompt: string;

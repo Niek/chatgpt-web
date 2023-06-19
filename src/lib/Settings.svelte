@@ -78,6 +78,7 @@ const defaults:ChatSettings = {
   summaryThreshold: 3000,
   summarySize: 1000,
   summaryExtend: 0,
+  summaryTemperature: 0.1,
   pinTop: 0,
   pinBottom: 6,
   summaryPrompt: '',
@@ -245,6 +246,16 @@ const summarySettings: ChatSetting[] = [
           { value: 1, text: '1 - Allow one extra API call to extend.' },
           { value: 2, text: '2 - Allow two extra API calls to extend.' }
         ],
+        hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
+      },
+      {
+        key: 'summaryTemperature',
+        name: 'Summary Temperature',
+        title: 'What sampling temperature to use, between 0 and 2, when generating summary. Lower values, like 0, will be more deterministic.',
+        min: 0,
+        max: 2,
+        step: 0.1,
+        type: 'number',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       },
       {

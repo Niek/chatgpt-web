@@ -235,18 +235,19 @@
     }, 10)
   }
 
-  let setMessagesTimer: any
+  const setMessagesTimers: any = {}
   export const setMessages = (chatId: number, messages: Message[]) => {
     if (get(currentChatId) === chatId) {
       // update current message cache right away
       currentChatMessages.set(messages)
-      clearTimeout(setMessagesTimer)
+      clearTimeout(setMessagesTimers[chatId])
       // delay expensive all chats update for a bit
-      setMessagesTimer = setTimeout(() => {
+      setMessagesTimers[chatId] = setTimeout(() => {
         getChat(chatId).messages = messages
         saveChatStore()
       }, 200)
     } else {
+      clearTimeout(setMessagesTimers[chatId])
       getChat(chatId).messages = messages
       saveChatStore()
     }
