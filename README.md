@@ -14,7 +14,7 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 ## Features
 * **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
 * **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
-* **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GTP-4) are supported.
+* **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GPT-4) are supported.
 * **Cheaper**: ChatGPT-web uses the commercial OpenAI API, so it's much cheaper than a ChatGPT Plus subscription.
 * **Fast**: ChatGPT-web is a single-page web app, so it's [fast and responsive](https://pagespeed.web.dev/analysis/https-niek-github-io-chatgpt-web/8xv5uwrnes).
 * **Mobile-friendly**: ChatGPT-web is mobile-friendly, so you can use it on your phone.
@@ -83,6 +83,7 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Webifi"><img src="https://avatars.githubusercontent.com/u/5082671?v=4?s=100" width="100px;" alt="Webifi"/><br /><sub><b>Webifi</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Webifi" title="Code">💻</a> <a href="#ideas-Webifi" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Madrawn"><img src="https://avatars.githubusercontent.com/u/1095756?v=4?s=100" width="100px;" alt="Daniel Dengler"/><br /><sub><b>Daniel Dengler</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Madrawn" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://ashkanph.github.io"><img src="https://avatars.githubusercontent.com/u/22937754?v=4?s=100" width="100px;" alt="Ashkan"/><br /><sub><b>Ashkan</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Ashkanph" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/antopoid"><img src="https://avatars.githubusercontent.com/u/83502336?v=4?s=100" width="100px;" alt="antopoid"/><br /><sub><b>antopoid</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=antopoid" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
