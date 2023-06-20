@@ -130,10 +130,12 @@ export class ChatRequest {
             // throw new Error('Image prompt:' + im[7])
           }
         }
+
+        const includedRoles = ['user', 'assistant'].concat(chatSettings.useSystemPrompt ? ['system'] : [])
     
         // Submit only the role and content of the messages, provide the previous messages as well for context
         const messageFilter = (m:Message) => !m.suppress &&
-          ['user', 'assistant', 'system'].includes(m.role) &&
+          includedRoles.includes(m.role) &&
           m.content && !m.summarized
         const filtered = messages.filter(messageFilter)
     
