@@ -130,10 +130,12 @@ export class ChatRequest {
             // throw new Error('Image prompt:' + im[7])
           }
         }
+
+        const includedRoles = ['user', 'assistant'].concat(chatSettings.useSystemPrompt ? ['system'] : [])
     
         // Submit only the role and content of the messages, provide the previous messages as well for context
         const messageFilter = (m:Message) => !m.suppress &&
-          ['user', 'assistant', 'system'].includes(m.role) &&
+          includedRoles.includes(m.role) &&
           m.content && !m.summarized
         const filtered = messages.filter(messageFilter)
     
@@ -166,6 +168,7 @@ export class ChatRequest {
             if (key === 'max_tokens') {
               if (opts.maxTokens) value = opts.maxTokens // only as large as requested
               if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
+              if (value) value = Math.floor(value)
             }
             if (key === 'n') {
               if (opts.streaming || opts.summaryRequest) {
