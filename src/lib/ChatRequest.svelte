@@ -146,8 +146,8 @@ export class ChatRequest {
         const maxTokens = getModelMaxTokens(model)
 
         const messagePayload = filtered.map((m, i) => { return { role: m.role, content: m.content } }) as Message[]
-        // Inject hidden prompt if requested
-        if (!opts.summaryRequest) this.buildHiddenPromptPrefixMessage(messagePayload, true)
+        // Inject hidden prompts if requested
+        if (!opts.summaryRequest) this.buildHiddenPromptPrefixMessages(messagePayload, true)
     
         const chatResponse = new ChatCompletionResponse(opts)
         const promptTokenCount = countPromptTokens(messagePayload, model)
@@ -288,26 +288,35 @@ export class ChatRequest {
         return this.chat.settings.model || defaultModel
       }
 
-      private buildHiddenPromptPrefixMessage (messages: Message[], insert:boolean = false): Message|null {
+      private buildHiddenPromptPrefixMessages (messages: Message[], insert:boolean = false): Message[] {
         const chatSettings = this.chat.settings
         const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
         if (hiddenPromptPrefix && messages.length && messages[messages.length - 1].role === 'user') {
-          const message = { role: 'user', content: hiddenPromptPrefix } as Message
+          const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
+            m = m.trim()
+            if (m.length) {
+              a.push({ role: a.length % 2 === 0 ? 'user' : 'assistant', content: m } as Message)
+            }
+            return a
+          }, [] as Message[])
           if (insert) {
-            messages.splice(messages.length - 1, 0, message)
+            results.forEach(m => { messages.splice(messages.length - 1, 0, m) })
           }
-          return message
+          return results
         }
-        return null
+        return []
       }
 
+      /**
+       * Gets an estimate of how many extra tokens will be added that won't be part of the visible messages
+       * @param filtered
+       */
       private getTokenCountPadding (filtered: Message[]): number {
-        const hiddenPromptMessage = this.buildHiddenPromptPrefixMessage(filtered)
         let result = 0
-        if (hiddenPromptMessage) {
-          // add cost of hiddenPromptPrefix
-          result += countMessageTokens(hiddenPromptMessage, this.getModel())
-        }
+        // add cost of hiddenPromptPrefix
+        result += this.buildHiddenPromptPrefixMessages(filtered)
+          .reduce((a, m) => a + countMessageTokens(m, this.getModel()), 0)
+        // more here eventually?
         return result
       }
 
