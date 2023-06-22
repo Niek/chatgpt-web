@@ -244,7 +244,7 @@ Um, how's your drink?
       ...chatDefaults,
       characterName: 'Ivan',
       profileName: 'Ivan - A very personal assistant',
-      profileDescription: 'Iris is a friend that\'s here to help.',
+      profileDescription: 'Ivan is a friend that\'s here to help.',
       useSystemPrompt: true,
       temperature: 1.15,
       presence_penalty: 0.3,
