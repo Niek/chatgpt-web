@@ -179,9 +179,9 @@ const systemPromptSettings: ChatSetting[] = [
       },
       {
         key: 'hiddenPromptPrefix',
-        name: 'Hidden Prompt Prefix',
-        title: 'A user prompt that will be silently injected before every new user prompt, then removed from history.',
-        placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.',
+        name: 'Hidden Prompts Prefix',
+        title: 'Prompts that will be silently injected before every new user prompt, then removed from history.',
+        placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.  Use ::EOM:: to separate messages.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
