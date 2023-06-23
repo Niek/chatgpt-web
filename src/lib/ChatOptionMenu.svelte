@@ -17,6 +17,7 @@
     faEye,
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
+  import { faSquarePlus as faSquarePlusOutline } from '@fortawesome/free-regular-svg-icons/index'
   import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { restartProfile } from './Profiles.svelte'
@@ -126,7 +127,7 @@
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat from Default
       </a>
       <a href={'#'} class:is-disabled={!chatId} on:click|preventDefault={() => { chatId && close(); chatId && startNewChatFromChatId(chatId) }} class="dropdown-item">
-        <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat from Current
+        <span class="menu-icon"><Fa icon={faSquarePlusOutline}/></span> New Chat from Current
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>
         <span class="menu-icon"><Fa icon={faClone}/></span> Clone Chat
