@@ -20,7 +20,9 @@
   export let pinMainMenu = writable(false) // Show menu (for mobile use)
   export let continueMessage = writable('') //
   export let currentChatMessages = writable([] as Message[])
+  export let started = writable(false)
   export let currentChatId = writable(0)
+  export let lastChatId = persisted('currentChatId', 0)
 
   const chatDefaults = getChatDefaults()
 
@@ -227,10 +229,12 @@
     clearTimeout(setChatTimer)
     if (!chatId) {
       currentChatId.set(0)
+      lastChatId.set(0)
       currentChatMessages.set([])
     }
     setChatTimer = setTimeout(() => {
       currentChatId.set(chatId)
+      lastChatId.set(chatId)
       currentChatMessages.set(getChat(chatId).messages)
     }, 10)
   }
