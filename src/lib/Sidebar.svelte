@@ -53,7 +53,7 @@
     <!-- <p class="menu-label">Actions</p> -->
     <div class="level is-mobile bottom-buttons p-1">
       <div class="level-left">
-        <div class="dropdown is-left is-up" class:is-active={showSortMenu}>
+        <div class="dropdown is-left is-up" class:is-active={showSortMenu} use:clickOutside={() => { showSortMenu = false }}>
           <div class="dropdown-trigger">
             <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showSortMenu = !showSortMenu }}>
               <span class="icon"><Fa icon={sortOption.icon}/></span>
