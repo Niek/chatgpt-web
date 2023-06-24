@@ -18,7 +18,6 @@
   const onStateChange = (...args:any) => {
     sortOption = getChatSortOption()
     sortedChats = $chatsStorage.sort(sortOption.sortFn)
-    // console.log('Sorting', sortOption, sortedChats)
   }
 
   $: onStateChange($checkStateChange)
@@ -43,8 +42,10 @@
         <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
       {:else}
         {#key $checkStateChange}
-        {#each sortedChats as chat, i}
+        {#each sortedChats as chat, i}       
+        {#key chat.id}
         <ChatMenuItem activeChatId={activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
+        {/key}
         {/each}
         {/key}
       {/if}

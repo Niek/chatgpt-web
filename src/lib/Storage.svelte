@@ -242,6 +242,15 @@
       currentChatMessages.set(getChat(chatId).messages)
     }, 10)
   }
+  
+  const signalChangeTimers: any = {}
+  const setChatLastUse = (chatId: number, time: number) => {
+    clearTimeout(signalChangeTimers[chatId])
+    signalChangeTimers[chatId] = setTimeout(() => {
+      getChat(chatId).lastUse = time
+      saveChatStore()
+    }, 500)
+  }
 
   const setMessagesTimers: any = {}
   export const setMessages = (chatId: number, messages: Message[]) => {
@@ -253,13 +262,13 @@
       setMessagesTimers[chatId] = setTimeout(() => {
         getChat(chatId).messages = messages
         saveChatStore()
+        setChatLastUse(chatId, Date.now())
       }, 200)
     } else {
       clearTimeout(setMessagesTimers[chatId])
-      const chat = getChat(chatId)
-      chat.lastUse = Date.now()
-      chat.messages = messages
+      getChat(chatId).messages = messages
       saveChatStore()
+      setChatLastUse(chatId, Date.now())
     }
   }
 
