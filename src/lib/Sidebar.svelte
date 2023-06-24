@@ -1,16 +1,29 @@
 <script lang="ts">
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
-  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
   import logo from '../assets/logo.svg'
   import { clickOutside } from 'svelte-use-click-outside'
   import { startNewChatWithWarning } from './Util.svelte'
+  import { chatSortOptions } from './Settings.svelte'
 
-  $: sortedChats = $chatsStorage.sort((a, b) => ((b.created || 0) - (a.created || 0)) || (b.id - a.id))
+  $: sortedChats = $chatsStorage.sort(getChatSortOption().sortFn)
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
+
+  let sortOption = getChatSortOption()
+
+  const onStateChange = (...args:any) => {
+    sortOption = getChatSortOption()
+    sortedChats = $chatsStorage.sort(sortOption.sortFn)
+    // console.log('Sorting', sortOption, sortedChats)
+  }
+
+  $: onStateChange($checkStateChange)
+
+  let showSortMenu = false
 
 </script>
 
@@ -37,22 +50,39 @@
       {/if}
     </ul>
     <!-- <p class="menu-label">Actions</p> -->
-    <ul class="menu-list">
-      <li>
-        <div class="level-right side-actions">
-          {#if !$apiKeyStorage}
-          <div class="level-item">
-            <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage}
-              ><span class="greyscale mr-2"><Fa icon={faKey} /></span> API key</a
-            ></div>
-          {:else}
-          <div class="level-item">
-            <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
-              ><span class="greyscale mr-2"><Fa icon={faSquarePlus} /></span> New chat</button>
+    <div class="level is-mobile bottom-buttons p-1">
+      <div class="level-left">
+        <div class="dropdown is-left is-up" class:is-active={showSortMenu}>
+          <div class="dropdown-trigger">
+            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showSortMenu = !showSortMenu }}>
+              <span class="icon"><Fa icon={sortOption.icon}/></span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+            <div class="dropdown-content">
+              {#each Object.values(chatSortOptions) as opt}
+              <a href={'#'} class="dropdown-item" class:is-active={sortOption === opt} on:click|preventDefault={() => { showSortMenu = false; setChatSortOption(opt.value) }}>
+                <span class="menu-icon"><Fa icon={opt.icon}/></span> 
+                {opt.text}
+              </a>
+              {/each}
             </div>
-          {/if}
+          </div>
         </div>
-      </li>
-    </ul>
+      </div>
+      <div class="level-right">
+        {#if !$apiKeyStorage}
+        <div class="level-item">
+          <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage}
+            ><span class="greyscale mr-1"><Fa icon={faKey} /></span> API key</a
+          ></div>
+        {:else}
+        <div class="level-item">
+          <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
+            ><span class="greyscale mr-1"><Fa icon={faSquarePlus} /></span> New chat</button>
+          </div>
+        {/if}
+      </div>
+    </div>
   </div>
 </aside>

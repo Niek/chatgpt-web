@@ -1,5 +1,4 @@
 <script lang="ts">
-  // This beast needs to be broken down into multiple components before it gets any worse.
   import {
     saveChatStore,
     chatsStorage,
@@ -118,6 +117,7 @@
 
     chat.lastAccess = Date.now()
     saveChatStore()
+    $checkStateChange++
 
     // Focus the input on mount
     focusInput()

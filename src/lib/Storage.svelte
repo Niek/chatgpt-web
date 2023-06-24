@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
   import { get, writable } from 'svelte/store'
-  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
-  import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
+  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model, ChatSortOption } from './Types.svelte'
+  import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile, chatSortOptions, globalDefaults } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
   import { errorNotice } from './Util.svelte'
@@ -54,7 +54,7 @@
       startSession: false,
       sessionStarted: false,
       created: Date.now(),
-      updated: Date.now(),
+      lastUse: Date.now(),
       lastAccess: Date.now()
     })
     chatsStorage.set(chats)
@@ -257,7 +257,7 @@
     } else {
       clearTimeout(setMessagesTimers[chatId])
       const chat = getChat(chatId)
-      chat.updated = Date.now()
+      chat.lastUse = Date.now()
       chat.messages = messages
       saveChatStore()
     }
@@ -387,6 +387,7 @@
 
     // Set the ID
     chatCopy.id = newChatID()
+    chatCopy.created = Date.now()
     // Set new name
     chatCopy.name = cname
 
@@ -530,6 +531,18 @@
     profile.isDirty = false
     saveChatStore()
     getProfiles(true) // force update profile cache
+  }
+
+  export const getChatSortOption = (): ChatSortOption => {
+    const store = get(globalStorage)
+    return (chatSortOptions[store.chatSort] || chatSortOptions[globalDefaults.chatSort])
+  }
+
+  export const setChatSortOption = (sortName: any) => {
+    const store = get(globalStorage)
+    store.chatSort = chatSortOptions[sortName] ? sortName : globalDefaults.chatSort
+    globalStorage.set(store)
+    checkStateChange.set(get(checkStateChange) + 1)
   }
 
   export const newName = (name:string, nameMap:Record<string, any>):string => {

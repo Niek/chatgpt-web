@@ -2,7 +2,7 @@
     import { applyProfile } from './Profiles.svelte'
     import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
-    import { faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
+    import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
 import {
@@ -13,7 +13,10 @@ import {
       type GlobalSettings,
       type Request,
       type Model,
-      type ControlAction
+      type ControlAction,
+
+      type ChatSortOption
+
 } from './Types.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo'
@@ -93,6 +96,14 @@ const defaults:ChatSettings = {
   isDirty: false
 }
 
+export const globalDefaults: GlobalSettings = {
+  profiles: {} as Record<string, ChatSettings>,
+  lastProfile: 'default',
+  defaultProfile: 'default',
+  hideSummarized: false,
+  chatSort: 'created'
+}
+
 const excludeFromProfile = {
   messages: true,
   user: true,
@@ -105,14 +116,14 @@ export const imageGenerationSizes = [
 
 export const imageGenerationSizeTypes = ['', ...imageGenerationSizes]
 
-export const chatSortOptions = [
-  { value: 'name', text: 'Name' },
-  { value: 'created', text: 'Created' },
-  { value: 'updated', text: 'Last Use' },
-  { value: 'lastAccess', text: 'Last View' }
-]
+export const chatSortOptions = {
+  name: { text: 'Name', icon: faArrowDownAZ, value: '', sortFn: (a, b) => { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0 } },
+  created: { text: 'Created', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.created || 0) - (a.created || 0)) || (b.id - a.id) } },
+  lastUse: { text: 'Last Use', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.lastUse || 0) - (a.lastUse || 0)) || (b.id - a.id) } },
+  lastAccess: { text: 'Last View', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.lastAccess || 0) - (a.lastAccess || 0)) || (b.id - a.id) } }
+} as Record<string, ChatSortOption>
 
-export const chatSortOptionsKeys = chatSortOptions.map(o => o.value, [] as string[])
+Object.entries(chatSortOptions).forEach(([k, o]) => { o.value = k })
 
 const profileSetting: ChatSetting & SettingSelect = {
       key: 'profile',

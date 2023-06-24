@@ -9,7 +9,7 @@ $: apiKey = $apiKeyStorage
 onMount(() => {
     if (!$started) {
       $started = true
-      console.log('started', apiKey, $lastChatId, getChat($lastChatId))
+      // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
       if (apiKey && getChat($lastChatId)) {
         // const chatId = $lastChatId
         $lastChatId = 0
