@@ -115,6 +115,10 @@
 
     chatRequest = new ChatRequest()
     chatRequest.setChat(chat)
+
+    chat.lastAccess = Date.now()
+    saveChatStore()
+
     // Focus the input on mount
     focusInput()
 

@@ -105,6 +105,15 @@ export const imageGenerationSizes = [
 
 export const imageGenerationSizeTypes = ['', ...imageGenerationSizes]
 
+export const chatSortOptions = [
+  { value: 'name', text: 'Name' },
+  { value: 'created', text: 'Created' },
+  { value: 'updated', text: 'Last Use' },
+  { value: 'lastAccess', text: 'Last View' }
+]
+
+export const chatSortOptionsKeys = chatSortOptions.map(o => o.value, [] as string[])
+
 const profileSetting: ChatSetting & SettingSelect = {
       key: 'profile',
       name: 'Profile',

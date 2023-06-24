@@ -1,10 +1,12 @@
 <script context="module" lang="ts">
   import { supportedModelKeys } from './Models.svelte'
-  import { imageGenerationSizeTypes } from './Settings.svelte'
+  import { chatSortOptionsKeys, imageGenerationSizeTypes } from './Settings.svelte'
 
   export type Model = typeof supportedModelKeys[number];
 
   export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
+
+  export type ChatSortTypes = typeof chatSortOptionsKeys[number];
 
   export type ModelDetail = {
     prompt: number;
@@ -37,6 +39,7 @@
     finish_reason?: string;
     streaming?: boolean;
     image?: ChatImage;
+    created?: number;
   };
 
   export type ResponseAlteration = {
@@ -109,6 +112,9 @@
     settings: ChatSettings;
     startSession: boolean;
     sessionStarted: boolean;
+    created: number;
+    updated: number;
+    lastAccess: number;
   };
 
   type ResponseOK = {
@@ -159,6 +165,7 @@
     lastProfile?: string;
     defaultProfile?: string;
     hideSummarized?: boolean;
+    chatSort: keyof ChatSortTypes;
   };
 
   type SettingNumber = {

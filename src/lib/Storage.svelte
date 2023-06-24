@@ -52,7 +52,10 @@
       messages: [],
       usage: {} as Record<Model, Usage>,
       startSession: false,
-      sessionStarted: false
+      sessionStarted: false,
+      created: Date.now(),
+      updated: Date.now(),
+      lastAccess: Date.now()
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
@@ -79,6 +82,7 @@
     }
 
     chat.id = chatId
+    chat.created = Date.now()
 
     // Make sure images are moved to indexedDB store,
     // else they would clobber local storage
@@ -252,7 +256,9 @@
       }, 200)
     } else {
       clearTimeout(setMessagesTimers[chatId])
-      getChat(chatId).messages = messages
+      const chat = getChat(chatId)
+      chat.updated = Date.now()
+      chat.messages = messages
       saveChatStore()
     }
   }
@@ -268,6 +274,7 @@
   export const addMessage = (chatId: number, message: Message) => {
     const messages = getMessages(chatId)
     if (!message.uuid) message.uuid = uuidv4()
+    if (!message.created) message.created = Date.now()
     if (messages.indexOf(message) < 0) {
       // Don't have message, add it
       messages[messages.length] = message
@@ -286,7 +293,10 @@
       console.error("Couldn't insert after message:", insertAfter)
       return
     }
-    newMessages.forEach(m => { m.uuid = m.uuid || uuidv4() })
+    newMessages.forEach(m => {
+      m.uuid = m.uuid || uuidv4()
+      m.created = m.created || Date.now()
+    })
     messages.splice(index + 1, 0, ...newMessages)
     setMessages(chatId, messages.filter(m => true))
   }

@@ -9,7 +9,7 @@
   import { clickOutside } from 'svelte-use-click-outside'
   import { startNewChatWithWarning } from './Util.svelte'
 
-  $: sortedChats = $chatsStorage.sort((a, b) => b.id - a.id)
+  $: sortedChats = $chatsStorage.sort((a, b) => ((b.created || 0) - (a.created || 0)) || (b.id - a.id))
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
 
 </script>
