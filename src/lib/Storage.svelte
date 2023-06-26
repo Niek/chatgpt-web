@@ -43,11 +43,12 @@
     const chatId = newChatID()
 
     profile = JSON.parse(JSON.stringify(profile || getProfile(''))) as ChatSettings
+    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
 
     // Add a new chat
     chats.push({
       id: chatId,
-      name: `Chat ${chatId}`,
+      name: newName(`Chat ${chatId}`, nameMap),
       settings: profile,
       messages: [],
       usage: {} as Record<Model, Usage>,
@@ -387,12 +388,7 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
-    let i:number = 1
-    let cname = chat.name + `-${i}`
-    while (nameMap[cname]) {
-      i++
-      cname = chat.name + `-${i}`
-    }
+    const cname = newName(chat.name, nameMap)
     const chatCopy = JSON.parse(JSON.stringify(chat))
 
     // Set the ID
@@ -557,11 +553,18 @@
 
   export const newName = (name:string, nameMap:Record<string, any>):string => {
     if (!nameMap[name]) return name
+    const nm = name.match(/^(.*[^0-9]+)([- ])*([0-9]+)$/)
     let i:number = 1
-    let cname = name + `-${i}`
+    let s = ' '
+    if (nm) {
+      name = nm[1]
+      s = nm[2] || ''
+      i = parseInt(nm[3])
+    }
+    let cname = `${name}${s}${i}`
     while (nameMap[cname]) {
       i++
-      cname = name + `-${i}`
+      cname = `${name}${s}${i}`
     }
     return cname
   }
