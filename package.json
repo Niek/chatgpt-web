@@ -34,7 +34,7 @@
     "flourite": "^1.2.3",
     "gpt-tokenizer": "^2.0.0",
     "postcss": "^8.4.24",
-    "sass": "^1.63.4",
+    "sass": "^1.63.6",
     "stacking-order": "^2.0.0",
     "svelte": "^3.58.0",
     "svelte-check": "^3.4.3",
