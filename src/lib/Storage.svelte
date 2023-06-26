@@ -22,7 +22,7 @@
   export let currentChatMessages = writable([] as Message[])
   export let started = writable(false)
   export let currentChatId = writable(0)
-  export let lastChatId = persisted('currentChatId', 0)
+  export let lastChatId = persisted('lastChatId', 0)
 
   const chatDefaults = getChatDefaults()
 
@@ -235,6 +235,7 @@
       currentChatId.set(0)
       lastChatId.set(0)
       currentChatMessages.set([])
+      return
     }
     setChatTimer = setTimeout(() => {
       currentChatId.set(chatId)
@@ -242,7 +243,7 @@
       currentChatMessages.set(getChat(chatId).messages)
     }, 10)
   }
-  
+
   const signalChangeTimers: any = {}
   const setChatLastUse = (chatId: number, time: number) => {
     clearTimeout(signalChangeTimers[chatId])
