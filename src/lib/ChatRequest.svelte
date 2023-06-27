@@ -451,7 +451,7 @@ export class ChatRequest {
                 ...overrides
               } as ChatSettings)
               // Wait for the response to complete
-              if (!summary.hasFinished()) await summary.promiseToFinish()
+              if (!summary.hasError() && !summary.hasFinished()) await summary.promiseToFinish()
               if (summary.hasError()) {
                 // Failed for some API issue. let the original caller handle it.
                 _this.updating = false
