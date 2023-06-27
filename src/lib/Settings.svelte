@@ -90,6 +90,7 @@ const defaults:ChatSettings = {
   autoStartSession: false,
   trainingPrompts: [],
   hiddenPromptPrefix: '',
+  hppContinuePrompt: '',
   imageGenerationSize: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
@@ -204,6 +205,14 @@ const systemPromptSettings: ChatSetting[] = [
         placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.  Use ::EOM:: to separate messages.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
+      },
+      {
+        key: 'hppContinuePrompt',
+        name: 'Continue Truncation Prompt',
+        title: 'If using Hidden Prompts Prefix, a prompt that can be used to help continue a truncated completion.',
+        placeholder: 'Enter something like [Continue your response below:]',
+        type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
       },
       {
         key: 'trainingPrompts',

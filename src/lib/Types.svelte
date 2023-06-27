@@ -39,6 +39,8 @@ export type Message = {
     streaming?: boolean;
     image?: ChatImage;
     created?: number;
+    skipOnce?: boolean;
+    appendOnce?: string[];
   };
 
 export type ResponseAlteration = {
@@ -96,6 +98,7 @@ export type ChatSettings = {
     systemPrompt: string;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
+    hppContinuePrompt: string; // hiddenPromptPrefix used, optional glue when trying to continue truncated completion
     imageGenerationSize: ImageGenerationSizes;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
