@@ -90,7 +90,10 @@ export class ChatCompletionResponse {
 
   updateFromSyncResponse (response: Response) {
     this.setModel(response.model)
-    response.choices.forEach((choice, i) => {
+    if (!response.choices) {
+      return this.updateFromError(response?.error?.message || 'unexpected response from API')
+    }
+    response.choices?.forEach((choice, i) => {
       const exitingMessage = this.messages[i]
       const message = exitingMessage || choice.message
       if (exitingMessage) {
@@ -121,7 +124,10 @@ export class ChatCompletionResponse {
   updateFromAsyncResponse (response: Response) {
     let completionTokenCount = 0
     this.setModel(response.model)
-    response.choices.forEach((choice, i) => {
+    if (!response.choices) {
+      return this.updateFromError(response?.error?.message || 'unexpected streaming response from API')
+    }
+    response.choices?.forEach((choice, i) => {
       const message = this.messages[i] || {
         role: 'assistant',
         content: '',

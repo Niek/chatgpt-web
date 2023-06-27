@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
   import { persisted } from 'svelte-local-storage-store'
   import { get, writable } from 'svelte/store'
-  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model } from './Types.svelte'
-  import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
+  import type { Chat, ChatSettings, GlobalSettings, Message, ChatSetting, GlobalSetting, Usage, Model, ChatSortOption } from './Types.svelte'
+  import { getChatSettingObjectByKey, getGlobalSettingObjectByKey, getChatDefaults, getExcludeFromProfile, chatSortOptions, globalDefaults } from './Settings.svelte'
   import { v4 as uuidv4 } from 'uuid'
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
   import { errorNotice } from './Util.svelte'
@@ -20,7 +20,9 @@
   export let pinMainMenu = writable(false) // Show menu (for mobile use)
   export let continueMessage = writable('') //
   export let currentChatMessages = writable([] as Message[])
+  export let started = writable(false)
   export let currentChatId = writable(0)
+  export let lastChatId = persisted('lastChatId', 0)
 
   const chatDefaults = getChatDefaults()
 
@@ -41,16 +43,20 @@
     const chatId = newChatID()
 
     profile = JSON.parse(JSON.stringify(profile || getProfile(''))) as ChatSettings
+    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
 
     // Add a new chat
     chats.push({
       id: chatId,
-      name: `Chat ${chatId}`,
+      name: newName(`Chat ${chatId}`, nameMap),
       settings: profile,
       messages: [],
       usage: {} as Record<Model, Usage>,
       startSession: false,
-      sessionStarted: false
+      sessionStarted: false,
+      created: Date.now(),
+      lastUse: Date.now(),
+      lastAccess: Date.now()
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
@@ -77,6 +83,7 @@
     }
 
     chat.id = chatId
+    chat.created = Date.now()
 
     // Make sure images are moved to indexedDB store,
     // else they would clobber local storage
@@ -227,12 +234,24 @@
     clearTimeout(setChatTimer)
     if (!chatId) {
       currentChatId.set(0)
+      lastChatId.set(0)
       currentChatMessages.set([])
+      return
     }
     setChatTimer = setTimeout(() => {
       currentChatId.set(chatId)
+      lastChatId.set(chatId)
       currentChatMessages.set(getChat(chatId).messages)
     }, 10)
+  }
+
+  const signalChangeTimers: any = {}
+  const setChatLastUse = (chatId: number, time: number) => {
+    clearTimeout(signalChangeTimers[chatId])
+    signalChangeTimers[chatId] = setTimeout(() => {
+      getChat(chatId).lastUse = time
+      saveChatStore()
+    }, 500)
   }
 
   const setMessagesTimers: any = {}
@@ -245,11 +264,13 @@
       setMessagesTimers[chatId] = setTimeout(() => {
         getChat(chatId).messages = messages
         saveChatStore()
+        setChatLastUse(chatId, Date.now())
       }, 200)
     } else {
       clearTimeout(setMessagesTimers[chatId])
       getChat(chatId).messages = messages
       saveChatStore()
+      setChatLastUse(chatId, Date.now())
     }
   }
 
@@ -264,6 +285,7 @@
   export const addMessage = (chatId: number, message: Message) => {
     const messages = getMessages(chatId)
     if (!message.uuid) message.uuid = uuidv4()
+    if (!message.created) message.created = Date.now()
     if (messages.indexOf(message) < 0) {
       // Don't have message, add it
       messages[messages.length] = message
@@ -282,7 +304,10 @@
       console.error("Couldn't insert after message:", insertAfter)
       return
     }
-    newMessages.forEach(m => { m.uuid = m.uuid || uuidv4() })
+    newMessages.forEach(m => {
+      m.uuid = m.uuid || uuidv4()
+      m.created = m.created || Date.now()
+    })
     messages.splice(index + 1, 0, ...newMessages)
     setMessages(chatId, messages.filter(m => true))
   }
@@ -363,16 +388,12 @@
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
-    let i:number = 1
-    let cname = chat.name + `-${i}`
-    while (nameMap[cname]) {
-      i++
-      cname = chat.name + `-${i}`
-    }
+    const cname = newName(chat.name, nameMap)
     const chatCopy = JSON.parse(JSON.stringify(chat))
 
     // Set the ID
     chatCopy.id = newChatID()
+    chatCopy.created = Date.now()
     // Set new name
     chatCopy.name = cname
 
@@ -518,13 +539,32 @@
     getProfiles(true) // force update profile cache
   }
 
+  export const getChatSortOption = (): ChatSortOption => {
+    const store = get(globalStorage)
+    return (chatSortOptions[store.chatSort] || chatSortOptions[globalDefaults.chatSort])
+  }
+
+  export const setChatSortOption = (sortName: any) => {
+    const store = get(globalStorage)
+    store.chatSort = chatSortOptions[sortName] ? sortName : globalDefaults.chatSort
+    globalStorage.set(store)
+    checkStateChange.set(get(checkStateChange) + 1)
+  }
+
   export const newName = (name:string, nameMap:Record<string, any>):string => {
     if (!nameMap[name]) return name
+    const nm = name.match(/^(.*[^0-9]+)([- ])*([0-9]+)$/)
     let i:number = 1
-    let cname = name + `-${i}`
+    let s = ' '
+    if (nm) {
+      name = nm[1]
+      s = nm[2] || ''
+      i = parseInt(nm[3])
+    }
+    let cname = `${name}${s}${i}`
     while (nameMap[cname]) {
       i++
-      cname = name + `-${i}`
+      cname = `${name}${s}${i}`
     }
     return cname
   }

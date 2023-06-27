@@ -2,7 +2,7 @@
   import { compare } from 'stacking-order'
   import { openModal } from 'svelte-modals'
   import PromptNotice from './PromptNotice.svelte'
-  import { getChat } from './Storage.svelte'
+  import { addChat, getChat } from './Storage.svelte'
   import { replace } from 'svelte-spa-router'
   import PromptConfirm from './PromptConfirm.svelte'
   export const sizeTextElements = () => {
@@ -113,6 +113,12 @@
       asHtml: true,
       onConfirm: () => {}
     })
+  }
+
+  export const startNewChatFromChatId = (chatId: number) => {
+    const newChatId = addChat(getChat(chatId).settings)
+    // go to new chat
+    replace(`/chat/${newChatId}`)
   }
 
   export const startNewChatWithWarning = (activeChatId: number|undefined) => {

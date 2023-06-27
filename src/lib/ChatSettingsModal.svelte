@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, setSystemPrompt } from './Profiles.svelte'
+  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, newNameForProfile, setSystemPrompt } from './Profiles.svelte'
   import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile } from './Settings.svelte'
   import {
     saveChatStore,
@@ -223,19 +223,6 @@
     } catch (e) {
       errorNotice('Error saving profile:', e)
     }
-  }
-
-  const newNameForProfile = (name:string):string => {
-    const profiles = getProfileSelect()
-    const nameMap = profiles.reduce((a, p) => { a[p.text] = p; return a }, {})
-    if (!nameMap[name]) return name
-    let i:number = 1
-    let cname = name + `-${i}`
-    while (nameMap[cname]) {
-      i++
-      cname = name + `-${i}`
-    }
-    return cname
   }
 
   const startNewChat = () => {

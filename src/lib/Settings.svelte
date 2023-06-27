@@ -2,7 +2,7 @@
     import { applyProfile } from './Profiles.svelte'
     import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { encode } from 'gpt-tokenizer'
-    import { faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
+    import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
 import {
@@ -13,7 +13,10 @@ import {
       type GlobalSettings,
       type Request,
       type Model,
-      type ControlAction
+      type ControlAction,
+
+      type ChatSortOption
+
 } from './Types.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo'
@@ -87,10 +90,19 @@ const defaults:ChatSettings = {
   autoStartSession: false,
   trainingPrompts: [],
   hiddenPromptPrefix: '',
+  hppContinuePrompt: '',
   imageGenerationSize: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
+}
+
+export const globalDefaults: GlobalSettings = {
+  profiles: {} as Record<string, ChatSettings>,
+  lastProfile: 'default',
+  defaultProfile: 'default',
+  hideSummarized: false,
+  chatSort: 'created'
 }
 
 const excludeFromProfile = {
@@ -104,6 +116,15 @@ export const imageGenerationSizes = [
 ]
 
 export const imageGenerationSizeTypes = ['', ...imageGenerationSizes]
+
+export const chatSortOptions = {
+  name: { text: 'Name', icon: faArrowDownAZ, value: '', sortFn: (a, b) => { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0 } },
+  created: { text: 'Created', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.created || 0) - (a.created || 0)) || (b.id - a.id) } },
+  lastUse: { text: 'Last Use', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.lastUse || 0) - (a.lastUse || 0)) || (b.id - a.id) } },
+  lastAccess: { text: 'Last View', icon: faArrowDown91, value: '', sortFn: (a, b) => { return ((b.lastAccess || 0) - (a.lastAccess || 0)) || (b.id - a.id) } }
+} as Record<string, ChatSortOption>
+
+Object.entries(chatSortOptions).forEach(([k, o]) => { o.value = k })
 
 const profileSetting: ChatSetting & SettingSelect = {
       key: 'profile',
@@ -179,11 +200,19 @@ const systemPromptSettings: ChatSetting[] = [
       },
       {
         key: 'hiddenPromptPrefix',
-        name: 'Hidden Prompt Prefix',
-        title: 'A user prompt that will be silently injected before every new user prompt, then removed from history.',
-        placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.',
+        name: 'Hidden Prompts Prefix',
+        title: 'Prompts that will be silently injected before every new user prompt, then removed from history.',
+        placeholder: 'Enter user prompt prefix here.  You can remind ChatGPT how to act.  Use ::EOM:: to separate messages.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
+      },
+      {
+        key: 'hppContinuePrompt',
+        name: 'Continue Truncation Prompt',
+        title: 'If using Hidden Prompts Prefix, a prompt that can be used to help continue a truncated completion.',
+        placeholder: 'Enter something like [Continue your response below:]',
+        type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
       },
       {
         key: 'trainingPrompts',

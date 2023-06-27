@@ -17,14 +17,15 @@
     faEye,
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
-  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat } from './Storage.svelte'
+  import { faSquareMinus, faSquarePlus as faSquarePlusOutline } from '@fortawesome/free-regular-svg-icons/index'
+  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat, saveChatStore } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { restartProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
   import { clickOutside } from 'svelte-use-click-outside'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { startNewChatWithWarning } from './Util.svelte'
+  import { startNewChatWithWarning, startNewChatFromChatId } from './Util.svelte'
 
   export let chatId
   export const show = (showHide:boolean = true) => {
@@ -105,6 +106,21 @@
     setGlobalSettingValueByKey('hideSummarized', !$globalStorage.hideSummarized)
   }
 
+  const clearUsage = () => {
+    openModal(PromptConfirm, {
+      title: 'Clear Chat Usage',
+      message: 'Are you sure you want to clear your token usage stats for the current chat?',
+      class: 'is-warning',
+      confirmButtonClass: 'is-warning',
+      confirmButton: 'Clear Usage',
+      onConfirm: () => {
+        const chat = getChat(chatId)
+        chat.usage = {}
+        saveChatStore()
+      }
+    })
+  }
+
 </script>
 
 <div class="dropdown {style}" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
@@ -123,7 +139,10 @@
       </a>
       <hr class="dropdown-divider">
       <a href={'#'} class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { $apiKeyStorage && close(); $apiKeyStorage && startNewChatWithWarning(chatId) }} class="dropdown-item">
-        <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat
+        <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat from Default
+      </a>
+      <a href={'#'} class:is-disabled={!chatId} on:click|preventDefault={() => { chatId && close(); chatId && startNewChatFromChatId(chatId) }} class="dropdown-item">
+        <span class="menu-icon"><Fa icon={faSquarePlusOutline}/></span> New Chat from Current
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>
         <span class="menu-icon"><Fa icon={faClone}/></span> Clone Chat
@@ -134,6 +153,9 @@
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); clearMessages(chatId) }}>
         <span class="menu-icon"><Fa icon={faEraser}/></span> Clear Chat Messages
+      </a>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); clearUsage() }}>
+        <span class="menu-icon"><Fa icon={faSquareMinus}/></span> Clear Chat Usage
       </a>
       <hr class="dropdown-divider">
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { close(); exportChatAsJSON(chatId) }}>

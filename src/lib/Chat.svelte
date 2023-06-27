@@ -1,5 +1,4 @@
 <script lang="ts">
-  // This beast needs to be broken down into multiple components before it gets any worse.
   import {
     saveChatStore,
     chatsStorage,
@@ -12,9 +11,7 @@
     getMessage,
     currentChatMessages,
     setCurrentChat,
-
     currentChatId
-
   } from './Storage.svelte'
   import {
     type Message,
@@ -115,6 +112,11 @@
 
     chatRequest = new ChatRequest()
     chatRequest.setChat(chat)
+
+    chat.lastAccess = Date.now()
+    saveChatStore()
+    $checkStateChange++
+
     // Focus the input on mount
     focusInput()
 

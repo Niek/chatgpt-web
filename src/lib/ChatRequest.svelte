@@ -145,9 +145,13 @@ export class ChatRequest {
         const model = this.getModel()
         const maxTokens = getModelMaxTokens(model)
 
-        const messagePayload = filtered.map((m, i) => { return { role: m.role, content: m.content } }) as Message[]
-        // Inject hidden prompt if requested
-        if (!opts.summaryRequest) this.buildHiddenPromptPrefixMessage(messagePayload, true)
+        // Inject hidden prompts if requested
+        if (!opts.summaryRequest) this.buildHiddenPromptPrefixMessages(filtered, true)
+        const messagePayload = filtered
+          .filter(m => { if (m.skipOnce) { delete m.skipOnce; return false } return true })
+          .map(m => {
+            const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content }
+          }) as Message[]
     
         const chatResponse = new ChatCompletionResponse(opts)
         const promptTokenCount = countPromptTokens(messagePayload, model)
@@ -288,26 +292,47 @@ export class ChatRequest {
         return this.chat.settings.model || defaultModel
       }
 
-      private buildHiddenPromptPrefixMessage (messages: Message[], insert:boolean = false): Message|null {
+      private buildHiddenPromptPrefixMessages (messages: Message[], insert:boolean = false): Message[] {
         const chatSettings = this.chat.settings
         const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
-        if (hiddenPromptPrefix && messages.length && messages[messages.length - 1].role === 'user') {
-          const message = { role: 'user', content: hiddenPromptPrefix } as Message
+        const lastMessage = messages[messages.length - 1]
+        const isContinue = lastMessage?.role === 'assistant' && lastMessage.finish_reason === 'length'
+        if (hiddenPromptPrefix && (lastMessage?.role === 'user' || isContinue)) {
+          const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
+            m = m.trim()
+            if (m.length) {
+              a.push({ role: a.length % 2 === 0 ? 'user' : 'assistant', content: m } as Message)
+            }
+            return a
+          }, [] as Message[])
           if (insert) {
-            messages.splice(messages.length - 1, 0, message)
+            results.forEach(m => { messages.splice(messages.length - (isContinue ? 2 : 1), 0, m) })
+            const userMessage = messages[messages.length - 2]
+            if (chatSettings.hppContinuePrompt && isContinue && userMessage && userMessage.role === 'user') {
+              // If we're using a hiddenPromptPrefix and we're also continuing a truncated completion,
+              // stuff the continue completion request into the last user message to help the
+              // continuation be more influenced by the hiddenPromptPrefix
+              // (this will distort our token count estimates somewhat)
+              userMessage.appendOnce = userMessage.appendOnce || []
+              userMessage.appendOnce.push('\n' + chatSettings.hppContinuePrompt + '\n' + lastMessage.content)
+              lastMessage.skipOnce = true
+            }
           }
-          return message
+          return results
         }
-        return null
+        return []
       }
 
+      /**
+       * Gets an estimate of how many extra tokens will be added that won't be part of the visible messages
+       * @param filtered
+       */
       private getTokenCountPadding (filtered: Message[]): number {
-        const hiddenPromptMessage = this.buildHiddenPromptPrefixMessage(filtered)
         let result = 0
-        if (hiddenPromptMessage) {
-          // add cost of hiddenPromptPrefix
-          result += countMessageTokens(hiddenPromptMessage, this.getModel())
-        }
+        // add cost of hiddenPromptPrefix
+        result += this.buildHiddenPromptPrefixMessages(filtered)
+          .reduce((a, m) => a + countMessageTokens(m, this.getModel()), 0)
+        // more here eventually?
         return result
       }
 
@@ -442,7 +467,7 @@ export class ChatRequest {
                 ...overrides
               } as ChatSettings)
               // Wait for the response to complete
-              if (!summary.hasFinished()) await summary.promiseToFinish()
+              if (!summary.hasError() && !summary.hasFinished()) await summary.promiseToFinish()
               if (summary.hasError()) {
                 // Failed for some API issue. let the original caller handle it.
                 _this.updating = false

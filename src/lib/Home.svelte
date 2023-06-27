@@ -1,8 +1,23 @@
 <script lang="ts">
-  import { apiKeyStorage } from './Storage.svelte'
+  import { apiKeyStorage, lastChatId, getChat, started } from './Storage.svelte'
   import Footer from './Footer.svelte'
+  import { replace } from 'svelte-spa-router'
+  import { onMount } from 'svelte'
 
 $: apiKey = $apiKeyStorage
+
+onMount(() => {
+    if (!$started) {
+      $started = true
+      // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
+      if (apiKey && getChat($lastChatId)) {
+        const chatId = $lastChatId
+        $lastChatId = 0
+        replace(`/chat/${chatId}`)
+      }
+    }
+    $lastChatId = 0
+})
 
 </script>
 
