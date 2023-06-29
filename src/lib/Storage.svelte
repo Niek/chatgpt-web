@@ -200,9 +200,9 @@
       }
       chat.usage[model] = total
     }
-    total.completion_tokens += usage.completion_tokens
-    total.prompt_tokens += usage.prompt_tokens
-    total.total_tokens += usage.total_tokens
+    total.completion_tokens += usage?.completion_tokens || 0
+    total.prompt_tokens += usage?.prompt_tokens || 0
+    total.total_tokens += usage?.total_tokens || 0
     chatsStorage.set(chats)
   }
 
@@ -218,9 +218,9 @@
       }
       chat.usage[model] = total
     }
-    total.completion_tokens -= usage.completion_tokens
-    total.prompt_tokens -= usage.prompt_tokens
-    total.total_tokens -= usage.total_tokens
+    total.completion_tokens -= usage?.completion_tokens || 0
+    total.prompt_tokens -= usage?.prompt_tokens || 0
+    total.total_tokens -= usage?.total_tokens || 0
     chatsStorage.set(chats)
   }
 
