@@ -104,9 +104,9 @@ export class ChatCompletionResponse {
           completion_tokens: 0,
           total_tokens: 0
         } as Usage
-        message.usage.completion_tokens += response.usage.completion_tokens
-        message.usage.prompt_tokens = response.usage.prompt_tokens + (this.offsetTotals?.prompt_tokens || 0)
-        message.usage.total_tokens = response.usage.total_tokens + (this.offsetTotals?.total_tokens || 0)
+        message.usage.completion_tokens += response?.usage?.completion_tokens || 0
+        message.usage.prompt_tokens = (response?.usage?.prompt_tokens || 0) + (this.offsetTotals?.prompt_tokens || 0)
+        message.usage.total_tokens = (response?.usage?.total_tokens || 0) + (this.offsetTotals?.total_tokens || 0)
       } else {
         message.content = choice.message.content
         message.usage = response.usage
@@ -124,7 +124,7 @@ export class ChatCompletionResponse {
   updateFromAsyncResponse (response: Response) {
     let completionTokenCount = 0
     this.setModel(response.model)
-    if (!response.choices) {
+    if (!response.choices || response?.error) {
       return this.updateFromError(response?.error?.message || 'unexpected streaming response from API')
     }
     response.choices?.forEach((choice, i) => {
@@ -174,7 +174,11 @@ export class ChatCompletionResponse {
     setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
   }
 
-  updateFromClose (): void {
+  updateFromClose (force: boolean = false): void {
+    if (!this.finished && !this.error && !this.messages?.find(m => m.content)) {
+      if (!force) return setTimeout(() => this.updateFromClose(true), 250) as any
+      return this.updateFromError('Unexpected connection termination')
+    }
     setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
   }
 

@@ -202,6 +202,8 @@ export class ChatRequest {
           _this.controller = new AbortController()
           const signal = _this.controller.signal
           const abortListener = (e:Event) => {
+            _this.updating = false
+            _this.updatingMessage = ''
             chatResponse.updateFromError('User aborted request.')
             signal.removeEventListener('abort', abortListener)
           }
@@ -245,6 +247,8 @@ export class ChatRequest {
                 }
               },
               onclose () {
+                _this.updating = false
+                _this.updatingMessage = ''
                 chatResponse.updateFromClose()
               },
               onerror (err) {
@@ -260,6 +264,8 @@ export class ChatRequest {
                 }
               }
             }).catch(err => {
+              _this.updating = false
+              _this.updatingMessage = ''
               chatResponse.updateFromError(err.message)
             })
           } else {
