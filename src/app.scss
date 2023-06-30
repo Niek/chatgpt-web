@@ -537,6 +537,12 @@ aside.menu.main-menu .menu-expanse {
   min-width: 60px;
   min-height: 1.3em;
 }
+.button-pack {
+  display: block;
+  position: sticky;
+  top: calc(var(--sectionPaddingTop) + 10px);
+  padding-bottom: 0.1px;
+}
 .button-pack .button {
   display: block;
   margin: 4px;
@@ -597,23 +603,27 @@ aside.menu.main-menu .menu-expanse {
   width: var(--chatToolDrawerSize);
   visibility: visible;
   max-height: 300%;
+  overflow: unset;
 }
 .user-message:hover .tool-drawer,
 .user-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
   max-height: 300%;
+  overflow: unset;
 }
 
 .assistant-message:hover .tool-drawer-mask,
 .assistant-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
+  overflow: unset;
 }
 .user-message:hover .tool-drawer-mask,
 .user-message.editing .tool-drawer {
   width: var(--chatToolDrawerSize);
   visibility: visible;
+  overflow: unset;
 }
 .assistant-message:hover, .assistant-message.editing {
   border-top-right-radius: 0px !important;
