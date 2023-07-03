@@ -23,6 +23,8 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 * **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
 * **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them with one click.
 * **Desktop app**: ChatGPT-web can be bundled as a desktop app, so you can use it outside of the browser.
+* **Image generation**: ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
+* **Streaming**: ChatGPT-web can stream the response from the API, so you can see the response as it's being generated.
 
 ## Development
 
