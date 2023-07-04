@@ -90,18 +90,8 @@ const gpt4128kpreview = {
 
 export const chatModels : Record<string, ModelDetail> = {
   'gpt-3.5-turbo': { ...gpt3516k },
-  'gpt-3.5-turbo-0301': { ...gpt35 },
-  'gpt-3.5-turbo-0613': { ...gpt35 },
-  'gpt-3.5-turbo-1106': { ...gpt3516k },
-  'gpt-3.5-turbo-16k': { ...gpt3516k },
-  'gpt-3.5-turbo-16k-0613': { ...gpt3516k },
   'gpt-4': { ...gpt4 },
-  'gpt-4-0314': { ...gpt4 },
-  'gpt-4-0613': { ...gpt4 },
-  'gpt-4-1106-preview': { ...gpt4128kpreview },
-  'gpt-4-32k': { ...gpt432k },
-  'gpt-4-32k-0314': { ...gpt432k },
-  'gpt-4-32k-0613': { ...gpt432k }
+  'gpt-4-1106-preview': { ...gpt4128kpreview }
 }
 
 const imageModelBase = {
