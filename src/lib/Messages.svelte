@@ -68,12 +68,6 @@
     <article class="message is-success assistant-message">
       <div class="message-body content">
         <SvelteMarkdown source={message.content} options={markedownOptions} renderers={{ code: Code, html: Code }}/>
-        {#if message.usage}
-          <p class="is-size-7">
-            This message was generated on <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
-            tokens ~= <span class="has-text-weight-bold">${getPrice(message.usage, message.model || defaultModel).toFixed(6)}</span>
-          </p>
-        {/if}
       </div>
     </article>
   {/if}
