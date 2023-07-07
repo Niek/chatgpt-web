@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
   export const supportedModels = [ // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
+    'gpt-4',
     'gpt-3.5-turbo'
   ]
   export type Model = typeof supportedModels[number];
