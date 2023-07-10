@@ -31,7 +31,7 @@
     "dexie": "^4.0.1-alpha.22",
     "eslint-config-standard-with-typescript": "^35.0.0",
     "eslint-plugin-svelte3": "^4.0.0",
-    "flourite": "^1.2.3",
+    "flourite": "^1.2.4",
     "gpt-tokenizer": "^2.0.0",
     "postcss": "^8.4.24",
     "sass": "^1.63.6",
