@@ -162,6 +162,7 @@ export class ChatRequest {
           const sp = messagePayload[0]
           if (sp) {
             if (messagePayload.length > 1) {
+              sp.content = sp.content.replace(/::STARTUP::[\s\S]*::START-PROMPT::/, '::START-PROMPT::')
               sp.content = sp.content.replace(/::STARTUP::[\s\S]*$/, '')
             } else {
               sp.content = sp.content.replace(/::STARTUP::[\s]*/, '')
