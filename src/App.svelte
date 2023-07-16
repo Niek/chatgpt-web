@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Router, { location, replace } from 'svelte-spa-router'
+  import Router, { location, replace, querystring } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
 
   import Navbar from './lib/Navbar.svelte'
@@ -10,6 +10,13 @@
   import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals'
   import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
+
+  // Check if the API key is passed in as a "key" query parameter - if so, save it
+  // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
+  const urlParams: URLSearchParams = new URLSearchParams($querystring)
+  if (urlParams.has('key')) {
+    apiKeyStorage.set(urlParams.get('key') as string)
+  }
 
   // The definition of the routes with some conditions
   const routes = {
