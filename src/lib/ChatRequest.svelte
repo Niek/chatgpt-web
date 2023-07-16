@@ -146,7 +146,8 @@ export class ChatRequest {
         const maxTokens = getModelMaxTokens(model)
 
         // Inject hidden prompts if requested
-        if (!opts.summaryRequest) this.buildHiddenPromptPrefixMessages(filtered, true)
+        // if (!opts.summaryRequest)
+        this.buildHiddenPromptPrefixMessages(filtered, true)
         const messagePayload = filtered
           .filter(m => { if (m.skipOnce) { delete m.skipOnce; return false } return true })
           .map(m => {
@@ -242,7 +243,7 @@ export class ChatRequest {
                   } else {
                     const data = JSON.parse(ev.data)
                     // console.log('data', data)
-                    window.requestAnimationFrame(() => { chatResponse.updateFromAsyncResponse(data) })
+                    window.setTimeout(() => { chatResponse.updateFromAsyncResponse(data) }, 1)
                   }
                 }
               },
@@ -303,10 +304,16 @@ export class ChatRequest {
         const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
         const lastMessage = messages[messages.length - 1]
         const isContinue = lastMessage?.role === 'assistant' && lastMessage.finish_reason === 'length'
-        if (hiddenPromptPrefix && (lastMessage?.role === 'user' || isContinue)) {
+        const isUserPrompt = lastMessage?.role === 'user'
+        if (hiddenPromptPrefix && (isUserPrompt || isContinue)) {
+          let injectedPrompt = false
           const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
             m = m.trim()
             if (m.length) {
+              if (m.match(/[[USER_PROMPT]]/)) {
+                injectedPrompt = true
+                m.replace(/[[USER_PROMPT]]/g, lastMessage.content)
+              }
               a.push({ role: a.length % 2 === 0 ? 'user' : 'assistant', content: m } as Message)
             }
             return a
@@ -324,6 +331,7 @@ export class ChatRequest {
               lastMessage.skipOnce = true
             }
           }
+          if (injectedPrompt) results.pop()
           return results
         }
         return []
@@ -407,7 +415,7 @@ export class ChatRequest {
           let continueCounter = chatSettings.summaryExtend + 1
           rw = rw.slice(0, 0 - pinBottom)
           let reductionPoolSize = countPromptTokens(rw, model)
-          const ss = chatSettings.summarySize
+          const ss = Math.abs(chatSettings.summarySize)
           const getSS = ():number => (ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
             : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
@@ -453,13 +461,24 @@ export class ChatRequest {
           const summaryIds = [summaryResponse.uuid]
           let loopCount = 0
           let networkRetry = 2 // number of retries on network error
+          const summaryRequestMessage = summaryRequest.content
+          const mergedRequest = summaryRequestMessage.includes('[[MERGED_PROMPTS]]')
           while (continueCounter-- > 0) {
             let error = false
+            if (mergedRequest) {
+              const mergedPrompts = rw.map(m => {
+                return '[' + (m.role === 'assistant' ? '[[CHARACTER_NAME]]' : '[[USER_NAME]]') + ']\n' +
+                  m.content
+              }).join('\n\n')
+                .replaceAll('[[CHARACTER_NAME]]', chatSettings.characterName)
+                .replaceAll('[[USER_NAME]]', 'Me')
+              summaryRequest.content = summaryRequestMessage.replaceAll('[[MERGED_PROMPTS]]', mergedPrompts)
+            }
             try {
-              const summary = await _this.sendRequest(top.concat(rw).concat([summaryRequest]).concat(loopCount > 0 ? [summaryResponse] : []), {
+              const summary = await _this.sendRequest(top.concat(mergedRequest ? [] : rw).concat([summaryRequest]).concat(loopCount > 0 ? [summaryResponse] : []), {
                 summaryRequest: true,
                 streaming: opts.streaming,
-                maxTokens: maxSummaryTokens,
+                maxTokens: chatSettings.summarySize < 0 ? 4096 : maxSummaryTokens,
                 fillMessage: summaryResponse,
                 autoAddMessages: true,
                 onMessageChange: (m) => {
@@ -468,8 +487,8 @@ export class ChatRequest {
               } as ChatCompletionOpts, {
                 temperature: chatSettings.summaryTemperature, // make summary more deterministic
                 top_p: 1,
-                presence_penalty: 0,
-                frequency_penalty: 0,
+                // presence_penalty: 0,
+                // frequency_penalty: 0,
                 ...overrides
               } as ChatSettings)
               // Wait for the response to complete

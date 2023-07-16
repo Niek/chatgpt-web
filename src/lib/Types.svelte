@@ -77,7 +77,7 @@ export type Request = {
     max_tokens?: number;
     presence_penalty?: number;
     frequency_penalty?: number;
-    logit_bias?: Record<string, any> | null;
+    logit_bias?: Record<string, number> | null;
     user?: string;
   };
 
@@ -99,6 +99,7 @@ export type ChatSettings = {
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
     hppContinuePrompt: string; // hiddenPromptPrefix used, optional glue when trying to continue truncated completion
+    hppWithSummaryPrompt: boolean; // include hiddenPromptPrefix when before summary prompt
     imageGenerationSize: ImageGenerationSizes;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;

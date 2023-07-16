@@ -91,6 +91,7 @@ const defaults:ChatSettings = {
   trainingPrompts: [],
   hiddenPromptPrefix: '',
   hppContinuePrompt: '',
+  hppWithSummaryPrompt: false,
   imageGenerationSize: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
@@ -212,6 +213,14 @@ const systemPromptSettings: ChatSetting[] = [
         title: 'If using Hidden Prompts Prefix, a prompt that can be used to help continue a truncated completion.',
         placeholder: 'Enter something like [Continue your response below:]',
         type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
+      },
+      {
+        key: 'hppWithSummaryPrompt',
+        name: 'Use Hidden Prompt Prefix before Summary Prompt',
+        title: 'If using Hidden Prompts Prefix, should it also be included before the summary request',
+        placeholder: 'Enter something like [Continue your response below:]',
+        type: 'boolean',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
       },
       {
