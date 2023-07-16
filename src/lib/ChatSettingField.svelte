@@ -17,20 +17,30 @@
   export let originalProfile:String
   export let rkey:number = 0
 
+
+  let fieldControls:ControlAction[]
+
   const chatId = chat.id
   let show = false
+  
+  const buildFieldControls = () => {
+    fieldControls = (setting.fieldControls || [] as FieldControl[]).map(fc => {
+      return fc.getAction(chatId, setting, chatSettings[setting.key])
+    })
+  }
+
+  buildFieldControls()
 
   onMount(() => {
     show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+    buildFieldControls()
   })
 
   afterUpdate(() => {
     show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+    buildFieldControls()
   })
 
-  const fieldControls:ControlAction[] = (setting.fieldControls || [] as FieldControl[]).map(fc => {
-    return fc.getAction(chatId, setting, chatSettings[setting.key])
-  })
 
   if (originalProfile) {
     // eventually...
