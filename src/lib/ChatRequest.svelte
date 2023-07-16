@@ -162,9 +162,9 @@ export class ChatRequest {
           const sp = messagePayload[0]
           if (sp) {
             if (messagePayload.length > 1) {
-              sp.content = sp.content.replace(/\[\[REMOVE_AFTER_START\]\][\s\S]*$/, '')
+              sp.content = sp.content.replace(/::STARTUP::[\s\S]*$/, '')
             } else {
-              sp.content = sp.content.replace(/\[\[REMOVE_AFTER_START\]\][\s]*/, '')
+              sp.content = sp.content.replace(/::STARTUP::[\s]*/, '')
             }
             if (chatSettings.sendSystemPromptLast) {
               messagePayload.shift()
@@ -173,6 +173,17 @@ export class ChatRequest {
               } else {
                 messagePayload.push(sp)
               }
+              const splitSystem = sp.content.split('::START-PROMPT::')
+              if (splitSystem.length > 1) {
+                sp.content = splitSystem.shift()?.trim() || ''
+                const systemStart = splitSystem.join('\n').trim()
+                messagePayload.unshift({
+                  content: systemStart,
+                  role: 'system'
+                } as Message)
+              }
+            } else {
+              sp.content = sp.content.replace(/::START-PROMPT::[\s]*/, '')
             }
           }
         }
