@@ -96,6 +96,7 @@ export type ChatSettings = {
     summaryPrompt: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
+    sendSystemPromptLast: boolean;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
     hppContinuePrompt: string; // hiddenPromptPrefix used, optional glue when trying to continue truncated completion

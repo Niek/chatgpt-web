@@ -157,6 +157,25 @@ export class ChatRequest {
         const chatResponse = new ChatCompletionResponse(opts)
         const promptTokenCount = countPromptTokens(messagePayload, model)
         const maxAllowed = maxTokens - (promptTokenCount + 1)
+
+        if (messagePayload[0]?.role === 'system') {
+          const sp = messagePayload[0]
+          if (sp) {
+            if (messagePayload.length > 1) {
+              sp.content = sp.content.replace(/\[\[REMOVE_AFTER_START\]\][\s\S]*$/, '')
+            } else {
+              sp.content = sp.content.replace(/\[\[REMOVE_AFTER_START\]\][\s]*/, '')
+            }
+            if (chatSettings.sendSystemPromptLast) {
+              messagePayload.shift()
+              if (messagePayload[messagePayload.length - 1]?.role === 'user') {
+                messagePayload.splice(-2, 0, sp)
+              } else {
+                messagePayload.push(sp)
+              }
+            }
+          }
+        }
     
         // Build the API request body
         const request: Request = {
