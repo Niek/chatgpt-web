@@ -642,13 +642,15 @@ aside.menu.main-menu .menu-expanse {
   }
 }
 
-.message.streaming .message-display p:last-of-type::after {
+.message.streaming .message-display > p:last-child::after,
+.message.streaming .message-display > .code-block:last-child > pre code:last-of-type::after {
   position: relative;
   content: '❚';
   animation: cursor-blink 1s steps(2) infinite;
 }
 
-.message:last-of-type.incomplete .message-display p:last-of-type::after {
+.message:last-of-type.incomplete .message-display > p:last-child::after,
+.message:last-of-type.incomplete .message-display > .code-block:last-child > pre code:last-of-type::after {
   position: relative;
   content: '...';
   margin-left: 4px;

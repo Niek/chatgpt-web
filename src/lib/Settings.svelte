@@ -87,10 +87,12 @@ const defaults:ChatSettings = {
   summaryPrompt: '',
   useSystemPrompt: false,
   systemPrompt: '',
+  sendSystemPromptLast: false,
   autoStartSession: false,
   trainingPrompts: [],
   hiddenPromptPrefix: '',
   hppContinuePrompt: '',
+  hppWithSummaryPrompt: false,
   imageGenerationSize: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
@@ -194,9 +196,15 @@ const systemPromptSettings: ChatSetting[] = [
         key: 'systemPrompt',
         name: 'System Prompt',
         title: 'First prompt to send.',
-        placeholder: 'Enter the first prompt to send here.  You can tell ChatGPT how to act.',
+        placeholder: 'Enter the first prompt to send here. You can tell ChatGPT how to act.',
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
+      },
+      {
+        key: 'sendSystemPromptLast',
+        name: 'Send System Prompt Last (Can help in ChatGPT 3.5)',
+        title: 'ChatGPT 3.5 can often forget the System Prompt. Sending the system prompt at the end instead of the start of the messages can help.',
+        type: 'boolean'
       },
       {
         key: 'hiddenPromptPrefix',
@@ -212,6 +220,14 @@ const systemPromptSettings: ChatSetting[] = [
         title: 'If using Hidden Prompts Prefix, a prompt that can be used to help continue a truncated completion.',
         placeholder: 'Enter something like [Continue your response below:]',
         type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
+      },
+      {
+        key: 'hppWithSummaryPrompt',
+        name: 'Use Hidden Prompt Prefix before Summary Prompt',
+        title: 'If using Hidden Prompts Prefix, should it also be included before the summary request',
+        placeholder: 'Enter something like [Continue your response below:]',
+        type: 'boolean',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt || !(getChatSettings(chatId).hiddenPromptPrefix || '').trim()
       },
       {
