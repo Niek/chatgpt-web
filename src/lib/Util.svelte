@@ -4,7 +4,7 @@
   import PromptNotice from './PromptNotice.svelte'
   import { addChat, getChat } from './Storage.svelte'
   import { replace } from 'svelte-spa-router'
-  import PromptConfirm from './PromptConfirm.svelte'
+  // import PromptConfirm from './PromptConfirm.svelte'
   import type { ChatSettings } from './Types.svelte'
   export const sizeTextElements = () => {
     const els = document.querySelectorAll('textarea.auto-size')
@@ -131,19 +131,20 @@
       const chatId = addChat(profile)
       replace(`/chat/${chatId}`)
     }
-    if (activeChatId && getChat(activeChatId).settings.isDirty) {
-      openModal(PromptConfirm, {
-        title: 'Unsaved Profile',
-        message: '<p>There are unsaved changes to your current profile that will be lost.</p><p>Discard these changes and continue with new chat?</p>',
-        asHtml: true,
-        class: 'is-warning',
-        onConfirm: () => {
-          newChat()
-        }
-      })
-    } else {
-      newChat()
-    }
+    // if (activeChatId && getChat(activeChatId).settings.isDirty) {
+    //   openModal(PromptConfirm, {
+    //     title: 'Unsaved Profile',
+    //     message: '<p>There are unsaved changes to your current profile that will be lost.</p><p>Discard these changes and continue with new chat?</p>',
+    //     asHtml: true,
+    //     class: 'is-warning',
+    //     onConfirm: () => {
+    //       newChat()
+    //     }
+    //   })
+    // } else {
+    //   newChat()
+    // }
+    newChat()
   }
 
 </script> 
