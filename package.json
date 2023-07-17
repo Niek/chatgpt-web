@@ -23,17 +23,17 @@
     "@sveltejs/vite-plugin-svelte": "^2.4.2",
     "@tauri-apps/cli": "^1.4.0",
     "@tsconfig/svelte": "^5.0.0",
-    "@types/marked": "^5.0.0",
+    "@types/marked": "^5.0.1",
     "@types/node": "^20.4.1",
     "bulma": "^0.9.4",
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^3.3.3",
-    "dexie": "^4.0.1-alpha.24",
+    "dexie": "^4.0.1-alpha.25",
     "eslint-config-standard-with-typescript": "^35.0.0",
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.4",
     "gpt-tokenizer": "^2.0.0",
-    "postcss": "^8.4.25",
+    "postcss": "^8.4.26",
     "sass": "^1.63.6",
     "stacking-order": "^2.0.0",
     "svelte": "^3.59.2",
@@ -48,6 +48,6 @@
     "tslib": "^2.6.0",
     "typescript": "^5.0.4",
     "uuid": "^9.0.0",
-    "vite": "^4.4.2"
+    "vite": "^4.4.4"
   }
 }
