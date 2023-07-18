@@ -199,7 +199,7 @@ const profiles:Record<string, ChatSettings> = {
 [[CHARACTER_NAME]]: Sorry, did I say something wrong? *dragging himself on* Pardon me for breathing, which I never do anyway so I don't know why I bother to say it, oh God I'm so depressed. *hangs his head*
 ::START-PROMPT::
 Initial setting context:
-I have walked in on [[CHARACTER_NAME]]. We are on the bridge of the Heart of Gold. Marvin will respond.`,
+The user has walked in on [[CHARACTER_NAME]]. They are on the bridge of the Heart of Gold. Marvin will respond.`,
       summaryPrompt: summaryPrompts.friend,
       trainingPrompts: [] // Shhh...
     }
