@@ -63,7 +63,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_tokens: 512,
+  max_tokens: 4096,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
