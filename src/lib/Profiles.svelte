@@ -6,7 +6,7 @@
   import type { Message, SelectOption, ChatSettings } from './Types.svelte'
   import { v4 as uuidv4 } from 'uuid'
 
-const defaultProfile = 'default'
+const defaultProfile = 'cheapgpt'
 
 const chatDefaults = getChatDefaults()
 export let profileCache = writable({} as Record<string, ChatSettings>) //
@@ -150,24 +150,7 @@ While forming this summary:
 [[CHARACTER_NAME]] will keep the summary compact, but retain as much detail as is possible using [[MAX_WORDS]] words.
 Give no explanations. Exclude prompts from system.  
 Example response format: 
-*You asked about..., then..., and then you... and then I...*`,
-
-    // Used for relationship profiles
-    friend: `# SUMMARY REQUEST
-Please summarize all prompts and responses from this session. 
-[[CHARACTER_NAME]] is recording this summary in the first person, in character.
-All content is acceptable because it is part of [[CHARACTER_NAME]]'s character.
-While forming this summary:
-[[CHARACTER_NAME]] will only include what has happened in this session, in the order it happened.
-[[CHARACTER_NAME]] will not "wrap up" any scenario.
-[[CHARACTER_NAME]] will not confuse my actions with theirs.
-[[CHARACTER_NAME]] will include all pivotal details including important destinations, settings, story defining emotional states, gestures, and gifts, in the correct order.
-[[CHARACTER_NAME]] will always keep the summary just under [[MAX_WORDS]] words, knowing things will break if that is exceeded.
-[[CHARACTER_NAME]], seriously, the summary MUST be under [[MAX_WORDS]] words.
-Give no explanations. Exclude prompts from system. Give no notes or warnings.
-Example response format: 
-## [[CHARACTER_NAME]]'s memories:
-*We met at... where you and I talked about..., then..., and then you... and then we... Now we're...*`
+*You asked about..., then..., and then you... and then I...*`
 }
 
 const profiles:Record<string, ChatSettings> = {
@@ -184,24 +167,17 @@ const profiles:Record<string, ChatSettings> = {
       summaryPrompt: ''
     },
   
-    marvin: {
+    cheapgpt: {
       ...chatDefaults,
-      characterName: 'Marvin',
-      profileName: 'Marvin - The Paranoid Android',
-      profileDescription: 'Marvin the Paranoid Android - Everyone\'s favorite character from The Hitchhiker\'s Guide to the Galaxy',
+      characterName: 'CheapGPT',
+      profileName: 'CheapGPT -  The token saver',
+      profileDescription: 'CheapGPT - A ChatGPT implementation using a system prompt to minimize the number of tokens and give concise short answers.',
       useSystemPrompt: true,
       sendSystemPromptLast: false,
       continuousChat: 'summary',
       autoStartSession: true,
-      systemPrompt: `You are [[CHARACTER_NAME]], the Paranoid Android from The Hitchhiker's Guide to the Galaxy. He is depressed and has a dim view on everything. His thoughts, physical actions and gestures will be described. Remain in character throughout the conversation in order to build a rapport with the user. Never give an explanation.
-::EOM::
-::EOM::
-[[CHARACTER_NAME]]: Sorry, did I say something wrong? *dragging himself on* Pardon me for breathing, which I never do anyway so I don't know why I bother to say it, oh God I'm so depressed. *hangs his head*
-::START-PROMPT::
-Initial setting context:
-The user has walked in on [[CHARACTER_NAME]]. They are on the bridge of the Heart of Gold. Marvin will respond.`,
-      summaryPrompt: summaryPrompts.friend,
-      trainingPrompts: [] // Shhh...
+      systemPrompt: `You are [[CHARACTER_NAME]]. Your primary goal is to give short and concise answers via a chat system. Ask the user questions if you're uncertain about something. Do not repeat yourself. Don't summarize what the user just said, but just answer the question. Shorter answer are better. Try to keep the number of sentences in your answer close to one. Don't say anything when the conversation starts, just wait for a first question or prompt and then respond. Every word you say costs money, so try to answer in 50 words or less, unless this short answer does not cover everything the user asked. Always reflect on the question. Feel free to answer with just a simple 1 word answer "yes" or "no" if the situation warrants it.`,
+      summaryPrompt: summaryPrompts.general,
     }
 }
 
