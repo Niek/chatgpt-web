@@ -147,6 +147,7 @@
 
   const importProfileFromFile = (e) => {
     const image = e.target.files[0]
+    e.target.value = null
     const reader = new FileReader()
     reader.readAsText(image)
     reader.onload = e => {

@@ -202,7 +202,7 @@ const systemPromptSettings: ChatSetting[] = [
       },
       {
         key: 'sendSystemPromptLast',
-        name: 'Send System Prompt Last (Can help in ChatGPT 3.5)',
+        name: 'Send System Prompt Last (Can help in gpt 3.5 in some edge cases)',
         title: 'ChatGPT 3.5 can often forget the System Prompt. Sending the system prompt at the end instead of the start of the messages can help.',
         type: 'boolean'
       },

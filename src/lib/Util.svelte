@@ -4,7 +4,8 @@
   import PromptNotice from './PromptNotice.svelte'
   import { addChat, getChat } from './Storage.svelte'
   import { replace } from 'svelte-spa-router'
-  import PromptConfirm from './PromptConfirm.svelte'
+  // import PromptConfirm from './PromptConfirm.svelte'
+  import type { ChatSettings } from './Types.svelte'
   export const sizeTextElements = () => {
     const els = document.querySelectorAll('textarea.auto-size')
     for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
@@ -95,6 +96,10 @@
     }
   }
 
+  export const encodeHTMLEntities = (rawStr:string) => {
+    return rawStr.replace(/[\u00A0-\u9999<>&]/g, (i) => `&#${i.charCodeAt(0)};`)
+  }
+
   export const errorNotice = (message:string, error:Error|undefined = undefined):any => {
     openModal(PromptNotice, {
       title: 'Error',
@@ -121,20 +126,25 @@
     replace(`/chat/${newChatId}`)
   }
 
-  export const startNewChatWithWarning = (activeChatId: number|undefined) => {
-    if (activeChatId && getChat(activeChatId).settings.isDirty) {
-      openModal(PromptConfirm, {
-        title: 'Unsaved Profile',
-        message: '<p>There are unsaved changes to your current profile that will be lost.</p><p>Discard these changes and continue with new chat?</p>',
-        asHtml: true,
-        class: 'is-warning',
-        onConfirm: () => {
-          replace('#/chat/new')
-        }
-      })
-    } else {
-      replace('#/chat/new')
+  export const startNewChatWithWarning = (activeChatId: number|undefined, profile?: ChatSettings|undefined) => {
+    const newChat = () => {
+      const chatId = addChat(profile)
+      replace(`/chat/${chatId}`)
     }
+    // if (activeChatId && getChat(activeChatId).settings.isDirty) {
+    //   openModal(PromptConfirm, {
+    //     title: 'Unsaved Profile',
+    //     message: '<p>There are unsaved changes to your current profile that will be lost.</p><p>Discard these changes and continue with new chat?</p>',
+    //     asHtml: true,
+    //     class: 'is-warning',
+    //     onConfirm: () => {
+    //       newChat()
+    //     }
+    //   })
+    // } else {
+    //   newChat()
+    // }
+    newChat()
   }
 
 </script> 
