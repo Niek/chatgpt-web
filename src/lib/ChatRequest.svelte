@@ -153,28 +153,27 @@ export class ChatRequest {
           .map(m => {
             const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content }
           }) as Message[]
-    
-        const chatResponse = new ChatCompletionResponse(opts)
-        const promptTokenCount = countPromptTokens(messagePayload, model)
-        const maxAllowed = maxTokens - (promptTokenCount + 1)
 
+        // Parse system and expand prompt if needed
         if (messagePayload[0]?.role === 'system') {
+          const spl = chatSettings.sendSystemPromptLast
           const sp = messagePayload[0]
           if (sp) {
             if (messagePayload.length > 1) {
+              sp.content = sp.content.replace(/::STARTUP::[\s\S]*::EOM::/, '::EOM::')
               sp.content = sp.content.replace(/::STARTUP::[\s\S]*::START-PROMPT::/, '::START-PROMPT::')
               sp.content = sp.content.replace(/::STARTUP::[\s\S]*$/, '')
             } else {
               sp.content = sp.content.replace(/::STARTUP::[\s]*/, '')
             }
-            if (chatSettings.sendSystemPromptLast) {
+            const splitSystem = sp.content.split('::START-PROMPT::')
+            if (spl) {
               messagePayload.shift()
               if (messagePayload[messagePayload.length - 1]?.role === 'user') {
                 messagePayload.splice(-2, 0, sp)
               } else {
                 messagePayload.push(sp)
               }
-              const splitSystem = sp.content.split('::START-PROMPT::')
               if (splitSystem.length > 1) {
                 sp.content = splitSystem.shift()?.trim() || ''
                 const systemStart = splitSystem.join('\n').trim()
@@ -186,9 +185,24 @@ export class ChatRequest {
             } else {
               sp.content = sp.content.replace(/::START-PROMPT::[\s]*/, '')
             }
+            const eoms = (splitSystem.shift() || '').split('::EOM::')
+            if (eoms.length > 1) {
+              sp.content = eoms.shift()?.trim() || ''
+              const ms = eoms.map((s, i) => {
+                return {
+                  role: (i % 2 === 0) ? 'user' : 'assistant',
+                  content: s.trim()
+                } as Message
+              }).filter(m => m.content.length)
+              messagePayload.splice(spl ? 0 : 1, 0, ...ms.concat(splitSystem.map(s => ({ role: 'system', content: s.trim() } as Message)).filter(m => m.content.length)))
+            }
           }
         }
-    
+
+        // Get token counts
+        const promptTokenCount = countPromptTokens(messagePayload, model)
+        const maxAllowed = maxTokens - (promptTokenCount + 1)
+
         // Build the API request body
         const request: Request = {
           model: chatSettings.model,
@@ -224,6 +238,7 @@ export class ChatRequest {
         }
 
         // Set-up and make the request
+        const chatResponse = new ChatCompletionResponse(opts)
         try {
           // Add out token count to the response handler
           // (streaming doesn't return counts, so we need to do it client side)
