@@ -159,6 +159,8 @@ export class ChatRequest {
           const spl = chatSettings.sendSystemPromptLast
           const sp = messagePayload[0]
           if (sp) {
+            const lastSp = sp.content.split('::END-PROMPT::')
+            sp.content = lastSp[0].trim()
             if (messagePayload.length > 1) {
               sp.content = sp.content.replace(/::STARTUP::[\s\S]*::EOM::/, '::EOM::')
               sp.content = sp.content.replace(/::STARTUP::[\s\S]*::START-PROMPT::/, '::START-PROMPT::')
@@ -170,7 +172,7 @@ export class ChatRequest {
             if (spl) {
               messagePayload.shift()
               if (messagePayload[messagePayload.length - 1]?.role === 'user') {
-                messagePayload.splice(-2, 0, sp)
+                messagePayload.splice(-1, 0, sp)
               } else {
                 messagePayload.push(sp)
               }
@@ -195,6 +197,10 @@ export class ChatRequest {
                 } as Message
               }).filter(m => m.content.length)
               messagePayload.splice(spl ? 0 : 1, 0, ...ms.concat(splitSystem.map(s => ({ role: 'system', content: s.trim() } as Message)).filter(m => m.content.length)))
+            }
+            const lastSpC = lastSp[1]?.trim() || ''
+            if (lastSpC.length) {
+              messagePayload.push({ role: 'system', content: lastSpC } as Message)
             }
           }
         }
@@ -356,9 +362,9 @@ export class ChatRequest {
           const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
             m = m.trim()
             if (m.length) {
-              if (m.match(/[[USER_PROMPT]]/)) {
+              if (m.match(/\[\[USER_PROMPT\]\]/)) {
                 injectedPrompt = true
-                m.replace(/[[USER_PROMPT]]/g, lastMessage.content)
+                m.replace(/\[\[USER_PROMPT\]\]/g, lastMessage.content)
               }
               a.push({ role: a.length % 2 === 0 ? 'user' : 'assistant', content: m } as Message)
             }
