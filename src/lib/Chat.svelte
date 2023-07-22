@@ -273,12 +273,15 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Using appropriate language, please give a 5 word summary of this conversation's topic.",
+      content: "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary.",
       uuid: uuidv4()
     }
 
     const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
+
+    chatRequest.updating = true
+    chatRequest.updatingMessage = 'Getting suggestion for chat name...'
 
     const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
@@ -297,7 +300,7 @@
       })
     } else {
       response.getMessages().forEach(m => {
-        const name = m.content.split(/\s+/).slice(0, 8).join(' ').trim()
+        const name = m.content.split(/\s+/).slice(0, 8).join(' ').replace(/^[^a-z0-9!?]+|[^a-z0-9!?]+$/gi, '').trim()
         if (name) chat.name = name
       })
       saveChatStore()
