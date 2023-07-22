@@ -56,11 +56,11 @@ export const runPetalsCompletionRequest = async (
           const rMessages = request.messages || [] as Message[]
           // make sure top_p and temperature are set the way we need
           let temperature = request.temperature || 0
-          if (isNaN(temperature as any) || temperature === 1) temperature = 1
-          if (temperature === 0) temperature = 0.0001
+          if (isNaN(temperature as any)) temperature = 1
+          if (!temperature || temperature <= 0) temperature = 0.01
           let topP = request.top_p
-          if (isNaN(topP as any) || topP === 1) topP = 1
-          if (topP === 0) topP = 0.0001
+          if (topP === undefined || isNaN(topP as any)) topP = 1
+          if (!topP || topP <= 0) topP = 0.01
           // build the message array
           const inputArray = (rMessages).reduce((a, m) => {
             const c = getRoleTag(m.role, model, chatRequest.chat) + m.content
