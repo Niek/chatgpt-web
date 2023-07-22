@@ -259,8 +259,8 @@ export type ChatSetting = {
     title: string;
     forceApi?: boolean; // force in api requests, even if set to default
     hidden?: boolean; // Hide from setting menus
-    header?: string;
-    headerClass?: string;
+    header?: string | ValueFn;
+    headerClass?: string | ValueFn;
     placeholder?: string | ValueFn;
     hide?: (chatId:number) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;

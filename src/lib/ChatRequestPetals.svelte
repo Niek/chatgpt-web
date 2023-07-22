@@ -53,6 +53,14 @@ export const runPetalsCompletionRequest = async (
             throw err
           }
           const rMessages = request.messages || [] as Message[]
+          // make sure top_p and temperature are set the way we need
+          let temperature = request.temperature || 0
+          if (isNaN(temperature as any) || temperature === 1) temperature = 1
+          if (temperature === 0) temperature = 0.0001
+          let topP = request.top_p
+          if (isNaN(topP as any) || topP === 1) topP = 1
+          if (topP === 0) topP = 0.0001
+          // build the message array
           const inputArray = (rMessages).reduce((a, m) => {
             const c = getRoleTag(m.role, model, chatRequest.chat) + m.content
             a.push(c)
@@ -65,11 +73,11 @@ export const runPetalsCompletionRequest = async (
           const petalsRequest = {
             type: 'generate',
             inputs: inputArray.join(stopSequence),
-            max_new_tokens: 3, // wait for up to 3 tokens before displaying
+            max_new_tokens: 1, // wait for up to 1 tokens before displaying
             stop_sequence: stopSequence,
-            doSample: 1,
-            temperature: request.temperature || 0,
-            top_p: request.top_p || 0,
+            do_sample: 1, // enable top p and the like
+            temperature,
+            top_p: topP,
             extra_stop_sequences: stopSequencesC
           }
           ws.send(JSON.stringify(petalsRequest))

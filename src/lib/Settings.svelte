@@ -55,6 +55,14 @@ export const getExcludeFromProfile = () => {
   return excludeFromProfile
 }
 
+const isNotOpenAI = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'OpenAIChat'
+}
+
+const isNotPetals = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'Petals'
+}
+
 const gptDefaults = {
   model: defaultModel,
   messages: [],
@@ -406,20 +414,18 @@ const modelSetting: ChatSetting & SettingSelect = {
       key: 'model',
       name: 'Model',
       title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-      header: 'Below are the settings that OpenAI allows to be changed for the API calls. See the <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.',
+      header: (chatId) => {
+        if (isNotOpenAI(chatId)) {
+          return 'Below are the settings that can be changed for the API calls. See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.'
+        } else {
+          return 'Below are the settings that OpenAI allows to be changed for the API calls. See the <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.'
+        }
+      },
       headerClass: 'is-warning',
       options: [],
       type: 'select',
       forceApi: true, // Need to make sure we send this
       afterChange: (chatId, setting) => true // refresh settings
-}
-
-const isNotOpenAI = (chatId) => {
-  return getModelDetail(getChatSettings(chatId).model).type !== 'OpenAIChat'
-}
-
-const isNotPetals = (chatId) => {
-  return getModelDetail(getChatSettings(chatId).model).type !== 'Petals'
 }
 
 const chatSettingsList: ChatSetting[] = [
@@ -448,7 +454,7 @@ const chatSettingsList: ChatSetting[] = [
       },
       {
         key: 'top_p',
-        name: 'Nucleus Sampling',
+        name: 'Nucleus Sampling (Top-p)',
         title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
               '\n' +
               'We generally recommend altering this or temperature but not both',
