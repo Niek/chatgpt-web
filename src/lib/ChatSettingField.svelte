@@ -3,7 +3,7 @@
   // import { getProfile } from './Profiles.svelte'
   import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
-  import { autoGrowInputOnEvent, errorNotice } from './Util.svelte'
+  import { autoGrowInputOnEvent, errorNotice, valueOf } from './Util.svelte'
   // import { replace } from 'svelte-spa-router'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { openModal } from 'svelte-modals'
@@ -23,13 +23,9 @@
   const chatId = chat.id
   let show = false
 
-  const valueOf = (value: any) => {
-    if (typeof value === 'function') return value(chatId, setting)
-    return value
-  }
-
-  let header = valueOf(setting.header)
-  let headerClass = valueOf(setting.headerClass)
+  let header = valueOf(chatId, setting.header)
+  let headerClass = valueOf(chatId, setting.headerClass)
+  let placeholder = valueOf(chatId, setting.placeholder)
   
   const buildFieldControls = () => {
     fieldControls = (setting.fieldControls || [] as FieldControl[]).map(fc => {
@@ -46,8 +42,9 @@
 
   afterUpdate(() => {
     show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
-    header = valueOf(setting.header)
-    headerClass = valueOf(setting.headerClass)
+    header = valueOf(chatId, setting.header)
+    headerClass = valueOf(chatId, setting.headerClass)
+    placeholder = valueOf(chatId, setting.placeholder)
     buildFieldControls()
   })
 
@@ -181,7 +178,7 @@
       <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
       <textarea
         class="input is-info is-focused chat-input auto-size"
-        placeholder={setting.placeholder || ''}
+        placeholder={placeholder || ''}
         rows="1"
         on:input={e => autoGrowInputOnEvent(e)}
         on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
@@ -205,7 +202,7 @@
             min={setting.min}
             max={setting.max}
             step={setting.step}
-            placeholder={String(setting.placeholder || chatDefaults[setting.key])}
+            placeholder={String(placeholder || chatDefaults[setting.key])}
             on:change={e => queueSettingValueChange(e, setting)}
           />
         {:else if setting.type === 'select' || setting.type === 'select-number'}
@@ -243,6 +240,7 @@
               title="{setting.title}"
               class="input" 
               value={chatSettings[setting.key]} 
+              placeholder={String(placeholder || chatDefaults[setting.key])}
               on:change={e => { queueSettingValueChange(e, setting) }}
             >
           </div>

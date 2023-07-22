@@ -215,7 +215,7 @@ export class ChatRequest {
         }
 
         // Get token counts
-        const promptTokenCount = countPromptTokens(messagePayload, model, chatSettings)
+        const promptTokenCount = countPromptTokens(messagePayload, model, chat)
         const maxAllowed = maxTokens - (promptTokenCount + 1)
 
         // Build the API request body
@@ -287,7 +287,8 @@ export class ChatRequest {
       }
 
       private buildHiddenPromptPrefixMessages (messages: Message[], insert:boolean = false): Message[] {
-        const chatSettings = this.chat.settings
+        const chat = this.chat
+        const chatSettings = chat.settings
         const hiddenPromptPrefix = mergeProfileFields(chatSettings, chatSettings.hiddenPromptPrefix).trim()
         const lastMessage = messages[messages.length - 1]
         const isContinue = lastMessage?.role === 'assistant' && lastMessage.finish_reason === 'length'
@@ -328,11 +329,11 @@ export class ChatRequest {
        * Gets an estimate of how many extra tokens will be added that won't be part of the visible messages
        * @param filtered
        */
-      private getTokenCountPadding (filtered: Message[], settings: ChatSettings): number {
+      private getTokenCountPadding (filtered: Message[], chat: Chat): number {
         let result = 0
         // add cost of hiddenPromptPrefix
         result += this.buildHiddenPromptPrefixMessages(filtered)
-          .reduce((a, m) => a + countMessageTokens(m, this.getModel(), settings), 0)
+          .reduce((a, m) => a + countMessageTokens(m, this.getModel(), chat), 0)
         // more here eventually?
         return result
       }
@@ -354,10 +355,10 @@ export class ChatRequest {
         }
 
         // Get extra counts for when the prompts are finally sent.
-        const countPadding = this.getTokenCountPadding(filtered, chatSettings)
+        const countPadding = this.getTokenCountPadding(filtered, chat)
 
         // See if we have enough to apply any of the reduction modes
-        const fullPromptSize = countPromptTokens(filtered, model, chatSettings) + countPadding
+        const fullPromptSize = countPromptTokens(filtered, model, chat) + countPadding
         if (fullPromptSize < chatSettings.summaryThreshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
 
@@ -380,12 +381,12 @@ export class ChatRequest {
            * *************************************************************
            */
     
-          let promptSize = countPromptTokens(top.concat(rw), model, chatSettings) + countPadding
+          let promptSize = countPromptTokens(top.concat(rw), model, chat) + countPadding
           while (rw.length && rw.length > pinBottom && promptSize >= chatSettings.summaryThreshold) {
             const rolled = rw.shift()
             // Hide messages we're "rolling"
             if (rolled) rolled.suppress = true
-            promptSize = countPromptTokens(top.concat(rw), model, chatSettings) + countPadding
+            promptSize = countPromptTokens(top.concat(rw), model, chat) + countPadding
           }
           // Run a new request, now with the rolled messages hidden
           return await _this.sendRequest(get(currentChatMessages), {
@@ -401,26 +402,26 @@ export class ChatRequest {
           const bottom = rw.slice(0 - pinBottom)
           let continueCounter = chatSettings.summaryExtend + 1
           rw = rw.slice(0, 0 - pinBottom)
-          let reductionPoolSize = countPromptTokens(rw, model, chatSettings)
+          let reductionPoolSize = countPromptTokens(rw, model, chat)
           const ss = Math.abs(chatSettings.summarySize)
           const getSS = ():number => (ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
             : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
-          const topSize = countPromptTokens(top, model, chatSettings)
+          const topSize = countPromptTokens(top, model, chat)
           let maxSummaryTokens = getSS()
           let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
           const summaryRequest = { role: 'user', content: promptSummary } as Message
-          let promptSummarySize = countMessageTokens(summaryRequest, model, chatSettings)
+          let promptSummarySize = countMessageTokens(summaryRequest, model, chat)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
           while ((topSize + reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
               (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user')) {
             bottom.unshift(rw.pop() as Message)
-            reductionPoolSize = countPromptTokens(rw, model, chatSettings)
+            reductionPoolSize = countPromptTokens(rw, model, chat)
             maxSummaryTokens = getSS()
             promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
             summaryRequest.content = promptSummary
-            promptSummarySize = countMessageTokens(summaryRequest, model, chatSettings)
+            promptSummarySize = countMessageTokens(summaryRequest, model, chat)
           }
           if (reductionPoolSize < 50) {
             if (overMax) addError(chatId, 'Check summary settings. Unable to summarize enough messages.')
@@ -506,10 +507,10 @@ export class ChatRequest {
               // Try to get more of it
               delete summaryResponse.finish_reason
               _this.updatingMessage = 'Summarizing more...'
-              let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chatSettings)
+              let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chat)
               while (rw.length && (_recount + maxSummaryTokens >= maxTokens)) {
                 rw.shift()
-                _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chatSettings)
+                _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chat)
               }
               loopCount++
               continue

@@ -72,7 +72,7 @@ export const getProfile = (key:string, forReset:boolean = false):ChatSettings =>
 
 export const mergeProfileFields = (settings: ChatSettings, content: string|undefined, maxWords: number|undefined = undefined): string => {
     if (!content?.toString) return ''
-    content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'ChatGPT')
+    content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'Assistant')
     if (maxWords) content = (content + '').replaceAll('[[MAX_WORDS]]', maxWords.toString())
     return content
 }

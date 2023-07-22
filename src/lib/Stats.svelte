@@ -1,16 +1,16 @@
 <script context="module" lang="ts">
-  import { countTokens, getModelDetail, getRoleTag } from './Models.svelte'
-  import type { ChatSettings, Message, Model, Usage } from './Types.svelte'
+  import { countTokens, getModelDetail, getRoleTag, getStopSequence } from './Models.svelte'
+  import type { Chat, Message, Model, Usage } from './Types.svelte'
 
   export const getPrice = (tokens: Usage, model: Model): number => {
     const t = getModelDetail(model)
     return ((tokens.prompt_tokens * t.prompt) + (tokens.completion_tokens * t.completion))
   }
 
-  export const countPromptTokens = (prompts:Message[], model:Model, settings: ChatSettings):number => {
+  export const countPromptTokens = (prompts:Message[], model:Model, chat: Chat):number => {
     const detail = getModelDetail(model)
     const count = prompts.reduce((a, m) => {
-      a += countMessageTokens(m, model, settings)
+      a += countMessageTokens(m, model, chat)
       return a
     }, 0)
     switch (detail.type) {
@@ -25,13 +25,12 @@
     }
   }
 
-  export const countMessageTokens = (message:Message, model:Model, settings: ChatSettings):number => {
+  export const countMessageTokens = (message:Message, model:Model, chat: Chat):number => {
     const detail = getModelDetail(model)
-    const start = detail.start && detail.start[0]
-    const stop = detail.stop && detail.stop[0]
+    const stop = getStopSequence(chat)
     switch (detail.type) {
       case 'Petals':
-        return countTokens(model, (start || '') + getRoleTag(message.role, model, settings) + ': ' + message.content + (stop || '###'))
+        return countTokens(model, getRoleTag(message.role, model, chat) + ': ' + message.content + (stop || '###'))
       case 'OpenAIChat':
       default:
         // Not sure how OpenAI formats it, but this seems to get close to the right counts.

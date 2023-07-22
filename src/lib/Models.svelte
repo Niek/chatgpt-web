@@ -2,9 +2,12 @@
     import { getApiBase, getEndpointCompletions, getEndpointGenerations, getEndpointModels, getPetals } from './ApiUtil.svelte'
     import { apiKeyStorage, globalStorage } from './Storage.svelte'
     import { get } from 'svelte/store'
-    import type { ModelDetail, Model, ResponseModels, SelectOption, ChatSettings } from './Types.svelte'
+    import type { ModelDetail, Model, ResponseModels, SelectOption, Chat } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import llamaTokenizer from 'llama-tokenizer-js'
+    import { mergeProfileFields } from './Profiles.svelte'
+    import { getChatSettingObjectByKey } from './Settings.svelte'
+    import { valueOf } from './Util.svelte'
 
 // Reference: https://openai.com/pricing#language-models
 // Eventually we'll add API hosts and endpoints to this
@@ -36,8 +39,10 @@ const modelDetails : Record<string, ModelDetail> = {
       'meta-llama/Llama-2-70b-chat-hf': {
         type: 'Petals',
         label: 'Petals - Llama-2-70b-chat',
-        start: [''],
         stop: ['</s>'],
+        userStart: '[user]',
+        assistantStart: '[[[CHARACTER_NAME]]]',
+        systemStart: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
@@ -130,16 +135,38 @@ export const getEndpoint = (model: Model): string => {
   }
 }
 
-export const getRoleTag = (role: string, model: Model, settings: ChatSettings): string => {
+export const getStopSequence = (chat: Chat): string => {
+  return valueOf(chat.id, getChatSettingObjectByKey('stopSequence').placeholder)
+}
+
+export const getUserStart = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        valueOf(chat.id, getChatSettingObjectByKey('userMessageStart').placeholder)
+      )
+}
+
+export const getAssistantStart = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        valueOf(chat.id, getChatSettingObjectByKey('assistantMessageStart').placeholder)
+      )
+}
+
+export const getSystemStart = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        valueOf(chat.id, getChatSettingObjectByKey('systemMessageStart').placeholder)
+      )
+}
+
+export const getRoleTag = (role: string, model: Model, chat: Chat): string => {
   const modelDetails = getModelDetail(model)
   switch (modelDetails.type) {
         case 'Petals':
-          if (role === 'assistant') {
-            if (settings.useSystemPrompt && settings.characterName) return '[' + settings.characterName + '] '
-            return '[Assistant] '
-          }
-          if (role === 'user') return '[user] '
-          return ''
+          if (role === 'assistant') return getAssistantStart(chat) + ' '
+          if (role === 'user') return getUserStart(chat) + ' '
+          return getSystemStart(chat) + ' '
         case 'OpenAIDall-e':
           return role
         case 'OpenAIChat':

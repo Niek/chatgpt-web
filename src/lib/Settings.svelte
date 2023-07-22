@@ -94,6 +94,10 @@ const defaults:ChatSettings = {
   hppContinuePrompt: '',
   hppWithSummaryPrompt: false,
   imageGenerationSize: '',
+  stopSequence: '',
+  userMessageStart: '',
+  assistantMessageStart: '',
+  systemMessageStart: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -414,6 +418,10 @@ const isNotOpenAI = (chatId) => {
   return getModelDetail(getChatSettings(chatId).model).type !== 'OpenAIChat'
 }
 
+const isNotPetals = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'Petals'
+}
+
 const chatSettingsList: ChatSetting[] = [
       profileSetting,
       ...systemPromptSettings,
@@ -491,6 +499,50 @@ const chatSettingsList: ChatSetting[] = [
         step: 0.2,
         type: 'number',
         hide: isNotOpenAI
+      },
+      {
+        key: 'stopSequence',
+        name: 'Stop Sequence',
+        title: 'Characters used to separate messages in the message chain.',
+        type: 'text',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).stop
+          return (val && val[0]) || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'userMessageStart',
+        name: 'User Message Start Sequence',
+        title: 'Sequence to denote user messages in the message chain.',
+        type: 'text',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).userStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'assistantMessageStart',
+        name: 'Assistant Message Start Sequence',
+        title: 'Sequence to denote assistant messages in the message chain.',
+        type: 'text',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).assistantStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'systemMessageStart',
+        name: 'System Message Start Sequence',
+        title: 'Sequence to denote system messages in the message chain.',
+        type: 'text',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).systemStart
+          return val || ''
+        },
+        hide: isNotPetals
       },
       {
         // logit bias editor not implemented yet

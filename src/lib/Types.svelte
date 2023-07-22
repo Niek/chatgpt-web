@@ -13,7 +13,9 @@ export type ModelDetail = {
     type: RequestType;
     label?: string;
     stop?: string[];
-    start?: string[];
+    userStart?: string,
+    assistantStart?: string,
+    systemStart?: string,
     prompt: number;
     completion: number;
     max: number;
@@ -111,6 +113,10 @@ export type ChatSettings = {
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];
+    stopSequence: string;
+    userMessageStart: string;
+    assistantMessageStart: string;
+    systemMessageStart: string;
     isDirty?: boolean;
   } & Request;
 
@@ -245,6 +251,8 @@ export type SubSetting = {
     settings: any[];
   };
 
+export type ValueFn = (chatId:number) => string
+
 export type ChatSetting = {
     key: keyof ChatSettings;
     name: string;
@@ -253,7 +261,7 @@ export type ChatSetting = {
     hidden?: boolean; // Hide from setting menus
     header?: string;
     headerClass?: string;
-    placeholder?: string;
+    placeholder?: string | ValueFn;
     hide?: (chatId:number) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
     fieldControls?: FieldControl[];

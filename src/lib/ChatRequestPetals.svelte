@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import ChatCompletionResponse from './ChatCompletionResponse.svelte'
     import ChatRequest from './ChatRequest.svelte'
-    import { getEndpoint, getModelDetail, getRoleTag } from './Models.svelte'
+    import { getEndpoint, getModelDetail, getRoleTag, getStopSequence } from './Models.svelte'
     import type { ChatCompletionOpts, Message, Request } from './Types.svelte'
     import { getModelMaxTokens } from './Stats.svelte'
     import { updateMessages } from './Storage.svelte'
@@ -13,6 +13,7 @@ export const runPetalsCompletionRequest = async (
   signal: AbortSignal,
   opts: ChatCompletionOpts) => {
       // Petals
+      const chat = chatRequest.getChat()
       const model = chatRequest.getModel()
       const modelDetail = getModelDetail(model)
       const ws = new WebSocket(getEndpoint(model))
@@ -24,11 +25,10 @@ export const runPetalsCompletionRequest = async (
         ws.close()
       }
       signal.addEventListener('abort', abortListener)
-      const startSequences = modelDetail.start || []
-      const startSequence = startSequences[0] || ''
       const stopSequences = modelDetail.stop || ['###']
+      const stopSequence = getStopSequence(chat)
       const stopSequencesC = stopSequences.slice()
-      const stopSequence = stopSequencesC.shift()
+      if (stopSequence === stopSequencesC[0]) stopSequencesC.shift()
       const maxTokens = getModelMaxTokens(model)
       let maxLen = Math.min(opts.maxTokens || chatRequest.chat.max_tokens || maxTokens, maxTokens)
       const promptTokenCount = chatResponse.getPromptTokenCount()
@@ -102,9 +102,7 @@ export const runPetalsCompletionRequest = async (
                   for (let i = 0, l = stopSequences.length; i < l; i++) {
                     if (message.content.endsWith(stopSequences[i])) {
                       message.content = message.content.slice(0, message.content.length - stopSequences[i].length)
-                      const startS = startSequence[i] || ''
-                      if (message.content.startsWith(startS)) message.content = message.content.slice(startS.length)
-                      updateMessages(chatRequest.getChat().id)
+                      updateMessages(chat.id)
                     }
                   }
                 }
