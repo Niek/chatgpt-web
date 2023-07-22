@@ -49,6 +49,7 @@ export const runPetalsCompletionRequest = async (
           const response = JSON.parse(event.data)
           if (!response.ok) {
             const err = new Error('Error opening socket: ' + response.traceback)
+            chatResponse.updateFromError(err.message)
             console.error(err)
             throw err
           }
@@ -89,6 +90,7 @@ export const runPetalsCompletionRequest = async (
             if (!response.ok) {
               const err = new Error('Error in response: ' + response.traceback)
               console.error(err)
+              chatResponse.updateFromError(err.message)
               throw err
             }
             window.setTimeout(() => {

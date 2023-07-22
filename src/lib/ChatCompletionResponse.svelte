@@ -175,15 +175,15 @@ export class ChatCompletionResponse {
       } as Message)
     }
     this.notifyMessageChange()
-    setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
+    setTimeout(() => this.finish(), 200) // give others a chance to signal the finish first
   }
 
   updateFromClose (force: boolean = false): void {
     if (!this.finished && !this.error && !this.messages?.find(m => m.content)) {
-      if (!force) return setTimeout(() => this.updateFromClose(true), 250) as any
-      return this.updateFromError('Unexpected connection termination')
+      if (!force) return setTimeout(() => this.updateFromClose(true), 300) as any
+      if (!this.finished) return this.updateFromError('Unexpected connection termination')
     }
-    setTimeout(() => this.finish(), 250) // give others a chance to signal the finish first
+    setTimeout(() => this.finish(), 260) // give others a chance to signal the finish first
   }
 
   onMessageChange = (listener: (m: Message[]) => void): number =>
