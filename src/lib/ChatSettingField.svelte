@@ -22,6 +22,14 @@
 
   const chatId = chat.id
   let show = false
+
+  const valueOf = (value: any) => {
+    if (typeof value === 'function') return value(chatId, setting)
+    return value
+  }
+
+  let header = valueOf(setting.header)
+  let headerClass = valueOf(setting.headerClass)
   
   const buildFieldControls = () => {
     fieldControls = (setting.fieldControls || [] as FieldControl[]).map(fc => {
@@ -38,6 +46,8 @@
 
   afterUpdate(() => {
     show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+    header = valueOf(setting.header)
+    headerClass = valueOf(setting.headerClass)
     buildFieldControls()
   })
 
@@ -146,9 +156,9 @@
 </script>
 
 {#if show}
-  {#if setting.header}
-  <p class="notification {setting.headerClass}">
-    {@html setting.header}
+  {#if header}
+  <p class="notification {headerClass}">
+    {@html header}
   </p>
   {/if}
   <div class="field is-horizontal">

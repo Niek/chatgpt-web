@@ -17,7 +17,7 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
-    import { getTokens } from './Models.svelte'
+    import { getModelDetail, getTokens } from './Models.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo'
 
@@ -410,6 +410,10 @@ const modelSetting: ChatSetting & SettingSelect = {
       afterChange: (chatId, setting) => true // refresh settings
 }
 
+const isNotOpenAI = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'OpenAIChat'
+}
+
 const chatSettingsList: ChatSetting[] = [
       profileSetting,
       ...systemPromptSettings,
@@ -420,7 +424,8 @@ const chatSettingsList: ChatSetting[] = [
         key: 'stream',
         name: 'Stream Response',
         title: 'Stream responses as they are generated.',
-        type: 'boolean'
+        type: 'boolean',
+        hide: isNotOpenAI
       },
       {
         key: 'temperature',
@@ -451,7 +456,8 @@ const chatSettingsList: ChatSetting[] = [
         min: 1,
         max: 10,
         step: 1,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
       },
       {
         key: 'max_tokens',
@@ -463,6 +469,7 @@ const chatSettingsList: ChatSetting[] = [
         max: 32768,
         step: 1,
         type: 'number',
+        hide: isNotOpenAI,
         forceApi: true // Since default here is different than gpt default, will make sure we always send it
       },
       {
@@ -472,7 +479,8 @@ const chatSettingsList: ChatSetting[] = [
         min: -2,
         max: 2,
         step: 0.2,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
       },
       {
         key: 'frequency_penalty',
@@ -481,7 +489,8 @@ const chatSettingsList: ChatSetting[] = [
         min: -2,
         max: 2,
         step: 0.2,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
       },
       {
         // logit bias editor not implemented yet
