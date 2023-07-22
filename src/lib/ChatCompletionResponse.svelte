@@ -65,6 +65,10 @@ export class ChatCompletionResponse {
     this.promptTokenCount = tokens
   }
 
+  getPromptTokenCount (): number {
+    return this.promptTokenCount
+  }
+
   async updateImageFromSyncResponse (response: ResponseImage, prompt: string, model: Model) {
     this.setModel(model)
     for (let i = 0; i < response.data.length; i++) {

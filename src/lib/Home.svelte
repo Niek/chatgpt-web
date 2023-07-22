@@ -3,7 +3,7 @@
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { onMount } from 'svelte'
-  import { getPetalsV2Websocket } from './ApiUtil.svelte'
+  import { getPetals } from './ApiUtil.svelte'
 
 $: apiKey = $apiKeyStorage
 
@@ -112,7 +112,7 @@ const setPetalsEnabled = (event: Event) => {
               aria-label="PetalsAPI Endpoint"
               type="text"
               class="input"
-              placeholder={getPetalsV2Websocket()}
+              placeholder={getPetals()}
               value={$globalStorage.pedalsEndpoint || ''}
             />
           </p>
@@ -123,7 +123,7 @@ const setPetalsEnabled = (event: Event) => {
           
         </form>
         <p>
-          Only use <u>{getPetalsV2Websocket()}</u> for testing.  You must set up your own Petals server for actual use. 
+          Only use <u>{getPetals()}</u> for testing.  You must set up your own Petals server for actual use. 
         </p>
         <p>
           <b>Do not send sensitive information when using Petals.</b>

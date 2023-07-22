@@ -10,19 +10,12 @@
   export const countPromptTokens = (prompts:Message[], model:Model, settings: ChatSettings):number => {
     const detail = getModelDetail(model)
     const count = prompts.reduce((a, m) => {
-      switch (detail.type) {
-        case 'PetalsV2Websocket':
-          a += countMessageTokens(m, model, settings)
-          break
-        case 'OpenAIChat':
-        default:
-          a += countMessageTokens(m, model, settings)
-      }
+      a += countMessageTokens(m, model, settings)
       return a
     }, 0)
     switch (detail.type) {
-      case 'PetalsV2Websocket':
-        return count + (Math.max(prompts.length - 1, 0) * countTokens(model, (detail.stop && detail.stop[0]) || '###')) // todo, make stop per model?
+      case 'Petals':
+        return count
       case 'OpenAIChat':
       default:
         // Not sure how OpenAI formats it, but this seems to get close to the right counts.
@@ -34,9 +27,11 @@
 
   export const countMessageTokens = (message:Message, model:Model, settings: ChatSettings):number => {
     const detail = getModelDetail(model)
+    const start = detail.start && detail.start[0]
+    const stop = detail.stop && detail.stop[0]
     switch (detail.type) {
-      case 'PetalsV2Websocket':
-        return countTokens(model, getRoleTag(message.role, model, settings) + ': ' + message.content)
+      case 'Petals':
+        return countTokens(model, (start || '') + getRoleTag(message.role, model, settings) + ': ' + message.content + (stop || '###'))
       case 'OpenAIChat':
       default:
         // Not sure how OpenAI formats it, but this seems to get close to the right counts.

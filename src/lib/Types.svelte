@@ -7,12 +7,13 @@ export type Model = typeof supportedModelKeys[number];
 
 export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
 
-export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'PetalsV2Websocket'
+export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'Petals'
 
 export type ModelDetail = {
     type: RequestType;
     label?: string;
     stop?: string[];
+    start?: string[];
     prompt: number;
     completion: number;
     max: number;

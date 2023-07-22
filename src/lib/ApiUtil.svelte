@@ -5,12 +5,12 @@
   const endpointGenerations = import.meta.env.VITE_ENDPOINT_GENERATIONS || '/v1/images/generations'
   const endpointModels = import.meta.env.VITE_ENDPOINT_MODELS || '/v1/models'
   const endpointEmbeddings = import.meta.env.VITE_ENDPOINT_EMBEDDINGS || '/v1/embeddings'
-  const endpointPetalsV2Websocket = import.meta.env.VITE_PEDALS_WEBSOCKET || 'wss://chat.petals.dev/api/v2/generate'
+  const endpointPetals = import.meta.env.VITE_PEDALS_WEBSOCKET || 'wss://chat.petals.dev/api/v2/generate'
 
   export const getApiBase = ():string => apiBase
   export const getEndpointCompletions = ():string => endpointCompletions
   export const getEndpointGenerations = ():string => endpointGenerations
   export const getEndpointModels = ():string => endpointModels
   export const getEndpointEmbeddings = ():string => endpointEmbeddings
-  export const getPetalsV2Websocket = ():string => endpointPetalsV2Websocket
+  export const getPetals = ():string => endpointPetals
 </script>

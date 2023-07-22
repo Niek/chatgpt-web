@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    import { getApiBase, getEndpointCompletions, getEndpointGenerations, getEndpointModels, getPetalsV2Websocket } from './ApiUtil.svelte'
+    import { getApiBase, getEndpointCompletions, getEndpointGenerations, getEndpointModels, getPetals } from './ApiUtil.svelte'
     import { apiKeyStorage, globalStorage } from './Storage.svelte'
     import { get } from 'svelte/store'
     import type { ModelDetail, Model, ResponseModels, SelectOption, ChatSettings } from './Types.svelte'
@@ -34,9 +34,10 @@ const modelDetails : Record<string, ModelDetail> = {
         max: 16384 // 16k max token buffer
       },
       'meta-llama/Llama-2-70b-chat-hf': {
-        type: 'PetalsV2Websocket',
+        type: 'Petals',
         label: 'Petals - Llama-2-70b-chat',
-        stop: ['###', '</s>'],
+        start: [''],
+        stop: ['</s>'],
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
@@ -119,8 +120,8 @@ export const getEndpoint = (model: Model): string => {
   const modelDetails = getModelDetail(model)
   const gSettings = get(globalStorage)
   switch (modelDetails.type) {
-        case 'PetalsV2Websocket':
-          return gSettings.pedalsEndpoint || getPetalsV2Websocket()
+        case 'Petals':
+          return gSettings.pedalsEndpoint || getPetals()
         case 'OpenAIDall-e':
           return getApiBase() + getEndpointGenerations()
         case 'OpenAIChat':
@@ -132,12 +133,12 @@ export const getEndpoint = (model: Model): string => {
 export const getRoleTag = (role: string, model: Model, settings: ChatSettings): string => {
   const modelDetails = getModelDetail(model)
   switch (modelDetails.type) {
-        case 'PetalsV2Websocket':
+        case 'Petals':
           if (role === 'assistant') {
-            return ('Assistant') +
-              ': '
+            if (settings.useSystemPrompt && settings.characterName) return '[' + settings.characterName + '] '
+            return '[Assistant] '
           }
-          if (role === 'user') return 'Human: '
+          if (role === 'user') return '[user] '
           return ''
         case 'OpenAIDall-e':
           return role
@@ -150,7 +151,7 @@ export const getRoleTag = (role: string, model: Model, settings: ChatSettings): 
 export const getTokens = (model: Model, value: string): number[] => {
   const modelDetails = getModelDetail(model)
   switch (modelDetails.type) {
-        case 'PetalsV2Websocket':
+        case 'Petals':
           return llamaTokenizer.encode(value)
         case 'OpenAIDall-e':
           return [0]
@@ -184,7 +185,7 @@ export async function getModelOptions (): Promise<SelectOption[]> {
   }
   const filteredModels = supportedModelKeys.filter((model) => {
         switch (getModelDetail(model).type) {
-          case 'PetalsV2Websocket':
+          case 'Petals':
             return gSettings.enablePetals
           case 'OpenAIChat':
           default:
