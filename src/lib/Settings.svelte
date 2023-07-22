@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
-    import { encode } from 'gpt-tokenizer'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -18,6 +17,7 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
+    import { getTokens } from './Models.svelte'
 
 export const defaultModel:Model = 'gpt-3.5-turbo'
 
@@ -104,7 +104,10 @@ export const globalDefaults: GlobalSettings = {
   lastProfile: 'default',
   defaultProfile: 'default',
   hideSummarized: false,
-  chatSort: 'created'
+  chatSort: 'created',
+  openAICompletionEndpoint: '',
+  enablePetals: false,
+  pedalsEndpoint: ''
 }
 
 const excludeFromProfile = {
@@ -497,7 +500,7 @@ const chatSettingsList: ChatSetting[] = [
           // console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
           const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
-            const tokens:number[] = encode(k)
+            const tokens:number[] = getTokens(getChatSettings(chatId).model, k)
             tokens.forEach(t => { a[t] = v })
             return a
           }, {} as Record<number, number>)
@@ -536,6 +539,21 @@ const globalSettingsList:GlobalSetting[] = [
         key: 'hideSummarized',
         name: 'Hide Summarized Messages',
         type: 'boolean'
+      },
+      {
+        key: 'openAICompletionEndpoint',
+        name: 'OpenAI Completions Endpoint',
+        type: 'text'
+      },
+      {
+        key: 'enablePetals',
+        name: 'Enable Petals APIs',
+        type: 'boolean'
+      },
+      {
+        key: 'pedalsEndpoint',
+        name: 'Petals API Endpoint',
+        type: 'text'
       }
 ]
 

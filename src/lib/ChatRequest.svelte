@@ -7,9 +7,9 @@
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getRequestSettingList, defaultModel } from './Settings.svelte'
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-    import { getApiBase, getEndpointCompletions, getEndpointGenerations } from './ApiUtil.svelte'
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
+    import { getEndpoint, getModelDetail, getRoleTag } from './Models.svelte'
 
 export class ChatRequest {
       constructor () {
@@ -77,7 +77,7 @@ export class ChatRequest {
         const chatResponse = new ChatCompletionResponse(opts)
 
         try {
-          const response = await fetch(getApiBase() + getEndpointGenerations(), fetchOptions)
+          const response = await fetch(getEndpoint('dall-e-' + size), fetchOptions)
           if (!response.ok) {
             await _this.handleError(response)
           } else {
@@ -206,7 +206,7 @@ export class ChatRequest {
         }
 
         // Get token counts
-        const promptTokenCount = countPromptTokens(messagePayload, model)
+        const promptTokenCount = countPromptTokens(messagePayload, model, chatSettings)
         const maxAllowed = maxTokens - (promptTokenCount + 1)
 
         // Build the API request body
@@ -245,96 +245,205 @@ export class ChatRequest {
 
         // Set-up and make the request
         const chatResponse = new ChatCompletionResponse(opts)
+
+        const modelDetail = getModelDetail(model)
+
         try {
           // Add out token count to the response handler
           // (streaming doesn't return counts, so we need to do it client side)
           chatResponse.setPromptTokenCount(promptTokenCount)
-
+    
           // fetchEventSource doesn't seem to throw on abort,
           // so we deal with it ourselves
           _this.controller = new AbortController()
           const signal = _this.controller.signal
-          const abortListener = (e:Event) => {
-            _this.updating = false
-            _this.updatingMessage = ''
-            chatResponse.updateFromError('User aborted request.')
-            signal.removeEventListener('abort', abortListener)
-          }
-          signal.addEventListener('abort', abortListener)
-    
-          const fetchOptions = {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${getApiKey()}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(request),
-            signal
-          }
 
-          if (opts.streaming) {
-            /**
-             * Streaming request/response
-             * We'll get the response a token at a time, as soon as they are ready
-            */
+          if (modelDetail.type === 'PetalsV2Websocket') {
+            // Petals
+            const ws = new WebSocket(getEndpoint(model))
+            const abortListener = (e:Event) => {
+              _this.updating = false
+              _this.updatingMessage = ''
+              chatResponse.updateFromError('User aborted request.')
+              signal.removeEventListener('abort', abortListener)
+              ws.close()
+            }
+            signal.addEventListener('abort', abortListener)
+            const stopSequences = modelDetail.stop || ['###']
+            const stopSequencesC = stopSequences.slice()
+            const stopSequence = stopSequencesC.shift()
             chatResponse.onFinish(() => {
               _this.updating = false
               _this.updatingMessage = ''
             })
-            fetchEventSource(getApiBase() + getEndpointCompletions(), {
-              ...fetchOptions,
-              openWhenHidden: true,
-              onmessage (ev) {
-              // Remove updating indicator
-                _this.updating = 1 // hide indicator, but still signal we're updating
-                _this.updatingMessage = ''
-                // console.log('ev.data', ev.data)
-                if (!chatResponse.hasFinished()) {
-                  if (ev.data === '[DONE]') {
-                  // ?? anything to do when "[DONE]"?
-                  } else {
-                    const data = JSON.parse(ev.data)
-                    // console.log('data', data)
-                    window.setTimeout(() => { chatResponse.updateFromAsyncResponse(data) }, 1)
-                  }
+            ws.onopen = () => {
+              ws.send(JSON.stringify({
+                type: 'open_inference_session',
+                model,
+                max_length: maxTokens || opts.maxTokens
+              }))
+              ws.onmessage = event => {
+                const response = JSON.parse(event.data)
+                if (!response.ok) {
+                  const err = new Error('Error opening socket: ' + response.traceback)
+                  console.error(err)
+                  throw err
                 }
-              },
-              onclose () {
+                const rMessages = request.messages || [] as Message[]
+                const inputArray = (rMessages).reduce((a, m) => {
+                  const c = getRoleTag(m.role, model, chatSettings) + m.content
+                  a.push(c)
+                  return a
+                }, [] as string[])
+                const lastMessage = rMessages[rMessages.length - 1]
+                if (lastMessage && lastMessage.role !== 'assistant') {
+                  inputArray.push(getRoleTag('assistant', model, chatSettings))
+                }
+                const petalsRequest = {
+                  type: 'generate',
+                  inputs: (request.messages || [] as Message[]).reduce((a, m) => {
+                    const c = getRoleTag(m.role, model, chatSettings) + m.content
+                    a.push(c)
+                    return a
+                  }, [] as string[]).join(stopSequence),
+                  max_new_tokens: 3, // wait for up to 3 tokens before displaying
+                  stop_sequence: stopSequence,
+                  doSample: 1,
+                  temperature: request.temperature || 0,
+                  top_p: request.top_p || 0,
+                  extra_stop_sequences: stopSequencesC
+                }
+                ws.send(JSON.stringify(petalsRequest))
+                ws.onmessage = event => {
+                  // Remove updating indicator
+                  _this.updating = 1 // hide indicator, but still signal we're updating
+                  _this.updatingMessage = ''
+                  const response = JSON.parse(event.data)
+                  if (!response.ok) {
+                    const err = new Error('Error in response: ' + response.traceback)
+                    console.error(err)
+                    throw err
+                  }
+                  window.setTimeout(() => {
+                    chatResponse.updateFromAsyncResponse(
+                      {
+                        model,
+                        choices: [{
+                          delta: {
+                            content: response.outputs,
+                            role: 'assistant'
+                          },
+                          finish_reason: (response.stop ? 'stop' : null)
+                        }]
+                      } as any
+                    )
+                    if (response.stop) {
+                      const message = chatResponse.getMessages()[0]
+                      if (message) {
+                        for (let i = 0, l = stopSequences.length; i < l; i++) {
+                          if (message.content.endsWith(stopSequences[i])) {
+                            message.content = message.content.slice(0, message.content.length - stopSequences[i].length)
+                            updateMessages(chatId)
+                          }
+                        }
+                      }
+                    }
+                  }, 1)
+                }
+              }
+              ws.onclose = () => {
                 _this.updating = false
                 _this.updatingMessage = ''
                 chatResponse.updateFromClose()
-              },
-              onerror (err) {
+              }
+              ws.onerror = err => {
                 console.error(err)
                 throw err
-              },
-              async onopen (response) {
-                if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
-                // everything's good
-                } else {
-                // client-side errors are usually non-retriable:
-                  await _this.handleError(response)
-                }
               }
-            }).catch(err => {
+            }
+          } else {
+            // OpenAI
+            const abortListener = (e:Event) => {
               _this.updating = false
               _this.updatingMessage = ''
-              chatResponse.updateFromError(err.message)
-            })
-          } else {
+              chatResponse.updateFromError('User aborted request.')
+              signal.removeEventListener('abort', abortListener)
+            }
+            signal.addEventListener('abort', abortListener)
+            const fetchOptions = {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${getApiKey()}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(request),
+              signal
+            }
+
+            if (opts.streaming) {
+            /**
+             * Streaming request/response
+             * We'll get the response a token at a time, as soon as they are ready
+            */
+              chatResponse.onFinish(() => {
+                _this.updating = false
+                _this.updatingMessage = ''
+              })
+              fetchEventSource(getEndpoint(model), {
+                ...fetchOptions,
+                openWhenHidden: true,
+                onmessage (ev) {
+                  // Remove updating indicator
+                  _this.updating = 1 // hide indicator, but still signal we're updating
+                  _this.updatingMessage = ''
+                  // console.log('ev.data', ev.data)
+                  if (!chatResponse.hasFinished()) {
+                    if (ev.data === '[DONE]') {
+                      // ?? anything to do when "[DONE]"?
+                    } else {
+                      const data = JSON.parse(ev.data)
+                      // console.log('data', data)
+                      window.setTimeout(() => { chatResponse.updateFromAsyncResponse(data) }, 1)
+                    }
+                  }
+                },
+                onclose () {
+                  _this.updating = false
+                  _this.updatingMessage = ''
+                  chatResponse.updateFromClose()
+                },
+                onerror (err) {
+                  console.error(err)
+                  throw err
+                },
+                async onopen (response) {
+                  if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+                    // everything's good
+                  } else {
+                    // client-side errors are usually non-retriable:
+                    await _this.handleError(response)
+                  }
+                }
+              }).catch(err => {
+                _this.updating = false
+                _this.updatingMessage = ''
+                chatResponse.updateFromError(err.message)
+              })
+            } else {
             /**
              * Non-streaming request/response
              * We'll get the response all at once, after a long delay
              */
-            const response = await fetch(getApiBase() + getEndpointCompletions(), fetchOptions)
-            if (!response.ok) {
-              await _this.handleError(response)
-            } else {
-              const json = await response.json()
-              // Remove updating indicator
-              _this.updating = false
-              _this.updatingMessage = ''
-              chatResponse.updateFromSyncResponse(json)
+              const response = await fetch(getEndpoint(model), fetchOptions)
+              if (!response.ok) {
+                await _this.handleError(response)
+              } else {
+                const json = await response.json()
+                // Remove updating indicator
+                _this.updating = false
+                _this.updatingMessage = ''
+                chatResponse.updateFromSyncResponse(json)
+              }
             }
           }
         } catch (e) {
@@ -393,11 +502,11 @@ export class ChatRequest {
        * Gets an estimate of how many extra tokens will be added that won't be part of the visible messages
        * @param filtered
        */
-      private getTokenCountPadding (filtered: Message[]): number {
+      private getTokenCountPadding (filtered: Message[], settings: ChatSettings): number {
         let result = 0
         // add cost of hiddenPromptPrefix
         result += this.buildHiddenPromptPrefixMessages(filtered)
-          .reduce((a, m) => a + countMessageTokens(m, this.getModel()), 0)
+          .reduce((a, m) => a + countMessageTokens(m, this.getModel(), settings), 0)
         // more here eventually?
         return result
       }
@@ -419,10 +528,10 @@ export class ChatRequest {
         }
 
         // Get extra counts for when the prompts are finally sent.
-        const countPadding = this.getTokenCountPadding(filtered)
+        const countPadding = this.getTokenCountPadding(filtered, chatSettings)
 
         // See if we have enough to apply any of the reduction modes
-        const fullPromptSize = countPromptTokens(filtered, model) + countPadding
+        const fullPromptSize = countPromptTokens(filtered, model, chatSettings) + countPadding
         if (fullPromptSize < chatSettings.summaryThreshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
 
@@ -445,12 +554,12 @@ export class ChatRequest {
            * *************************************************************
            */
     
-          let promptSize = countPromptTokens(top.concat(rw), model) + countPadding
+          let promptSize = countPromptTokens(top.concat(rw), model, chatSettings) + countPadding
           while (rw.length && rw.length > pinBottom && promptSize >= chatSettings.summaryThreshold) {
             const rolled = rw.shift()
             // Hide messages we're "rolling"
             if (rolled) rolled.suppress = true
-            promptSize = countPromptTokens(top.concat(rw), model) + countPadding
+            promptSize = countPromptTokens(top.concat(rw), model, chatSettings) + countPadding
           }
           // Run a new request, now with the rolled messages hidden
           return await _this.sendRequest(get(currentChatMessages), {
@@ -466,26 +575,26 @@ export class ChatRequest {
           const bottom = rw.slice(0 - pinBottom)
           let continueCounter = chatSettings.summaryExtend + 1
           rw = rw.slice(0, 0 - pinBottom)
-          let reductionPoolSize = countPromptTokens(rw, model)
+          let reductionPoolSize = countPromptTokens(rw, model, chatSettings)
           const ss = Math.abs(chatSettings.summarySize)
           const getSS = ():number => (ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
             : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
-          const topSize = countPromptTokens(top, model)
+          const topSize = countPromptTokens(top, model, chatSettings)
           let maxSummaryTokens = getSS()
           let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
           const summaryRequest = { role: 'user', content: promptSummary } as Message
-          let promptSummarySize = countMessageTokens(summaryRequest, model)
+          let promptSummarySize = countMessageTokens(summaryRequest, model, chatSettings)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
           while ((topSize + reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
               (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user')) {
             bottom.unshift(rw.pop() as Message)
-            reductionPoolSize = countPromptTokens(rw, model)
+            reductionPoolSize = countPromptTokens(rw, model, chatSettings)
             maxSummaryTokens = getSS()
             promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
             summaryRequest.content = promptSummary
-            promptSummarySize = countMessageTokens(summaryRequest, model)
+            promptSummarySize = countMessageTokens(summaryRequest, model, chatSettings)
           }
           if (reductionPoolSize < 50) {
             if (overMax) addError(chatId, 'Check summary settings. Unable to summarize enough messages.')
@@ -571,10 +680,10 @@ export class ChatRequest {
               // Try to get more of it
               delete summaryResponse.finish_reason
               _this.updatingMessage = 'Summarizing more...'
-              let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+              let _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chatSettings)
               while (rw.length && (_recount + maxSummaryTokens >= maxTokens)) {
                 rw.shift()
-                _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model)
+                _recount = countPromptTokens(top.concat(rw).concat([summaryRequest]).concat([summaryResponse]), model, chatSettings)
               }
               loopCount++
               continue

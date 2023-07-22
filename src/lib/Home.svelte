@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { apiKeyStorage, lastChatId, getChat, started } from './Storage.svelte'
+  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { onMount } from 'svelte'
+  import { getPetalsV2Websocket } from './ApiUtil.svelte'
 
 $: apiKey = $apiKeyStorage
+
+let showPetalsSettings = $globalStorage.enablePetals
 
 onMount(() => {
     if (!$started) {
@@ -18,6 +21,12 @@ onMount(() => {
     }
     $lastChatId = 0
 })
+
+const setPetalsEnabled = (event: Event) => {
+    const el = (event.target as HTMLInputElement)
+    setGlobalSettingValueByKey('enablePetals', !!el.checked)
+    showPetalsSettings = $globalStorage.enablePetals
+}
 
 </script>
 
@@ -60,8 +69,70 @@ onMount(() => {
         <p class="control">
           <button class="button is-info" type="submit">Save</button>
         </p>
+
+
       </form>
 
+      {#if !apiKey}
+        <p class="help is-danger">
+          Please enter your <a href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use ChatGPT-web.
+          It is required to use ChatGPT-web.
+        </p>
+      {/if}
+    </div>
+  </article>
+
+  
+  <article class="message" class:is-info={true}>
+    <div class="message-body">
+      <label class="label" for="enablePetals">
+        <input 
+        type="checkbox"
+        class="checkbox" 
+        id="enablePetals"
+        checked={!!$globalStorage.enablePetals} 
+        on:click={setPetalsEnabled}
+      >
+        Use Petals API and Models
+      </label>
+      {#if showPetalsSettings}
+        <p>Set Petals API Endpoint:</p>
+        <form
+          class="field has-addons has-addons-right"
+          on:submit|preventDefault={(event) => {
+            if (event.target && event.target[0].value) {
+              setGlobalSettingValueByKey('pedalsEndpoint', (event.target[0].value).trim())
+            } else {
+              setGlobalSettingValueByKey('pedalsEndpoint', '')
+            }
+          }}
+        >
+          <p class="control is-expanded">
+            <input
+              aria-label="PetalsAPI Endpoint"
+              type="text"
+              class="input"
+              placeholder={getPetalsV2Websocket()}
+              value={$globalStorage.pedalsEndpoint || ''}
+            />
+          </p>
+          <p class="control">
+            <button class="button is-info" type="submit">Save</button>
+          </p>
+
+          
+        </form>
+        <p>
+          Only use <u>{getPetalsV2Websocket()}</u> for testing.  You must set up your own Petals server for actual use. 
+        </p>
+        <p>
+          <b>Do not send sensitive information when using Petals.</b>
+        </p>
+        <p>
+            For more information on Petals, see 
+            <a href="https://github.com/petals-infra/chat.petals.dev">https://github.com/petals-infra/chat.petals.dev</a>
+        </p>
+      {/if}
       {#if !apiKey}
         <p class="help is-danger">
           Please enter your <a href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use ChatGPT-web.

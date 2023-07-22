@@ -1,9 +1,9 @@
 <script context="module" lang="ts">
 import { setImage } from './ImageStore.svelte'
+import { countTokens } from './Models.svelte'
 // TODO: Integrate API calls
-import { addMessage, getLatestKnownModel, saveChatStore, setLatestKnownModel, subtractRunningTotal, updateRunningTotal } from './Storage.svelte'
+import { addMessage, getLatestKnownModel, setLatestKnownModel, subtractRunningTotal, updateMessages, updateRunningTotal } from './Storage.svelte'
 import type { Chat, ChatCompletionOpts, ChatImage, Message, Model, Response, ResponseImage, Usage } from './Types.svelte'
-import { encode } from 'gpt-tokenizer'
 import { v4 as uuidv4 } from 'uuid'
 
 export class ChatCompletionResponse {
@@ -138,10 +138,10 @@ export class ChatCompletionResponse {
         message.content = this.initialFillMerge(message.content, choice.delta?.content)
         message.content += choice.delta.content
       }
-      completionTokenCount += encode(message.content).length
+      completionTokenCount += countTokens(this.model, message.content)
       message.model = response.model
       message.finish_reason = choice.finish_reason
-      message.streaming = choice.finish_reason === null && !this.finished
+      message.streaming = !choice.finish_reason && !this.finished
       this.messages[i] = message
     })
     // total up the tokens
@@ -209,10 +209,10 @@ export class ChatCompletionResponse {
   }
 
   private finish = (): void => {
+    this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
+    updateMessages(this.chat.id)
     if (this.finished) return
     this.finished = true
-    this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
-    saveChatStore()
     const message = this.messages[0]
     const model = this.model || getLatestKnownModel(this.chat.settings.model)
     if (message) {

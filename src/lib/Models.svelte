@@ -1,43 +1,63 @@
 <script context="module" lang="ts">
-    import type { ModelDetail, Model } from './Types.svelte'
+    import { getApiBase, getEndpointCompletions, getEndpointGenerations, getEndpointModels, getPetalsV2Websocket } from './ApiUtil.svelte'
+    import { apiKeyStorage, globalStorage } from './Storage.svelte'
+    import { get } from 'svelte/store'
+    import type { ModelDetail, Model, ResponseModels, SelectOption, ChatSettings } from './Types.svelte'
+import { encode } from 'gpt-tokenizer'
+import llamaTokenizer from 'llama-tokenizer-js'
 
 // Reference: https://openai.com/pricing#language-models
 // Eventually we'll add API hosts and endpoints to this
 const modelDetails : Record<string, ModelDetail> = {
       'gpt-4-32k': {
+        type: 'OpenAIChat',
         prompt: 0.00006, // $0.06 per 1000 tokens prompt
         completion: 0.00012, // $0.12 per 1000 tokens completion
         max: 32768 // 32k max token buffer
       },
       'gpt-4': {
+        type: 'OpenAIChat',
         prompt: 0.00003, // $0.03 per 1000 tokens prompt
         completion: 0.00006, // $0.06 per 1000 tokens completion
         max: 8192 // 8k max token buffer
       },
       'gpt-3.5': {
+        type: 'OpenAIChat',
         prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
         completion: 0.000002, // $0.002 per 1000 tokens completion
         max: 4096 // 4k max token buffer
       },
       'gpt-3.5-turbo-16k': {
+        type: 'OpenAIChat',
         prompt: 0.000003, // $0.003 per 1000 tokens prompt
         completion: 0.000004, // $0.004 per 1000 tokens completion
         max: 16384 // 16k max token buffer
+      },
+      'meta-llama/Llama-2-70b-chat-hf': {
+        type: 'PetalsV2Websocket',
+        label: 'Petals - Llama-2-70b-chat',
+        stop: ['###', '</s>'],
+        prompt: 0.000000, // $0.000 per 1000 tokens prompt
+        completion: 0.000000, // $0.000 per 1000 tokens completion
+        max: 4096 // 4k max token buffer
       }
 }
 
-const imageModels : Record<string, ModelDetail> = {
+export const imageModels : Record<string, ModelDetail> = {
       'dall-e-1024x1024': {
+        type: 'OpenAIDall-e',
         prompt: 0.00,
         completion: 0.020, // $0.020 per image
         max: 1000 // 1000 char prompt, max
       },
       'dall-e-512x512': {
+        type: 'OpenAIDall-e',
         prompt: 0.00,
         completion: 0.018, // $0.018 per image
         max: 1000 // 1000 char prompt, max
       },
       'dall-e-256x256': {
+        type: 'OpenAIDall-e',
         prompt: 0.00,
         completion: 0.016, // $0.016 per image
         max: 1000 // 1000 char prompt, max
@@ -47,8 +67,9 @@ const imageModels : Record<string, ModelDetail> = {
 const unknownDetail = {
   prompt: 0,
   completion: 0,
-  max: 4096
-}
+  max: 4096,
+  type: 'OpenAIChat'
+} as ModelDetail
 
 // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
 // Eventually we'll add UI for managing this
@@ -62,7 +83,8 @@ export const supportedModels : Record<string, ModelDetail> = {
       'gpt-3.5-turbo': modelDetails['gpt-3.5'],
       'gpt-3.5-turbo-16k': modelDetails['gpt-3.5-turbo-16k'],
       'gpt-3.5-turbo-0301': modelDetails['gpt-3.5'],
-      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5']
+      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5'],
+      'meta-llama/Llama-2-70b-chat-hf': modelDetails['meta-llama/Llama-2-70b-chat-hf']
 }
 
 const lookupList = {
@@ -75,7 +97,7 @@ export const supportedModelKeys = Object.keys({ ...supportedModels, ...imageMode
 
 const tpCache : Record<string, ModelDetail> = {}
 
-export const getModelDetail = (model: Model) => {
+export const getModelDetail = (model: Model): ModelDetail => {
       // First try to get exact match, then from cache
       let r = supportedModels[model] || tpCache[model]
       if (r) return r
@@ -91,6 +113,95 @@ export const getModelDetail = (model: Model) => {
       // Cache it so we don't need to do that again
       tpCache[model] = r
       return r
+}
+
+export const getEndpoint = (model: Model): string => {
+  const modelDetails = getModelDetail(model)
+  const gSettings = get(globalStorage)
+  switch (modelDetails.type) {
+        case 'PetalsV2Websocket':
+          return gSettings.pedalsEndpoint || getPetalsV2Websocket()
+        case 'OpenAIDall-e':
+          return getApiBase() + getEndpointGenerations()
+        case 'OpenAIChat':
+        default:
+          return gSettings.openAICompletionEndpoint || (getApiBase() + getEndpointCompletions())
+  }
+}
+
+export const getRoleTag = (role: string, model: Model, settings: ChatSettings): string => {
+  const modelDetails = getModelDetail(model)
+  switch (modelDetails.type) {
+        case 'PetalsV2Websocket':
+          if (role === 'assistant') {
+            return ('Assistant') +
+              ': '
+          }
+          if (role === 'user') return 'Human: '
+          return ''
+        case 'OpenAIDall-e':
+          return role
+        case 'OpenAIChat':
+        default:
+          return role
+  }
+}
+
+export const getTokens = (model: Model, value: string): number[] => {
+  const modelDetails = getModelDetail(model)
+  switch (modelDetails.type) {
+        case 'PetalsV2Websocket':
+          return llamaTokenizer.encode(value)
+        case 'OpenAIDall-e':
+          return [0]
+        case 'OpenAIChat':
+        default:
+          return encode(value)
+  }
+}
+
+export const countTokens = (model: Model, value: string): number => {
+  return getTokens(model, value).length
+}
+
+export async function getModelOptions (): Promise<SelectOption[]> {
+  const gSettings = get(globalStorage)
+  const openAiKey = get(apiKeyStorage)
+  // Load available models from OpenAI
+  let openAiModels
+  try {
+        openAiModels = (await (
+          await fetch(getApiBase() + getEndpointModels(), {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${openAiKey}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        ).json()) as ResponseModels
+  } catch (e) {
+        openAiModels = { data: [] }
+  }
+  const filteredModels = supportedModelKeys.filter((model) => {
+        switch (getModelDetail(model).type) {
+          case 'PetalsV2Websocket':
+            return gSettings.enablePetals
+          case 'OpenAIChat':
+          default:
+            return openAiModels.data.find((m) => m.id === model)
+        }
+  })
+
+  const modelOptions:SelectOption[] = filteredModels.reduce((a, m) => {
+        const o:SelectOption = {
+          value: m,
+          text: m
+        }
+        a.push(o)
+        return a
+  }, [] as SelectOption[])
+
+  return modelOptions
 }
 
 </script>

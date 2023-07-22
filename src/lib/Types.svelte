@@ -7,7 +7,12 @@ export type Model = typeof supportedModelKeys[number];
 
 export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
 
+export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'PetalsV2Websocket'
+
 export type ModelDetail = {
+    type: RequestType;
+    label?: string;
+    stop?: string[];
     prompt: number;
     completion: number;
     max: number;
@@ -122,16 +127,16 @@ export type Chat = {
   };
 
   type ResponseOK = {
-    id: string;
-    object: string;
-    created: number;
-    choices: {
-      index: number;
+    id?: string;
+    object?: string;
+    created?: number;
+    choices?: {
+      index?: number;
       message: Message;
-      finish_reason: string;
+      finish_reason?: string;
       delta: Message;
     }[];
-    usage: Usage;
+    usage?: Usage;
     model: Model;
   };
 
@@ -172,6 +177,9 @@ export type GlobalSettings = {
     defaultProfile: string;
     hideSummarized: boolean;
     chatSort: ChatSortOptions;
+    openAICompletionEndpoint: string;
+    enablePetals: boolean;
+    pedalsEndpoint: string;
   };
 
   type SettingNumber = {

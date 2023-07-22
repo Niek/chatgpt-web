@@ -33,6 +33,7 @@
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.4",
     "gpt-tokenizer": "^2.0.0",
+    "llama-tokenizer-js": "^1.1.1",
     "postcss": "^8.4.26",
     "sass": "^1.63.6",
     "stacking-order": "^2.0.0",
