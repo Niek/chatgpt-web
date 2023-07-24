@@ -252,7 +252,8 @@ export async function getModelOptions (): Promise<SelectOption[]> {
 
   const modelOptions:SelectOption[] = Object.keys(supportedModels).reduce((a, m) => {
         let disabled
-        switch (getModelDetail(m).type) {
+        const modelDetail = getModelDetail(m)
+        switch (modelDetail.type) {
           case 'Petals':
             disabled = !gSettings.enablePetals
             break
@@ -262,7 +263,7 @@ export async function getModelOptions (): Promise<SelectOption[]> {
         }
         const o:SelectOption = {
           value: m,
-          text: m,
+          text: modelDetail.label || m,
           disabled
         }
         a.push(o)

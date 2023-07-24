@@ -40,6 +40,7 @@
   import { openModal } from 'svelte-modals'
   import PromptInput from './PromptInput.svelte'
   import { ChatRequest } from './ChatRequest.svelte'
+  import { getModelDetail } from './Models.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
@@ -423,7 +424,7 @@
   <div class="content has-text-centered running-total-container">
     {#each Object.entries(chat.usage || {}) as [model, usage]}
     <p class="is-size-7 running-totals">
-      <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+      <em>{getModelDetail(model || '').label || model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
       tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
     </p>
     {/each}

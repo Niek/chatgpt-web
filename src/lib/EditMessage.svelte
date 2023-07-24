@@ -11,6 +11,7 @@
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
   import { getImage } from './ImageStore.svelte'
+  import { getModelDetail } from './Models.svelte'
 
   export let message:Message
   export let chatId:number
@@ -245,7 +246,7 @@
       <p class="is-size-7 message-note">System Prompt</p>
     {:else if message.usage}
       <p class="is-size-7 message-note">
-        <em>{message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
+        <em>{getModelDetail(message.model || '').label || message.model || defaultModel}</em> using <span class="has-text-weight-bold">{message.usage.total_tokens}</span>
         tokens ~= <span class="has-text-weight-bold">${getPrice(message.usage, message.model || defaultModel).toFixed(6)}</span>
       </p>
     {/if}
