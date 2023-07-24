@@ -1,7 +1,7 @@
 <script lang="ts">
   import { replace } from 'svelte-spa-router'
   import type { Chat } from './Types.svelte'
-  import { apiKeyStorage, deleteChat, pinMainMenu, saveChatStore } from './Storage.svelte'
+  import { deleteChat, hasActiveModels, pinMainMenu, saveChatStore } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faCircleCheck, faPencil } from '@fortawesome/free-solid-svg-icons/index'
   import { faMessage } from '@fortawesome/free-regular-svg-icons/index'
@@ -86,7 +86,7 @@
   <a 
     href={`#/chat/${chat.id}`}
     class="chat-menu-item"
-    class:is-waiting={waitingForConfirm} class:is-disabled={!$apiKeyStorage} class:is-active={activeChatId === chat.id}
+    class:is-waiting={waitingForConfirm} class:is-disabled={!hasActiveModels()} class:is-active={activeChatId === chat.id}
     on:click={() => { $pinMainMenu = false }} >
     {#if waitingForConfirm}
     <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>

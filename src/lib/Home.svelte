@@ -1,25 +1,35 @@
 <script lang="ts">
-  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey } from './Storage.svelte'
+  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, hasActiveModels, checkStateChange } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
-  import { onMount } from 'svelte'
+  import { afterUpdate, onMount } from 'svelte'
   import { getPetals } from './ApiUtil.svelte'
+  import { clearModelOptionCache } from './Models.svelte'
 
 $: apiKey = $apiKeyStorage
 
 let showPetalsSettings = $globalStorage.enablePetals
+let pedalsEndpoint = $globalStorage.pedalsEndpoint
+let hasModels = hasActiveModels()
 
 onMount(() => {
     if (!$started) {
       $started = true
       // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
-      if (apiKey && getChat($lastChatId)) {
+      if (hasActiveModels() && getChat($lastChatId)) {
         const chatId = $lastChatId
         $lastChatId = 0
         replace(`/chat/${chatId}`)
       }
     }
     $lastChatId = 0
+})
+
+afterUpdate(() => {
+    clearModelOptionCache()
+    hasModels = hasActiveModels()
+    pedalsEndpoint = $globalStorage.pedalsEndpoint
+    $checkStateChange++
 })
 
 const setPetalsEnabled = (event: Event) => {
@@ -33,16 +43,21 @@ const setPetalsEnabled = (event: Event) => {
 <section class="section">
   <article class="message">
     <div class="message-body">
-      <strong><a href="https://github.com/Niek/chatgpt-web">ChatGPT-web</a></strong>
+    <p class="mb-4">
+      <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
       is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for
       <a href="https://platform.openai.com/account/api-keys" target="_blank" rel="noreferrer">an OpenAI API key</a>
       first. OpenAI bills per token (usage-based), which means it is a lot cheaper than
       <a href="https://openai.com/blog/chatgpt-plus" target="_blank" rel="noreferrer">ChatGPT Plus</a>, unless you use
       more than 10 million tokens per month. All messages are stored in your browser's local storage, so everything is
       <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
+    </p>
+    <p>
+      As an alternative to OpenAI, you can also use Petals swarm as a free API option for open chat models like Llama 2. 
+    </p>
     </div>
   </article>
-  <article class="message" class:is-danger={!apiKey} class:is-warning={apiKey}>
+  <article class="message" class:is-danger={!hasModels} class:is-warning={!apiKey} class:is-info={apiKey}>
     <div class="message-body">
       Set your OpenAI API key below:
 
@@ -62,7 +77,8 @@ const setPetalsEnabled = (event: Event) => {
             type="password"
             autocomplete="off"
             class="input"
-            class:is-danger={!apiKey}
+            class:is-danger={!hasModels}
+            class:is-warning={!apiKey} class:is-info={apiKey}
             value={apiKey}
           />
         </p>
@@ -74,16 +90,16 @@ const setPetalsEnabled = (event: Event) => {
       </form>
 
       {#if !apiKey}
-        <p class="help is-danger">
-          Please enter your <a href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use ChatGPT-web.
-          It is required to use ChatGPT-web.
+        <p class:is-danger={!hasModels} class:is-warning={!apiKey}>
+          Please enter your <a target="_blank" href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use Open AI's ChatGPT API.
+          At least one API must be enabled to use ChatGPT-web.
         </p>
       {/if}
     </div>
   </article>
 
   
-  <article class="message" class:is-info={true}>
+  <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
     <div class="message-body">
       <label class="label" for="enablePetals">
         <input 
@@ -122,21 +138,20 @@ const setPetalsEnabled = (event: Event) => {
 
           
         </form>
-        <p>
-          Only use <u>{getPetals()}</u> for testing.  You must set up your own Petals server for actual use. 
+        
+        {#if !pedalsEndpoint}
+          <p class="help is-warning">
+            Please only use the default public API for testing. It's best to <a target="_blank" href="https://github.com/petals-infra/chat.petals.dev">configure a private endpoint</a> and enter it above for connection to the Petals swarm.
+          </p>
+        {/if}
+        <p class="my-4">
+          <a target="_blank" href="https://petals.dev/">Petals</a> lets you run large language models at home by connecting to a public swarm, BitTorrent-style, without hefty GPU requirements.
         </p>
-        <p>
-          <b>Do not send sensitive information when using Petals.</b>
+        <p class="mb-4">
+          You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals/wiki/FAQ:-Frequently-asked-questions#running-a-server">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
         </p>
-        <p>
-            For more information on Petals, see 
-            <a href="https://github.com/petals-infra/chat.petals.dev">https://github.com/petals-infra/chat.petals.dev</a>
-        </p>
-      {/if}
-      {#if !apiKey}
-        <p class="help is-danger">
-          Please enter your <a href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use ChatGPT-web.
-          It is required to use ChatGPT-web.
+        <p class="help is-warning">
+          Because Petals uses a public swarm, <b>do not send sensitive information</b> when using Petals.
         </p>
       {/if}
     </div>

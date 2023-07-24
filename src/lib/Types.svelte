@@ -199,6 +199,7 @@ export type GlobalSettings = {
 export type SelectOption = {
     value: string|number;
     text: string;
+    disabled?: boolean;
   };
 
 export type ChatSortOption = SelectOption & {

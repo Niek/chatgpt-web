@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { get } from 'svelte/store'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -19,7 +20,13 @@ import {
 } from './Types.svelte'
     import { getModelDetail, getTokens } from './Models.svelte'
 
-export const defaultModel:Model = 'gpt-3.5-turbo'
+const defaultModel:Model = 'gpt-3.5-turbo'
+const defaultModelPetals:Model = 'meta-llama/Llama-2-70b-chat-hf'
+
+export const getDefaultModel = (): Model => {
+  if (!get(apiKeyStorage)) return defaultModelPetals
+  return defaultModel
+}
 
 export const getChatSettingList = (): ChatSetting[] => {
       return chatSettingsList
@@ -64,7 +71,7 @@ const isNotPetals = (chatId) => {
 }
 
 const gptDefaults = {
-  model: defaultModel,
+  model: '',
   messages: [],
   temperature: 1,
   top_p: 1,

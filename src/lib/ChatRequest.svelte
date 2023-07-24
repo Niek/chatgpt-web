@@ -5,7 +5,7 @@
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request, RequestImageGeneration } from './Types.svelte'
     import { deleteMessage, getChatSettingValueNullDefault, insertMessages, getApiKey, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
-    import { getRequestSettingList, defaultModel } from './Settings.svelte'
+    import { getDefaultModel, getRequestSettingList } from './Settings.svelte'
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
     import { getEndpoint, getModelDetail } from './Models.svelte'
@@ -26,6 +26,7 @@ export class ChatRequest {
 
       setChat (chat: Chat) {
         this.chat = chat
+        this.chat.settings.model = this.getModel()
       }
 
       getChat (): Chat {
@@ -283,7 +284,7 @@ export class ChatRequest {
       }
 
       getModel (): Model {
-        return this.chat.settings.model || defaultModel
+        return this.chat.settings.model || getDefaultModel()
       }
 
       private buildHiddenPromptPrefixMessages (messages: Message[], insert:boolean = false): Message[] {

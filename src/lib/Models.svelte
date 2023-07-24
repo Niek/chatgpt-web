@@ -1,13 +1,19 @@
 <script context="module" lang="ts">
     import { getApiBase, getEndpointCompletions, getEndpointGenerations, getEndpointModels, getPetals } from './ApiUtil.svelte'
     import { apiKeyStorage, globalStorage } from './Storage.svelte'
-    import { get } from 'svelte/store'
+import { get, writable } from 'svelte/store'
     import type { ModelDetail, Model, ResponseModels, SelectOption, Chat } from './Types.svelte'
 import { encode } from 'gpt-tokenizer'
 import llamaTokenizer from 'llama-tokenizer-js'
     import { mergeProfileFields } from './Profiles.svelte'
     import { getChatSettingObjectByKey } from './Settings.svelte'
     import { valueOf } from './Util.svelte'
+
+/**
+ * TODO: All of this + what's scattered about need to be refactored to interfaces and classes
+ *       to make it all more modular
+ */
+const modelOptionCache = writable([] as SelectOption[])
 
 // Reference: https://openai.com/pricing#language-models
 // Eventually we'll add API hosts and endpoints to this
@@ -46,6 +52,17 @@ const modelDetails : Record<string, ModelDetail> = {
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
+      },
+      'timdettmers/guanaco-65b': {
+        type: 'Petals',
+        label: 'Petals - guanaco-65b',
+        stop: ['</s>'],
+        userStart: '[user]',
+        assistantStart: '[[[CHARACTER_NAME]]]',
+        systemStart: '',
+        prompt: 0.000000, // $0.000 per 1000 tokens prompt
+        completion: 0.000000, // $0.000 per 1000 tokens completion
+        max: 2048 // 2k max token buffer
       }
 }
 
@@ -80,17 +97,18 @@ const unknownDetail = {
 // See: https://platform.openai.com/docs/models/model-endpoint-compatibility
 // Eventually we'll add UI for managing this
 export const supportedModels : Record<string, ModelDetail> = {
+      'gpt-3.5-turbo': modelDetails['gpt-3.5'],
+      'gpt-3.5-turbo-0301': modelDetails['gpt-3.5'],
+      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5'],
+      'gpt-3.5-turbo-16k': modelDetails['gpt-3.5-turbo-16k'],
       'gpt-4': modelDetails['gpt-4'],
       'gpt-4-0314': modelDetails['gpt-4'],
       'gpt-4-0613': modelDetails['gpt-4'],
       'gpt-4-32k': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0314': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0613': modelDetails['gpt-4-32k'],
-      'gpt-3.5-turbo': modelDetails['gpt-3.5'],
-      'gpt-3.5-turbo-16k': modelDetails['gpt-3.5-turbo-16k'],
-      'gpt-3.5-turbo-0301': modelDetails['gpt-3.5'],
-      'gpt-3.5-turbo-0613': modelDetails['gpt-3.5'],
       'meta-llama/Llama-2-70b-chat-hf': modelDetails['meta-llama/Llama-2-70b-chat-hf']
+      // 'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b']
 }
 
 const lookupList = {
@@ -192,42 +210,66 @@ export const countTokens = (model: Model, value: string): number => {
   return getTokens(model, value).length
 }
 
+export const clearModelOptionCache = () => {
+  modelOptionCache.set([])
+}
+
 export async function getModelOptions (): Promise<SelectOption[]> {
   const gSettings = get(globalStorage)
   const openAiKey = get(apiKeyStorage)
+  const cachedOptions = get(modelOptionCache)
+  if (cachedOptions && cachedOptions.length) return cachedOptions
   // Load available models from OpenAI
   let openAiModels
-  try {
-        openAiModels = (await (
-          await fetch(getApiBase() + getEndpointModels(), {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${openAiKey}`,
-              'Content-Type': 'application/json'
-            }
-          })
-        ).json()) as ResponseModels
-  } catch (e) {
+  let allowCache = true
+  if (openAiKey) {
+        try {
+          openAiModels = (await (
+            await fetch(getApiBase() + getEndpointModels(), {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${openAiKey}`,
+                'Content-Type': 'application/json'
+              }
+            })
+          ).json()) as ResponseModels
+        } catch (e) {
+          allowCache = false
+          openAiModels = { data: [] }
+        }
+  } else {
         openAiModels = { data: [] }
   }
-  const filteredModels = supportedModelKeys.filter((model) => {
-        switch (getModelDetail(model).type) {
+  // const filteredModels = Object.keys(supportedModels).filter((model) => {
+  //       switch (getModelDetail(model).type) {
+  //         case 'Petals':
+  //           return gSettings.enablePetals
+  //         case 'OpenAIChat':
+  //         default:
+  //           return openAiModels.data && openAiModels.data.find((m) => m.id === model)
+  //       }
+  // })
+
+  const modelOptions:SelectOption[] = Object.keys(supportedModels).reduce((a, m) => {
+        let disabled
+        switch (getModelDetail(m).type) {
           case 'Petals':
-            return gSettings.enablePetals
+            disabled = !gSettings.enablePetals
+            break
           case 'OpenAIChat':
           default:
-            return openAiModels.data.find((m) => m.id === model)
+            disabled = !(openAiModels.data && openAiModels.data.find((m) => m.id === m))
         }
-  })
-
-  const modelOptions:SelectOption[] = filteredModels.reduce((a, m) => {
         const o:SelectOption = {
           value: m,
-          text: m
+          text: m,
+          disabled
         }
         a.push(o)
         return a
   }, [] as SelectOption[])
+
+  if (allowCache) modelOptionCache.set(modelOptions)
 
   return modelOptions
 }
