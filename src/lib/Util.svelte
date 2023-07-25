@@ -147,4 +147,9 @@
     newChat()
   }
 
+  export const valueOf = (chatId: number, value: any) => {
+    if (typeof value === 'function') return value(chatId)
+    return value
+  }
+
 </script> 

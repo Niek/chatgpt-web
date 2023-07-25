@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  import { getChatDefaults, getExcludeFromProfile } from './Settings.svelte'
+  import { getChatDefaults, getDefaultModel, getExcludeFromProfile } from './Settings.svelte'
   import { get, writable } from 'svelte/store'
   // Profile definitions
   import { addMessage, clearMessages, deleteMessage, getChat, getChatSettings, getCustomProfiles, getGlobalSettings, getMessages, newName, resetChatSettings, saveChatStore, setGlobalSettingValueByKey, setMessages, updateProfile } from './Storage.svelte'
@@ -22,7 +22,9 @@ export const getProfiles = (forceUpdate:boolean = false):Record<string, ChatSett
     }
     const result = Object.entries(profiles
     ).reduce((a, [k, v]) => {
+      v = JSON.parse(JSON.stringify(v))
       a[k] = v
+      v.model = v.model || getDefaultModel()
       return a
     }, {} as Record<string, ChatSettings>)
     Object.entries(getCustomProfiles()).forEach(([k, v]) => {
@@ -72,7 +74,7 @@ export const getProfile = (key:string, forReset:boolean = false):ChatSettings =>
 
 export const mergeProfileFields = (settings: ChatSettings, content: string|undefined, maxWords: number|undefined = undefined): string => {
     if (!content?.toString) return ''
-    content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'ChatGPT')
+    content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'Assistant')
     if (maxWords) content = (content + '').replaceAll('[[MAX_WORDS]]', maxWords.toString())
     return content
 }
