@@ -109,7 +109,7 @@ const setPetalsEnabled = (event: Event) => {
         checked={!!$globalStorage.enablePetals} 
         on:click={setPetalsEnabled}
       >
-        Use Petals API and Models
+        Use Petals API and Models (Llama 2)
       </label>
       {#if showPetalsSettings}
         <p>Set Petals API Endpoint:</p>
