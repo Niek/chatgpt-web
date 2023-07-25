@@ -129,8 +129,8 @@ export const supportedModels : Record<string, ModelDetail> = {
       'gpt-4-32k': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0314': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0613': modelDetails['gpt-4-32k'],
-      'enoch/llama-65b-hf': modelDetails['enoch/llama-65b-hf'],
-      'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b'],
+      // 'enoch/llama-65b-hf': modelDetails['enoch/llama-65b-hf'],
+      // 'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b'],
       'meta-llama/Llama-2-70b-hf': modelDetails['meta-llama/Llama-2-70b-hf'],
       'meta-llama/Llama-2-70b-chat-hf': modelDetails['meta-llama/Llama-2-70b-chat-hf']
 }
