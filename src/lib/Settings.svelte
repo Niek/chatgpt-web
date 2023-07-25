@@ -528,7 +528,7 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'aggressiveStop',
         name: 'Use aggressive stop',
-        title: 'Sometimes generation con continue even after a stop sequence. This will stop generation client side if generation continues after stop sequence.',
+        title: 'Sometimes generation can continue even after a stop sequence. This will stop generation client side if generation continues after stop sequence.',
         type: 'boolean',
         hide: isNotPetals
       },
