@@ -301,7 +301,7 @@ export class ChatRequest {
             if (m.length) {
               if (m.match(/\[\[USER_PROMPT\]\]/)) {
                 injectedPrompt = true
-                m.replace(/\[\[USER_PROMPT\]\]/g, lastMessage.content)
+                m = m.replace(/\[\[USER_PROMPT\]\]/g, lastMessage.content)
               }
               a.push({ role: a.length % 2 === 0 ? 'user' : 'assistant', content: m } as Message)
             }
