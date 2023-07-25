@@ -42,27 +42,49 @@ const modelDetails : Record<string, ModelDetail> = {
         completion: 0.000004, // $0.004 per 1000 tokens completion
         max: 16384 // 16k max token buffer
       },
+      'enoch/llama-65b-hf': {
+        type: 'Petals',
+        label: 'Petals - Llama-65b',
+        stop: ['###', '</s>'],
+        userStart: '<|user|>',
+        assistantStart: '<|[[CHARACTER_NAME]]|>',
+        systemStart: '',
+        prompt: 0.000000, // $0.000 per 1000 tokens prompt
+        completion: 0.000000, // $0.000 per 1000 tokens completion
+        max: 2048 // 2k max token buffer
+      },
+      'timdettmers/guanaco-65b': {
+        type: 'Petals',
+        label: 'Petals - Guanaco-65b',
+        stop: ['###', '</s>'],
+        userStart: '<|user|>',
+        assistantStart: '<|[[CHARACTER_NAME]]|>',
+        systemStart: '',
+        prompt: 0.000000, // $0.000 per 1000 tokens prompt
+        completion: 0.000000, // $0.000 per 1000 tokens completion
+        max: 2048 // 2k max token buffer
+      },
       'meta-llama/Llama-2-70b-chat-hf': {
         type: 'Petals',
         label: 'Petals - Llama-2-70b-chat',
-        stop: ['</s>'],
-        userStart: '[user]',
-        assistantStart: '[[[CHARACTER_NAME]]]',
+        stop: ['###', '</s>'],
+        userStart: '<|user|>',
+        assistantStart: '<|[[CHARACTER_NAME]]|>',
         systemStart: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
       },
-      'timdettmers/guanaco-65b': {
+      'meta-llama/Llama-2-70b-hf': {
         type: 'Petals',
-        label: 'Petals - guanaco-65b',
-        stop: ['</s>'],
-        userStart: '[user]',
-        assistantStart: '[[[CHARACTER_NAME]]]',
+        label: 'Petals - Llama-2-70b',
+        stop: ['###', '</s>'],
+        userStart: '<|user|>',
+        assistantStart: '<|[[CHARACTER_NAME]]|>',
         systemStart: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
-        max: 2048 // 2k max token buffer
+        max: 4096 // 4k max token buffer
       }
 }
 
@@ -107,8 +129,10 @@ export const supportedModels : Record<string, ModelDetail> = {
       'gpt-4-32k': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0314': modelDetails['gpt-4-32k'],
       'gpt-4-32k-0613': modelDetails['gpt-4-32k'],
+      'enoch/llama-65b-hf': modelDetails['enoch/llama-65b-hf'],
+      'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b'],
+      'meta-llama/Llama-2-70b-hf': modelDetails['meta-llama/Llama-2-70b-hf'],
       'meta-llama/Llama-2-70b-chat-hf': modelDetails['meta-llama/Llama-2-70b-chat-hf']
-      // 'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b']
 }
 
 const lookupList = {
@@ -154,27 +178,27 @@ export const getEndpoint = (model: Model): string => {
 }
 
 export const getStopSequence = (chat: Chat): string => {
-  return valueOf(chat.id, getChatSettingObjectByKey('stopSequence').placeholder)
+  return chat.settings.stopSequence || valueOf(chat.id, getChatSettingObjectByKey('stopSequence').placeholder)
 }
 
 export const getUserStart = (chat: Chat): string => {
   return mergeProfileFields(
         chat.settings,
-        valueOf(chat.id, getChatSettingObjectByKey('userMessageStart').placeholder)
+        chat.settings.userMessageStart || valueOf(chat.id, getChatSettingObjectByKey('userMessageStart').placeholder)
       )
 }
 
 export const getAssistantStart = (chat: Chat): string => {
   return mergeProfileFields(
         chat.settings,
-        valueOf(chat.id, getChatSettingObjectByKey('assistantMessageStart').placeholder)
+        chat.settings.assistantMessageStart || valueOf(chat.id, getChatSettingObjectByKey('assistantMessageStart').placeholder)
       )
 }
 
 export const getSystemStart = (chat: Chat): string => {
   return mergeProfileFields(
         chat.settings,
-        valueOf(chat.id, getChatSettingObjectByKey('systemMessageStart').placeholder)
+        chat.settings.systemMessageStart || valueOf(chat.id, getChatSettingObjectByKey('systemMessageStart').placeholder)
       )
 }
 

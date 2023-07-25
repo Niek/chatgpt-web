@@ -25,10 +25,16 @@ export const runPetalsCompletionRequest = async (
         ws.close()
       }
       signal.addEventListener('abort', abortListener)
-      const stopSequences = modelDetail.stop || ['###']
+      const stopSequences = (modelDetail.stop || ['###', '</s>']).slice()
       const stopSequence = getStopSequence(chat)
-      const stopSequencesC = stopSequences.slice()
-      if (stopSequence === stopSequencesC[0]) stopSequencesC.shift()
+      let stopSequenceC = stopSequence
+      if (stopSequence !== '###') {
+        stopSequences.push(stopSequence)
+        stopSequenceC = '</s>'
+      }
+      const stopSequencesC = stopSequences.filter((ss) => {
+        return ss !== '###' && ss !== stopSequenceC
+      })
       const maxTokens = getModelMaxTokens(model)
       let maxLen = Math.min(opts.maxTokens || chatRequest.chat.max_tokens || maxTokens, maxTokens)
       const promptTokenCount = chatResponse.getPromptTokenCount()
@@ -36,6 +42,16 @@ export const runPetalsCompletionRequest = async (
         maxLen = Math.min(maxLen + promptTokenCount, maxTokens)
       }
       chatResponse.onFinish(() => {
+        const message = chatResponse.getMessages()[0]
+        if (message) {
+          for (let i = 0, l = stopSequences.length; i < l; i++) {
+            const ss = stopSequences[i].trim()
+            if (message.content.trim().endsWith(ss)) {
+              message.content = message.content.trim().slice(0, message.content.trim().length - ss.length)
+              updateMessages(chat.id)
+            }
+          }
+        }
         chatRequest.updating = false
         chatRequest.updatingMessage = ''
       })
@@ -55,8 +71,8 @@ export const runPetalsCompletionRequest = async (
           }
           const rMessages = request.messages || [] as Message[]
           // make sure top_p and temperature are set the way we need
-          let temperature = request.temperature || 0
-          if (isNaN(temperature as any)) temperature = 1
+          let temperature = request.temperature
+          if (temperature === undefined || isNaN(temperature as any)) temperature = 1
           if (!temperature || temperature <= 0) temperature = 0.01
           let topP = request.top_p
           if (topP === undefined || isNaN(topP as any)) topP = 1
@@ -64,7 +80,7 @@ export const runPetalsCompletionRequest = async (
           // build the message array
           const inputArray = (rMessages).reduce((a, m) => {
             const c = getRoleTag(m.role, model, chatRequest.chat) + m.content
-            a.push(c)
+            a.push(c.trim())
             return a
           }, [] as string[])
           const lastMessage = rMessages[rMessages.length - 1]
@@ -75,12 +91,12 @@ export const runPetalsCompletionRequest = async (
             type: 'generate',
             inputs: inputArray.join(stopSequence),
             max_new_tokens: 1, // wait for up to 1 tokens before displaying
-            stop_sequence: stopSequence,
+            stop_sequence: stopSequenceC,
             do_sample: 1, // enable top p and the like
             temperature,
-            top_p: topP,
-            extra_stop_sequences: stopSequencesC
-          }
+            top_p: topP
+          } as any
+          if (stopSequencesC.length) petalsRequest.extra_stop_sequences = stopSequencesC
           ws.send(JSON.stringify(petalsRequest))
           ws.onmessage = event => {
             // Remove updating indicator
@@ -106,17 +122,6 @@ export const runPetalsCompletionRequest = async (
                         }]
                       } as any
               )
-              if (response.stop) {
-                const message = chatResponse.getMessages()[0]
-                if (message) {
-                  for (let i = 0, l = stopSequences.length; i < l; i++) {
-                    if (message.content.endsWith(stopSequences[i])) {
-                      message.content = message.content.slice(0, message.content.length - stopSequences[i].length)
-                      updateMessages(chat.id)
-                    }
-                  }
-                }
-              }
             }, 1)
           }
         }
