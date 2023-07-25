@@ -246,6 +246,19 @@
     chatRequest.updating = true
     chatRequest.updatingMessage = ''
 
+    let doScroll = true
+    let didScroll = false
+
+    const checkUserScroll = (e: Event) => {
+      const el = e.target as HTMLElement
+      if (el && e.isTrusted && didScroll) {
+        // from user
+        doScroll = (window.innerHeight + window.scrollY + 10) >= document.body.offsetHeight
+      }
+    }
+
+    window.addEventListener('scroll', checkUserScroll)
+
     try {
       const response = await chatRequest.sendRequest($currentChatMessages, {
         chat,
@@ -253,7 +266,8 @@
         streaming: chatSettings.stream,
         fillMessage,
         onMessageChange: (messages) => {
-          scrollToBottom(true)
+          if (doScroll) scrollToBottom(true)
+          didScroll = !!messages[0]?.content
         }
       })
       await response.promiseToFinish()
@@ -264,6 +278,8 @@
     } catch (e) {
       console.error(e)
     }
+  
+    window.removeEventListener('scroll', checkUserScroll)
 
     chatRequest.updating = false
     chatRequest.updatingMessage = ''
