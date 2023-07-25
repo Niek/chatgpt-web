@@ -110,6 +110,7 @@ const defaults:ChatSettings = {
   hppWithSummaryPrompt: false,
   imageGenerationSize: '',
   stopSequence: '',
+  aggressiveStop: false,
   userMessageStart: '',
   assistantMessageStart: '',
   systemMessageStart: '',
@@ -522,6 +523,13 @@ const chatSettingsList: ChatSetting[] = [
           const val = getModelDetail(getChatSettings(chatId).model).stop
           return (val && val[0]) || ''
         },
+        hide: isNotPetals
+      },
+      {
+        key: 'aggressiveStop',
+        name: 'Use aggressive stop',
+        title: 'Sometimes generation con continue even after a stop sequence. This will stop generation client side if generation continues after stop sequence.',
+        type: 'boolean',
         hide: isNotPetals
       },
       {

@@ -109,20 +109,38 @@ export const runPetalsCompletionRequest = async (
               chatResponse.updateFromError(err.message)
               throw err
             }
-            window.setTimeout(() => {
-              chatResponse.updateFromAsyncResponse(
-                      {
-                        model,
-                        choices: [{
-                          delta: {
-                            content: response.outputs,
-                            role: 'assistant'
-                          },
-                          finish_reason: (response.stop ? 'stop' : null)
-                        }]
-                      } as any
-              )
-            }, 1)
+            chatResponse.updateFromAsyncResponse(
+                {
+                  model,
+                  choices: [{
+                    delta: {
+                      content: response.outputs,
+                      role: 'assistant'
+                    },
+                    finish_reason: (response.stop ? 'stop' : null)
+                  }]
+                } as any
+            )
+            if (chat.settings.aggressiveStop && !response.stop) {
+              // check if we should've stopped
+              const message = chatResponse.getMessages()[0]
+              const pad = 10 // look back 10 characters + stop sequence
+              if (message) {
+                const mc = (message.content).trim()
+                for (let i = 0, l = stopSequences.length; i < l; i++) {
+                  const ss = stopSequences[i].trim()
+                  const ind = mc.slice(0 - (ss.length + pad)).indexOf(ss)
+                  if (ind > -1) {
+                    const offset = (ss.length + pad) - ind
+                    message.content = mc.slice(0, mc.length - offset)
+                    response.stop = true
+                    updateMessages(chat.id)
+                    chatResponse.finish()
+                    ws.close()
+                  }
+                }
+              }
+            }
           }
         }
         ws.onclose = () => {
