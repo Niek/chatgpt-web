@@ -320,7 +320,7 @@ export class ChatRequest {
               lastMessage.skipOnce = true
             }
           }
-          if (injectedPrompt) results.pop()
+          if (injectedPrompt) messages.pop()
           return results
         }
         return []
