@@ -114,6 +114,7 @@ export type ChatSettings = {
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];
     stopSequence: string;
+    aggressiveStop: boolean;
     userMessageStart: string;
     assistantMessageStart: string;
     systemMessageStart: string;

@@ -150,6 +150,9 @@ const setPetalsEnabled = (event: Event) => {
         <p class="mb-4">
           You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals/wiki/FAQ:-Frequently-asked-questions#running-a-server">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
         </p>
+        <p class="mb-4">
+          If you're receiving errors while using Petals, <a target="_blank" href="https://health.petals.dev/">check swarm health</a> and consider <a target="_blank" href="https://github.com/bigscience-workshop/petals/wiki/FAQ:-Frequently-asked-questions#running-a-server">adding your GPU to the swarm</a> to help.
+        </p>
         <p class="help is-warning">
           Because Petals uses a public swarm, <b>do not send sensitive information</b> when using Petals.
         </p>
