@@ -274,6 +274,11 @@ export async function getModelOptions (): Promise<SelectOption[]> {
   //       }
   // })
 
+  const openAiModelsLookup = openAiModels.data.reduce((a, v) => {
+        a[v.id] = v
+        return a
+  }, {})
+
   const modelOptions:SelectOption[] = Object.keys(supportedModels).reduce((a, m) => {
         let disabled
         const modelDetail = getModelDetail(m)
@@ -283,7 +288,7 @@ export async function getModelOptions (): Promise<SelectOption[]> {
             break
           case 'OpenAIChat':
           default:
-            disabled = !(openAiModels.data && openAiModels.data.find((m) => m.id === m))
+            disabled = !(openAiModelsLookup[m])
         }
         const o:SelectOption = {
           value: m,
@@ -295,6 +300,8 @@ export async function getModelOptions (): Promise<SelectOption[]> {
   }, [] as SelectOption[])
 
   if (allowCache) modelOptionCache.set(modelOptions)
+
+  // console.log('openAiModels', openAiModels, openAiModelsLookup)
 
   return modelOptions
 }
