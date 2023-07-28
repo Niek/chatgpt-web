@@ -108,11 +108,9 @@ export const runPetalsCompletionRequest = async (
             // Merge content if needed
             if (lm) {
               if (lm.role === 'system' && m.role === 'user' && c.includes('[[SYSTEM_PROMPT]]')) {
-                console.log('do rep', lm, m)
                 c = c.replaceAll('[[SYSTEM_PROMPT]]', lm.content)
                 replace = true
               } else {
-                console.log('no rep', lm, m)
                 c = c.replaceAll('[[SYSTEM_PROMPT]]', '')
               }
               if (lm.role === 'user' && m.role === 'assistant' && c.includes('[[USER_PROMPT]]')) {
@@ -137,7 +135,6 @@ export const runPetalsCompletionRequest = async (
             }
             return a
           }, [] as Message[])
-          console.log('message debug', dupe, rMessages, inputArray)
           const leadPrompt = ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant' ? getLeadPrompt(chat) : ''
           const petalsRequest = {
             type: 'generate',
