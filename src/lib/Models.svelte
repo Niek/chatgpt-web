@@ -46,6 +46,7 @@ const modelDetails : Record<string, ModelDetail> = {
         type: 'Petals',
         label: 'Petals - Llama-65b',
         stop: ['###', '</s>'],
+        deliminator: '###',
         userStart: '<|user|>',
         assistantStart: '<|[[CHARACTER_NAME]]|>',
         systemStart: '',
@@ -57,6 +58,7 @@ const modelDetails : Record<string, ModelDetail> = {
         type: 'Petals',
         label: 'Petals - Guanaco-65b',
         stop: ['###', '</s>'],
+        deliminator: '###',
         userStart: '<|user|>',
         assistantStart: '<|[[CHARACTER_NAME]]|>',
         systemStart: '',
@@ -67,10 +69,15 @@ const modelDetails : Record<string, ModelDetail> = {
       'meta-llama/Llama-2-70b-chat-hf': {
         type: 'Petals',
         label: 'Petals - Llama-2-70b-chat',
-        stop: ['###', '</s>'],
-        userStart: '<|user|>',
-        assistantStart: '<|[[CHARACTER_NAME]]|>',
-        systemStart: '',
+        start: '<s>',
+        stop: ['</s>'],
+        deliminator: ' </s><s>',
+        userStart: '[INST][[SYSTEM_PROMPT]]',
+        userEnd: ' [/INST]',
+        assistantStart: '[[SYSTEM_PROMPT]][[USER_PROMPT]]',
+        assistantEnd: '',
+        systemStart: '<<SYS>>\n',
+        systemEnd: '\n<</SYS>>\n\n',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
@@ -177,14 +184,40 @@ export const getEndpoint = (model: Model): string => {
   }
 }
 
+
+export const getStartSequence = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        chat.settings.startSequence || valueOf(chat.id, getChatSettingObjectByKey('startSequence').placeholder)
+      )
+}
+
 export const getStopSequence = (chat: Chat): string => {
   return chat.settings.stopSequence || valueOf(chat.id, getChatSettingObjectByKey('stopSequence').placeholder)
+}
+
+export const getDeliminator = (chat: Chat): string => {
+  return chat.settings.deliminator || valueOf(chat.id, getChatSettingObjectByKey('deliminator').placeholder)
+}
+
+export const getLeadPrompt = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        chat.settings.leadPrompt || valueOf(chat.id, getChatSettingObjectByKey('leadPrompt').placeholder)
+      )
 }
 
 export const getUserStart = (chat: Chat): string => {
   return mergeProfileFields(
         chat.settings,
         chat.settings.userMessageStart || valueOf(chat.id, getChatSettingObjectByKey('userMessageStart').placeholder)
+      )
+}
+
+export const getUserEnd = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        chat.settings.userMessageEnd || valueOf(chat.id, getChatSettingObjectByKey('userMessageEnd').placeholder)
       )
 }
 
@@ -195,10 +228,24 @@ export const getAssistantStart = (chat: Chat): string => {
       )
 }
 
+export const getAssistantEnd = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        chat.settings.assistantMessageEnd || valueOf(chat.id, getChatSettingObjectByKey('assistantMessageEnd').placeholder)
+      )
+}
+
 export const getSystemStart = (chat: Chat): string => {
   return mergeProfileFields(
         chat.settings,
         chat.settings.systemMessageStart || valueOf(chat.id, getChatSettingObjectByKey('systemMessageStart').placeholder)
+      )
+}
+
+export const getSystemEnd = (chat: Chat): string => {
+  return mergeProfileFields(
+        chat.settings,
+        chat.settings.systemMessageEnd || valueOf(chat.id, getChatSettingObjectByKey('systemMessageEnd').placeholder)
       )
 }
 
@@ -214,6 +261,21 @@ export const getRoleTag = (role: string, model: Model, chat: Chat): string => {
         case 'OpenAIChat':
         default:
           return role
+  }
+}
+
+export const getRoleEnd = (role: string, model: Model, chat: Chat): string => {
+  const modelDetails = getModelDetail(model)
+  switch (modelDetails.type) {
+        case 'Petals':
+          if (role === 'assistant') return getAssistantEnd(chat)
+          if (role === 'user') return getUserEnd(chat)
+          return getSystemEnd(chat)
+        case 'OpenAIDall-e':
+          return ''
+        case 'OpenAIChat':
+        default:
+          return ''
   }
 }
 
