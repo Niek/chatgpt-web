@@ -100,7 +100,6 @@ export const runPetalsCompletionRequest = async (
           const buildMessage = (m: Message): string => {
             return getRoleTag(m.role, model, chat) + m.content + getRoleEnd(m.role, model, chat)
           }
-          const dupe = JSON.parse(JSON.stringify(rMessages))
           const inputArray = rMessages.reduce((a, m, i) => {
             let c = buildMessage(m)
             let replace = false
