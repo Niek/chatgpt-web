@@ -59,6 +59,7 @@ export const runPetalsCompletionRequest = async (
         }
         chatRequest.updating = false
         chatRequest.updatingMessage = ''
+        ws.close()
       })
       ws.onopen = () => {
         ws.send(JSON.stringify({
