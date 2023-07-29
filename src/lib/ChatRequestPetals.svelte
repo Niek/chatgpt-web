@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import ChatCompletionResponse from './ChatCompletionResponse.svelte'
     import ChatRequest from './ChatRequest.svelte'
-    import { getEndpoint, getModelDetail, getRoleTag, getStopSequence } from './Models.svelte'
+    import { getDeliminator, getEndpoint, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence, getStopSequence } from './Models.svelte'
     import type { ChatCompletionOpts, Message, Request } from './Types.svelte'
     import { getModelMaxTokens } from './Stats.svelte'
     import { updateMessages } from './Storage.svelte'
@@ -27,13 +27,18 @@ export const runPetalsCompletionRequest = async (
       signal.addEventListener('abort', abortListener)
       const stopSequences = (modelDetail.stop || ['###', '</s>']).slice()
       const stopSequence = getStopSequence(chat)
+      const deliminator = getDeliminator(chat)
+      if (deliminator) stopSequences.unshift(deliminator)
       let stopSequenceC = stopSequence
       if (stopSequence !== '###') {
         stopSequences.push(stopSequence)
         stopSequenceC = '</s>'
       }
+      const haveSeq = {}
       const stopSequencesC = stopSequences.filter((ss) => {
-        return ss !== '###' && ss !== stopSequenceC
+        const have = haveSeq[ss]
+        haveSeq[ss] = true
+        return !have && ss !== '###' && ss !== stopSequenceC
       })
       const maxTokens = getModelMaxTokens(model)
       let maxLen = Math.min(opts.maxTokens || chatRequest.chat.max_tokens || maxTokens, maxTokens)
@@ -54,6 +59,7 @@ export const runPetalsCompletionRequest = async (
         }
         chatRequest.updating = false
         chatRequest.updatingMessage = ''
+        ws.close()
       })
       ws.onopen = () => {
         ws.send(JSON.stringify({
@@ -69,7 +75,21 @@ export const runPetalsCompletionRequest = async (
             console.error(err)
             throw err
           }
-          const rMessages = request.messages || [] as Message[]
+          // Enforce strict order of messages
+          const fMessages = (request.messages || [] as Message[])
+          const rMessages = fMessages.reduce((a, m, i) => {
+            a.push(m)
+            const nm = fMessages[i + 1]
+            if (m.role === 'system' && (!nm || nm.role !== 'user')) {
+              const nc = {
+                role: 'user',
+                content: ''
+              } as Message
+              a.push(nc)
+            }
+            return a
+          },
+          [] as Message[])
           // make sure top_p and temperature are set the way we need
           let temperature = request.temperature
           if (temperature === undefined || isNaN(temperature as any)) temperature = 1
@@ -78,18 +98,47 @@ export const runPetalsCompletionRequest = async (
           if (topP === undefined || isNaN(topP as any)) topP = 1
           if (!topP || topP <= 0) topP = 0.01
           // build the message array
-          const inputArray = (rMessages).reduce((a, m) => {
-            const c = getRoleTag(m.role, model, chatRequest.chat) + m.content
-            a.push(c.trim())
-            return a
-          }, [] as string[])
-          const lastMessage = rMessages[rMessages.length - 1]
-          if (lastMessage && lastMessage.role !== 'assistant') {
-            inputArray.push(getRoleTag('assistant', model, chatRequest.chat))
+          const buildMessage = (m: Message): string => {
+            return getRoleTag(m.role, model, chat) + m.content + getRoleEnd(m.role, model, chat)
           }
+          const inputArray = rMessages.reduce((a, m, i) => {
+            let c = buildMessage(m)
+            let replace = false
+            const lm = a[a.length - 1]
+            // Merge content if needed
+            if (lm) {
+              if (lm.role === 'system' && m.role === 'user' && c.includes('[[SYSTEM_PROMPT]]')) {
+                c = c.replaceAll('[[SYSTEM_PROMPT]]', lm.content)
+                replace = true
+              } else {
+                c = c.replaceAll('[[SYSTEM_PROMPT]]', '')
+              }
+              if (lm.role === 'user' && m.role === 'assistant' && c.includes('[[USER_PROMPT]]')) {
+                c = c.replaceAll('[[USER_PROMPT]]', lm.content)
+                replace = true
+              } else {
+                c = c.replaceAll('[[USER_PROMPT]]', '')
+              }
+            }
+            // Clean up merge fields on last
+            if (!rMessages[i + 1]) {
+              c = c.replaceAll('[[USER_PROMPT]]', '').replaceAll('[[SYSTEM_PROMPT]]', '')
+            }
+            const result = {
+              role: m.role,
+              content: c.trim()
+            } as Message
+            if (replace) {
+              a[a.length - 1] = result
+            } else {
+              a.push(result)
+            }
+            return a
+          }, [] as Message[])
+          const leadPrompt = ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant' ? getLeadPrompt(chat) : ''
           const petalsRequest = {
             type: 'generate',
-            inputs: inputArray.join(stopSequence),
+            inputs: getStartSequence(chat) + inputArray.map(m => m.content).join(deliminator) + leadPrompt,
             max_new_tokens: 1, // wait for up to 1 tokens before displaying
             stop_sequence: stopSequenceC,
             do_sample: 1, // enable top p and the like

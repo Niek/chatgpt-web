@@ -12,10 +12,16 @@ export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'Petals'
 export type ModelDetail = {
     type: RequestType;
     label?: string;
+    start?: string;
     stop?: string[];
+    deliminator?: string;
     userStart?: string,
+    userEnd?: string,
     assistantStart?: string,
+    assistantEnd?: string,
     systemStart?: string,
+    systemEnd?: string,
+    leadPrompt?: string,
     prompt: number;
     completion: number;
     max: number;
@@ -113,11 +119,17 @@ export type ChatSettings = {
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];
+    startSequence: string;
     stopSequence: string;
     aggressiveStop: boolean;
+    deliminator: string;
     userMessageStart: string;
+    userMessageEnd: string;
     assistantMessageStart: string;
+    assistantMessageEnd: string;
+    leadPrompt: string;
     systemMessageStart: string;
+    systemMessageEnd: string;
     isDirty?: boolean;
   } & Request;
 

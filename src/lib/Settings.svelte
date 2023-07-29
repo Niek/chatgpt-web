@@ -109,11 +109,17 @@ const defaults:ChatSettings = {
   hppContinuePrompt: '',
   hppWithSummaryPrompt: false,
   imageGenerationSize: '',
+  startSequence: '',
   stopSequence: '',
   aggressiveStop: false,
+  deliminator: '',
   userMessageStart: '',
+  userMessageEnd: '',
   assistantMessageStart: '',
+  assistantMessageEnd: '',
   systemMessageStart: '',
+  systemMessageEnd: '',
+  leadPrompt: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -515,9 +521,20 @@ const chatSettingsList: ChatSetting[] = [
         hide: isNotOpenAI
       },
       {
+        key: 'startSequence',
+        name: 'Start Sequence',
+        title: 'Characters used to start the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).start
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
         key: 'stopSequence',
         name: 'Stop Sequence',
-        title: 'Characters used to separate messages in the message chain.',
+        title: 'Characters used to signal end of message chain.',
         type: 'text',
         placeholder: (chatId) => {
           const val = getModelDetail(getChatSettings(chatId).model).stop
@@ -533,12 +550,34 @@ const chatSettingsList: ChatSetting[] = [
         hide: isNotPetals
       },
       {
+        key: 'deliminator',
+        name: 'Deliminator Sequence',
+        title: 'Characters used to separate messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).deliminator
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
         key: 'userMessageStart',
         name: 'User Message Start Sequence',
-        title: 'Sequence to denote user messages in the message chain.',
-        type: 'text',
+        title: 'Sequence to denote start of user messages in the message chain.',
+        type: 'textarea',
         placeholder: (chatId) => {
           const val = getModelDetail(getChatSettings(chatId).model).userStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'userMessageEnd',
+        name: 'User Message End Sequence',
+        title: 'Sequence to denote end of user messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).userEnd
           return val || ''
         },
         hide: isNotPetals
@@ -547,9 +586,31 @@ const chatSettingsList: ChatSetting[] = [
         key: 'assistantMessageStart',
         name: 'Assistant Message Start Sequence',
         title: 'Sequence to denote assistant messages in the message chain.',
-        type: 'text',
+        type: 'textarea',
         placeholder: (chatId) => {
           const val = getModelDetail(getChatSettings(chatId).model).assistantStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'assistantMessageEnd',
+        name: 'Assistant Message End Sequence',
+        title: 'Sequence to denote end of assistant messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).assistantEnd
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'leadPrompt',
+        name: 'Completion Lead Sequence ',
+        title: 'Sequence to hint the LLM should answer as assistant.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).leadPrompt
           return val || ''
         },
         hide: isNotPetals
@@ -558,9 +619,20 @@ const chatSettingsList: ChatSetting[] = [
         key: 'systemMessageStart',
         name: 'System Message Start Sequence',
         title: 'Sequence to denote system messages in the message chain.',
-        type: 'text',
+        type: 'textarea',
         placeholder: (chatId) => {
           const val = getModelDetail(getChatSettings(chatId).model).systemStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'systemMessageEnd',
+        name: 'System Message End Sequence',
+        title: 'Sequence to denote end of system messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).systemEnd
           return val || ''
         },
         hide: isNotPetals
