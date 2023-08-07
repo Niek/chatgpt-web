@@ -57,11 +57,15 @@ const modelDetails : Record<string, ModelDetail> = {
       'timdettmers/guanaco-65b': {
         type: 'Petals',
         label: 'Petals - Guanaco-65b',
-        stop: ['###', '</s>'],
-        deliminator: '###',
-        userStart: '<|user|>',
-        assistantStart: '<|[[CHARACTER_NAME]]|>',
-        systemStart: '',
+        start: '',
+        stop: ['###', 'System:', 'Assistant:', 'User:', '</s>'],
+        deliminator: '\n###\n\n',
+        userStart: 'User:\n',
+        userEnd: '',
+        assistantStart: 'Assistant:\n',
+        assistantEnd: '',
+        systemStart: 'System:\n',
+        systemEnd: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 2048 // 2k max token buffer
@@ -85,10 +89,31 @@ const modelDetails : Record<string, ModelDetail> = {
       'meta-llama/Llama-2-70b-hf': {
         type: 'Petals',
         label: 'Petals - Llama-2-70b',
-        stop: ['###', '</s>'],
-        userStart: '<|user|>',
-        assistantStart: '<|[[CHARACTER_NAME]]|>',
-        systemStart: '',
+        start: '',
+        stop: ['###', 'System:', 'Assistant:', 'User:', '</s>'],
+        deliminator: '\n###\n\n',
+        userStart: 'User:\n',
+        userEnd: '',
+        assistantStart: 'Assistant:\n',
+        assistantEnd: '',
+        systemStart: 'System:\n',
+        systemEnd: '',
+        prompt: 0.000000, // $0.000 per 1000 tokens prompt
+        completion: 0.000000, // $0.000 per 1000 tokens completion
+        max: 4096 // 4k max token buffer
+      },
+      'stabilityai/StableBeluga2': {
+        type: 'Petals',
+        label: 'Petals - StableBeluga2',
+        start: '',
+        stop: ['###', 'System:', 'Assistant:', 'User:', '</s>'],
+        deliminator: '\n###\n\n',
+        userStart: 'User:\n',
+        userEnd: '',
+        assistantStart: 'Assistant:\n',
+        assistantEnd: '',
+        systemStart: 'System:\n',
+        systemEnd: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 4096 // 4k max token buffer
@@ -139,6 +164,7 @@ export const supportedModels : Record<string, ModelDetail> = {
       // 'enoch/llama-65b-hf': modelDetails['enoch/llama-65b-hf'],
       // 'timdettmers/guanaco-65b': modelDetails['timdettmers/guanaco-65b'],
       'meta-llama/Llama-2-70b-hf': modelDetails['meta-llama/Llama-2-70b-hf'],
+      'stabilityai/StableBeluga2': modelDetails['stabilityai/StableBeluga2'],
       'meta-llama/Llama-2-70b-chat-hf': modelDetails['meta-llama/Llama-2-70b-chat-hf']
 }
 
