@@ -411,7 +411,7 @@ export class ChatRequest {
           const topSize = countPromptTokens(top, model, chat)
           let maxSummaryTokens = getSS()
           let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
-          const summaryRequest = { role: 'user', content: promptSummary } as Message
+          const summaryRequest = { role: 'system', content: promptSummary } as Message
           let promptSummarySize = countMessageTokens(summaryRequest, model, chat)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
