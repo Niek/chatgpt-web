@@ -45,11 +45,14 @@ const modelDetails : Record<string, ModelDetail> = {
       'enoch/llama-65b-hf': {
         type: 'Petals',
         label: 'Petals - Llama-65b',
-        stop: ['###', '</s>'],
-        deliminator: '###',
-        userStart: '<|user|>',
-        assistantStart: '<|[[CHARACTER_NAME]]|>',
-        systemStart: '',
+        stop: ['###', 'System:', 'Assistant:', 'User:', '</s>'],
+        deliminator: '\n###\n\n',
+        userStart: 'User:\n',
+        userEnd: '',
+        assistantStart: 'Assistant:\n',
+        assistantEnd: '',
+        leadPrompt: 'Assistant:\n',
+        systemStart: 'System:\n',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
         completion: 0.000000, // $0.000 per 1000 tokens completion
         max: 2048 // 2k max token buffer
@@ -64,6 +67,7 @@ const modelDetails : Record<string, ModelDetail> = {
         userEnd: '',
         assistantStart: 'Assistant:\n',
         assistantEnd: '',
+        leadPrompt: 'Assistant:\n',
         systemStart: 'System:\n',
         systemEnd: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
@@ -96,6 +100,7 @@ const modelDetails : Record<string, ModelDetail> = {
         userEnd: '',
         assistantStart: 'Assistant:\n',
         assistantEnd: '',
+        leadPrompt: 'Assistant:\n',
         systemStart: 'System:\n',
         systemEnd: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
@@ -112,6 +117,7 @@ const modelDetails : Record<string, ModelDetail> = {
         userEnd: '',
         assistantStart: 'Assistant:\n',
         assistantEnd: '',
+        leadPrompt: 'Assistant:\n',
         systemStart: 'System:\n',
         systemEnd: '',
         prompt: 0.000000, // $0.000 per 1000 tokens prompt
