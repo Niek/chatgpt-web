@@ -111,7 +111,7 @@ const defaults:ChatSettings = {
   imageGenerationSize: '',
   startSequence: '',
   stopSequence: '',
-  aggressiveStop: false,
+  aggressiveStop: true,
   deliminator: '',
   userMessageStart: '',
   userMessageEnd: '',
