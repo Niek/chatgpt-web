@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
+    "serve-heroku": "vite --host 0.0.0.0 --port $PORT preview",
     "lint": "eslint . --fix"
   },
   "devDependencies": {
