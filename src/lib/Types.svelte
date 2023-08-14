@@ -7,7 +7,21 @@ export type Model = typeof supportedModelKeys[number];
 
 export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
 
+export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'Petals'
+
 export type ModelDetail = {
+    type: RequestType;
+    label?: string;
+    start?: string;
+    stop?: string[];
+    deliminator?: string;
+    userStart?: string,
+    userEnd?: string,
+    assistantStart?: string,
+    assistantEnd?: string,
+    systemStart?: string,
+    systemEnd?: string,
+    leadPrompt?: string,
     prompt: number;
     completion: number;
     max: number;
@@ -105,6 +119,17 @@ export type ChatSettings = {
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];
+    startSequence: string;
+    stopSequence: string;
+    aggressiveStop: boolean;
+    deliminator: string;
+    userMessageStart: string;
+    userMessageEnd: string;
+    assistantMessageStart: string;
+    assistantMessageEnd: string;
+    leadPrompt: string;
+    systemMessageStart: string;
+    systemMessageEnd: string;
     isDirty?: boolean;
   } & Request;
 
@@ -122,16 +147,16 @@ export type Chat = {
   };
 
   type ResponseOK = {
-    id: string;
-    object: string;
-    created: number;
-    choices: {
-      index: number;
+    id?: string;
+    object?: string;
+    created?: number;
+    choices?: {
+      index?: number;
       message: Message;
-      finish_reason: string;
+      finish_reason?: string;
       delta: Message;
     }[];
-    usage: Usage;
+    usage?: Usage;
     model: Model;
   };
 
@@ -172,6 +197,9 @@ export type GlobalSettings = {
     defaultProfile: string;
     hideSummarized: boolean;
     chatSort: ChatSortOptions;
+    openAICompletionEndpoint: string;
+    enablePetals: boolean;
+    pedalsEndpoint: string;
   };
 
   type SettingNumber = {
@@ -184,6 +212,7 @@ export type GlobalSettings = {
 export type SelectOption = {
     value: string|number;
     text: string;
+    disabled?: boolean;
   };
 
 export type ChatSortOption = SelectOption & {
@@ -236,15 +265,17 @@ export type SubSetting = {
     settings: any[];
   };
 
+export type ValueFn = (chatId:number) => string
+
 export type ChatSetting = {
     key: keyof ChatSettings;
     name: string;
     title: string;
     forceApi?: boolean; // force in api requests, even if set to default
     hidden?: boolean; // Hide from setting menus
-    header?: string;
-    headerClass?: string;
-    placeholder?: string;
+    header?: string | ValueFn;
+    headerClass?: string | ValueFn;
+    placeholder?: string | ValueFn;
     hide?: (chatId:number) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
     fieldControls?: FieldControl[];

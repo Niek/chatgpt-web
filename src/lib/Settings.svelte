@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
-    import { getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
-    import { encode } from 'gpt-tokenizer'
+    import { get } from 'svelte/store'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -18,8 +18,15 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
+    import { getModelDetail, getTokens } from './Models.svelte'
 
-export const defaultModel:Model = 'gpt-3.5-turbo'
+const defaultModel:Model = 'gpt-3.5-turbo'
+const defaultModelPetals:Model = 'meta-llama/Llama-2-70b-chat-hf'
+
+export const getDefaultModel = (): Model => {
+  if (!get(apiKeyStorage)) return defaultModelPetals
+  return defaultModel
+}
 
 export const getChatSettingList = (): ChatSetting[] => {
       return chatSettingsList
@@ -55,8 +62,16 @@ export const getExcludeFromProfile = () => {
   return excludeFromProfile
 }
 
+const isNotOpenAI = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'OpenAIChat'
+}
+
+const isNotPetals = (chatId) => {
+  return getModelDetail(getChatSettings(chatId).model).type !== 'Petals'
+}
+
 const gptDefaults = {
-  model: defaultModel,
+  model: '',
   messages: [],
   temperature: 1,
   top_p: 1,
@@ -94,6 +109,17 @@ const defaults:ChatSettings = {
   hppContinuePrompt: '',
   hppWithSummaryPrompt: false,
   imageGenerationSize: '',
+  startSequence: '',
+  stopSequence: '',
+  aggressiveStop: false,
+  deliminator: '',
+  userMessageStart: '',
+  userMessageEnd: '',
+  assistantMessageStart: '',
+  assistantMessageEnd: '',
+  systemMessageStart: '',
+  systemMessageEnd: '',
+  leadPrompt: '',
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -104,7 +130,10 @@ export const globalDefaults: GlobalSettings = {
   lastProfile: 'default',
   defaultProfile: 'default',
   hideSummarized: false,
-  chatSort: 'created'
+  chatSort: 'created',
+  openAICompletionEndpoint: '',
+  enablePetals: false,
+  pedalsEndpoint: ''
 }
 
 const excludeFromProfile = {
@@ -399,7 +428,13 @@ const modelSetting: ChatSetting & SettingSelect = {
       key: 'model',
       name: 'Model',
       title: 'The model to use - GPT-3.5 is cheaper, but GPT-4 is more powerful.',
-      header: 'Below are the settings that OpenAI allows to be changed for the API calls. See the <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.',
+      header: (chatId) => {
+        if (isNotOpenAI(chatId)) {
+          return 'Below are the settings that can be changed for the API calls. See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.'
+        } else {
+          return 'Below are the settings that OpenAI allows to be changed for the API calls. See the <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">OpenAI API docs</a> for more details.'
+        }
+      },
       headerClass: 'is-warning',
       options: [],
       type: 'select',
@@ -417,7 +452,8 @@ const chatSettingsList: ChatSetting[] = [
         key: 'stream',
         name: 'Stream Response',
         title: 'Stream responses as they are generated.',
-        type: 'boolean'
+        type: 'boolean',
+        hide: isNotOpenAI
       },
       {
         key: 'temperature',
@@ -432,7 +468,7 @@ const chatSettingsList: ChatSetting[] = [
       },
       {
         key: 'top_p',
-        name: 'Nucleus Sampling',
+        name: 'Nucleus Sampling (Top-p)',
         title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
               '\n' +
               'We generally recommend altering this or temperature but not both',
@@ -448,7 +484,8 @@ const chatSettingsList: ChatSetting[] = [
         min: 1,
         max: 10,
         step: 1,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
       },
       {
         key: 'max_tokens',
@@ -460,6 +497,7 @@ const chatSettingsList: ChatSetting[] = [
         max: 32768,
         step: 1,
         type: 'number',
+        hide: isNotOpenAI,
         forceApi: true // Since default here is different than gpt default, will make sure we always send it
       },
       {
@@ -469,7 +507,8 @@ const chatSettingsList: ChatSetting[] = [
         min: -2,
         max: 2,
         step: 0.2,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
       },
       {
         key: 'frequency_penalty',
@@ -478,7 +517,125 @@ const chatSettingsList: ChatSetting[] = [
         min: -2,
         max: 2,
         step: 0.2,
-        type: 'number'
+        type: 'number',
+        hide: isNotOpenAI
+      },
+      {
+        key: 'startSequence',
+        name: 'Start Sequence',
+        title: 'Characters used to start the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).start
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'stopSequence',
+        name: 'Stop Sequence',
+        title: 'Characters used to signal end of message chain.',
+        type: 'text',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).stop
+          return (val && val[0]) || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'aggressiveStop',
+        name: 'Use aggressive stop',
+        title: 'Sometimes generation can continue even after a stop sequence. This will stop generation client side if generation continues after stop sequence.',
+        type: 'boolean',
+        hide: isNotPetals
+      },
+      {
+        key: 'deliminator',
+        name: 'Deliminator Sequence',
+        title: 'Characters used to separate messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).deliminator
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'userMessageStart',
+        name: 'User Message Start Sequence',
+        title: 'Sequence to denote start of user messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).userStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'userMessageEnd',
+        name: 'User Message End Sequence',
+        title: 'Sequence to denote end of user messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).userEnd
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'assistantMessageStart',
+        name: 'Assistant Message Start Sequence',
+        title: 'Sequence to denote assistant messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).assistantStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'assistantMessageEnd',
+        name: 'Assistant Message End Sequence',
+        title: 'Sequence to denote end of assistant messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).assistantEnd
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'leadPrompt',
+        name: 'Completion Lead Sequence ',
+        title: 'Sequence to hint the LLM should answer as assistant.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).leadPrompt
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'systemMessageStart',
+        name: 'System Message Start Sequence',
+        title: 'Sequence to denote system messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).systemStart
+          return val || ''
+        },
+        hide: isNotPetals
+      },
+      {
+        key: 'systemMessageEnd',
+        name: 'System Message End Sequence',
+        title: 'Sequence to denote end of system messages in the message chain.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).systemEnd
+          return val || ''
+        },
+        hide: isNotPetals
       },
       {
         // logit bias editor not implemented yet
@@ -497,7 +654,7 @@ const chatSettingsList: ChatSetting[] = [
           // console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
           const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
-            const tokens:number[] = encode(k)
+            const tokens:number[] = getTokens(getChatSettings(chatId).model, k)
             tokens.forEach(t => { a[t] = v })
             return a
           }, {} as Record<number, number>)
@@ -536,6 +693,21 @@ const globalSettingsList:GlobalSetting[] = [
         key: 'hideSummarized',
         name: 'Hide Summarized Messages',
         type: 'boolean'
+      },
+      {
+        key: 'openAICompletionEndpoint',
+        name: 'OpenAI Completions Endpoint',
+        type: 'text'
+      },
+      {
+        key: 'enablePetals',
+        name: 'Enable Petals APIs',
+        type: 'boolean'
+      },
+      {
+        key: 'pedalsEndpoint',
+        name: 'Petals API Endpoint',
+        type: 'text'
       }
 ]
 

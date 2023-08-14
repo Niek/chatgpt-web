@@ -1,7 +1,7 @@
 <script lang="ts">
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
-  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption } from './Storage.svelte'
+  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption, hasActiveModels } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
@@ -14,10 +14,12 @@
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
 
   let sortOption = getChatSortOption()
+  let hasModels = hasActiveModels()
 
   const onStateChange = (...args:any) => {
     sortOption = getChatSortOption()
     sortedChats = $chatsStorage.sort(sortOption.sortFn)
+    hasModels = hasActiveModels()
   }
 
   $: onStateChange($checkStateChange)
@@ -72,14 +74,14 @@
         </div>
       </div>
       <div class="level-right">
-        {#if !$apiKeyStorage}
+        {#if !hasModels}
         <div class="level-item">
           <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage}
             ><span class="greyscale mr-1"><Fa icon={faKey} /></span> API key</a
           ></div>
         {:else}
         <div class="level-item">
-          <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!$apiKeyStorage}
+          <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!hasModels}
             ><span class="greyscale mr-1"><Fa icon={faSquarePlus} /></span> New chat</button>
           </div>
         {/if}

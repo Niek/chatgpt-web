@@ -25,9 +25,14 @@
   export let lastChatId = persisted('lastChatId', 0)
 
   const chatDefaults = getChatDefaults()
-
+  
   export const getApiKey = (): string => {
     return get(apiKeyStorage)
+  }
+
+  export const hasActiveModels = (): boolean => {
+    const globalSettings = get(globalStorage) || {}
+    return !!get(apiKeyStorage) || !!globalSettings.enablePetals
   }
 
   export const newChatID = (): number => {

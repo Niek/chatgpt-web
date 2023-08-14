@@ -18,7 +18,7 @@
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
   import { faSquareMinus, faSquarePlus as faSquarePlusOutline } from '@fortawesome/free-regular-svg-icons/index'
-  import { apiKeyStorage, addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat, saveChatStore, saveCustomProfile } from './Storage.svelte'
+  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat, saveChatStore, saveCustomProfile, hasActiveModels } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { newNameForProfile, restartProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
@@ -173,7 +173,7 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={'#'} class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { $apiKeyStorage && close(); $apiKeyStorage && startNewChatWithWarning(chatId) }} class="dropdown-item">
+      <a href={'#'} class:is-disabled={!hasActiveModels()} on:click|preventDefault={() => { hasActiveModels() && close(); hasActiveModels() && startNewChatWithWarning(chatId) }} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat from Default
       </a>
       <a href={'#'} class:is-disabled={!chatId} on:click|preventDefault={() => { chatId && close(); chatId && startNewChatFromChatId(chatId) }} class="dropdown-item">
@@ -196,14 +196,14 @@
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { close(); exportChatAsJSON(chatId) }}>
         <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Chat JSON
       </a>
-      <a href={'#'} class="dropdown-item" class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { if (chatId) close(); chatFileInput.click() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!hasActiveModels()} on:click|preventDefault={() => { if (chatId) close(); chatFileInput.click() }}>
         <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Chat JSON
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); exportAsMarkdown(chatId) }}>
         <span class="menu-icon"><Fa icon={faFileExport}/></span> Export Chat Markdown
       </a>
       <hr class="dropdown-divider">
-      <a href={'#'} class="dropdown-item" class:is-disabled={!$apiKeyStorage} on:click|preventDefault={() => { if (chatId) close(); profileFileInput.click() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!hasActiveModels()} on:click|preventDefault={() => { if (chatId) close(); profileFileInput.click() }}>
         <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
       </a>
       <hr class="dropdown-divider">

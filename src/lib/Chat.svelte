@@ -40,6 +40,7 @@
   import { openModal } from 'svelte-modals'
   import PromptInput from './PromptInput.svelte'
   import { ChatRequest } from './ChatRequest.svelte'
+  import { getModelDetail } from './Models.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
@@ -245,6 +246,19 @@
     chatRequest.updating = true
     chatRequest.updatingMessage = ''
 
+    let doScroll = true
+    let didScroll = false
+
+    const checkUserScroll = (e: Event) => {
+      const el = e.target as HTMLElement
+      if (el && e.isTrusted && didScroll) {
+        // from user
+        doScroll = (window.innerHeight + window.scrollY + 10) >= document.body.offsetHeight
+      }
+    }
+
+    window.addEventListener('scroll', checkUserScroll)
+
     try {
       const response = await chatRequest.sendRequest($currentChatMessages, {
         chat,
@@ -252,7 +266,8 @@
         streaming: chatSettings.stream,
         fillMessage,
         onMessageChange: (messages) => {
-          scrollToBottom(true)
+          if (doScroll) scrollToBottom(true)
+          didScroll = !!messages[0]?.content
         }
       })
       await response.promiseToFinish()
@@ -263,6 +278,8 @@
     } catch (e) {
       console.error(e)
     }
+  
+    window.removeEventListener('scroll', checkUserScroll)
 
     chatRequest.updating = false
     chatRequest.updatingMessage = ''
@@ -273,12 +290,15 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Using appropriate language, please give a 5 word summary of this conversation's topic.",
+      content: "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary.",
       uuid: uuidv4()
     }
 
     const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
     suggestMessages.push(suggestMessage)
+
+    chatRequest.updating = true
+    chatRequest.updatingMessage = 'Getting suggestion for chat name...'
 
     const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
@@ -297,7 +317,7 @@
       })
     } else {
       response.getMessages().forEach(m => {
-        const name = m.content.split(/\s+/).slice(0, 8).join(' ').trim()
+        const name = m.content.split(/\s+/).slice(0, 8).join(' ').replace(/^[^a-z0-9!?]+|[^a-z0-9!?]+$/gi, '').trim()
         if (name) chat.name = name
       })
       saveChatStore()
@@ -420,7 +440,7 @@
   <div class="content has-text-centered running-total-container">
     {#each Object.entries(chat.usage || {}) as [model, usage]}
     <p class="is-size-7 running-totals">
-      <em>{model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+      <em>{getModelDetail(model || '').label || model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
       tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
     </p>
     {/each}
