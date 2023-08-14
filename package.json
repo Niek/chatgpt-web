@@ -20,7 +20,7 @@
     "@fullhuman/postcss-purgecss": "^5.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rollup/plugin-dsv": "^3.0.2",
-    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "@tauri-apps/cli": "^1.4.0",
     "@tsconfig/svelte": "^5.0.0",
     "@types/marked": "^5.0.1",
