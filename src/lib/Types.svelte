@@ -281,13 +281,15 @@ export type ModelDetail = {
     leadPrompt?: string,
     prompt?: number;
     completion?: number;
-    max?: number;
+    max: number;
     opt?: Record<string, any>;
     preFillMerge?: (existingContent:string, newContent:string)=>string;
     enabled?: boolean;
     hide?: boolean;
     check: (modelDetail: ModelDetail) => Promise<void>;
     getTokens: (val: string) => number[];
+    countPromptTokens: (prompts:Message[], model:Model, chat: Chat) => number;
+    countMessageTokens: (message:Message, model:Model, chat: Chat) => number;
     getEndpoint: (model: Model) => string;
     help: string;
     hideSetting: (chatId: number, setting: ChatSetting) => boolean;

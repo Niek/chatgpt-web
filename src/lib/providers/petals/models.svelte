@@ -1,7 +1,9 @@
 <script context="module" lang="ts">
     import { getPetalsBase, getPetalsWebsocket } from '../../ApiUtil.svelte'
+    import { countTokens, getDeliminator, getLeadPrompt, getRoleEnd, getRoleTag, getStartSequence } from '../../Models.svelte'
+    import { countMessageTokens } from '../../Stats.svelte'
     import { globalStorage } from '../../Storage.svelte'
-    import type { ModelDetail } from '../../Types.svelte'
+    import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
     import { chatRequest } from './request.svelte'
     import { checkModel } from './util.svelte'
     import llamaTokenizer from 'llama-tokenizer-js'
@@ -33,7 +35,18 @@ const chatModelBase = {
   request: chatRequest,
   getEndpoint: (model) => get(globalStorage).pedalsEndpoint || (getPetalsBase() + getPetalsWebsocket()),
   getTokens: (value) => llamaTokenizer.encode(value),
-  hideSetting: (chatId, setting) => !!hideSettings[setting.key]
+  hideSetting: (chatId, setting) => !!hideSettings[setting.key],
+  countMessageTokens: (message:Message, model:Model, chat: Chat):number => {
+        const delim = getDeliminator(chat)
+        return countTokens(model, getRoleTag(message.role, model, chat) + ': ' +
+        message.content + getRoleEnd(message.role, model, chat) + (delim || '###'))
+  },
+  countPromptTokens: (prompts:Message[], model:Model, chat: Chat):number => {
+        return prompts.reduce((a, m) => {
+          a += countMessageTokens(m, model, chat)
+          return a
+        }, 0) + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
+  }
 } as ModelDetail
 
 export const chatModels : Record<string, ModelDetail> = {

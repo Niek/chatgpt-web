@@ -1,7 +1,9 @@
 <script context="module" lang="ts">
     import { getApiBase, getEndpointCompletions, getEndpointGenerations } from '../../ApiUtil.svelte'
+    import { countTokens } from '../../Models.svelte'
+    import { countMessageTokens } from '../../Stats.svelte'
     import { globalStorage } from '../../Storage.svelte'
-    import type { ModelDetail } from '../../Types.svelte'
+    import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
     import { chatRequest, imageRequest } from './request.svelte'
     import { checkModel } from './util.svelte'
     import { encode } from 'gpt-tokenizer'
@@ -38,7 +40,19 @@ const chatModelBase = {
   check: checkModel,
   getTokens: (value) => encode(value),
   getEndpoint: (model) => get(globalStorage).openAICompletionEndpoint || (getApiBase() + getEndpointCompletions()),
-  hideSetting: (chatId, setting) => !!hiddenSettings[setting.key]
+  hideSetting: (chatId, setting) => !!hiddenSettings[setting.key],
+  countMessageTokens: (message:Message, model:Model, chat: Chat) => {
+        return countTokens(model, '## ' + message.role + ' ##:\r\n\r\n' + message.content + '\r\n\r\n\r\n')
+  },
+  countPromptTokens: (prompts:Message[], model:Model, chat: Chat):number => {
+        // Not sure how OpenAI formats it, but this seems to get close to the right counts.
+        // Would be nice to know. This works for gpt-3.5.  gpt-4 could be different.
+        // Complete stab in the dark here -- update if you know where all the extra tokens really come from.
+        return prompts.reduce((a, m) => {
+          a += countMessageTokens(m, model, chat)
+          return a
+        }, 0) + 3 // Always seems to be message counts + 3
+  }
 } as ModelDetail
 
 // Reference: https://openai.com/pricing#language-models
