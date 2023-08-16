@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { getPetalsBase, getPetalsWebsocket } from '../../ApiUtil.svelte'
-    import { countTokens, getDeliminator, getLeadPrompt, getRoleEnd, getRoleTag, getStartSequence } from '../../Models.svelte'
+    import { countTokens, getDelimiter, getLeadPrompt, getRoleEnd, getRoleTag, getStartSequence } from '../../Models.svelte'
     import { countMessageTokens } from '../../Stats.svelte'
     import { globalStorage } from '../../Storage.svelte'
     import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
@@ -22,7 +22,7 @@ const chatModelBase = {
   check: checkModel,
   start: '<s>',
   stop: ['###', '</s>'],
-  deliminator: '\n###\n\n',
+  delimiter: '\n###\n\n',
   userStart: 'User:\n',
   userEnd: '',
   assistantStart: '[[CHARACTER_NAME]]:\n',
@@ -37,7 +37,7 @@ const chatModelBase = {
   getTokens: (value) => llamaTokenizer.encode(value),
   hideSetting: (chatId, setting) => !!hideSettings[setting.key],
   countMessageTokens: (message:Message, model:Model, chat: Chat):number => {
-        const delim = getDeliminator(chat)
+        const delim = getDelimiter(chat)
         return countTokens(model, getRoleTag(message.role, model, chat) + ': ' +
         message.content + getRoleEnd(message.role, model, chat) + (delim || '###'))
   },
@@ -68,7 +68,7 @@ export const chatModels : Record<string, ModelDetail> = {
         label: 'Petals - Llama-2-70b-chat',
         start: '<s>',
         stop: ['</s>', '[INST]', '[/INST]', '<<SYS>>', '<</SYS>>'],
-        deliminator: ' </s><s>',
+        delimiter: ' </s><s>',
         userStart: '[INST][[SYSTEM_PROMPT]]',
         userEnd: ' [/INST]',
         assistantStart: '[[SYSTEM_PROMPT]][[USER_PROMPT]]',

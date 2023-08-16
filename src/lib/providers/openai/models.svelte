@@ -13,7 +13,7 @@ const hiddenSettings = {
       startSequence: true,
       stopSequence: true,
       aggressiveStop: true,
-      deliminator: true,
+      delimiter: true,
       userMessageStart: true,
       userMessageEnd: true,
       assistantMessageStart: true,

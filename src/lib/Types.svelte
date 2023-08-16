@@ -86,7 +86,7 @@ export type ChatSettings = {
     startSequence: string;
     stopSequence: string;
     aggressiveStop: boolean;
-    deliminator: string;
+    delimiter: string;
     userMessageStart: string;
     userMessageEnd: string;
     assistantMessageStart: string;
@@ -271,7 +271,7 @@ export type ModelDetail = {
     label?: string;
     start?: string;
     stop?: string[];
-    deliminator?: string;
+    delimiter?: string;
     userStart?: string,
     userEnd?: string,
     assistantStart?: string,

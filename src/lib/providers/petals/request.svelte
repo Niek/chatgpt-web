@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
     import { ChatRequest } from '../../ChatRequest.svelte'
-    import { countTokens, getDeliminator, getEndpoint, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence, getStopSequence } from '../../Models.svelte'
+    import { countTokens, getDelimiter, getEndpoint, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence, getStopSequence } from '../../Models.svelte'
     import type { ChatCompletionOpts, Message, Request } from '../../Types.svelte'
     import { getModelMaxTokens } from '../../Stats.svelte'
     import { updateMessages } from '../../Storage.svelte'
@@ -29,9 +29,9 @@ export const chatRequest = async (
       let stopSequences = [...new Set(getStopSequence(chat).split(',').filter(s => s.trim()).concat((modelDetail.stop || ['###', '</s>']).slice()))]
       const stopSequence = '</s>'
       stopSequences.push(stopSequence)
-      const deliminator = getDeliminator(chat)
+      const delimiter = getDelimiter(chat)
       const leadPromptSequence = getLeadPrompt(chat)
-      if (deliminator) stopSequences.unshift(deliminator.trim())
+      if (delimiter) stopSequences.unshift(delimiter.trim())
       stopSequences = stopSequences.sort((a, b) => b.length - a.length)
       const stopSequencesC = stopSequences.filter(s => s !== stopSequence)
       const maxTokens = getModelMaxTokens(model)
@@ -96,8 +96,8 @@ export const chatRequest = async (
         }
         return a
       }, [] as Message[])
-      const leadPrompt = (leadPromptSequence && ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant') ? deliminator + leadPromptSequence : ''
-      const fullPromptInput = getStartSequence(chat) + inputArray.map(m => m.content).join(deliminator) + leadPrompt
+      const leadPrompt = (leadPromptSequence && ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant') ? delimiter + leadPromptSequence : ''
+      const fullPromptInput = getStartSequence(chat) + inputArray.map(m => m.content).join(delimiter) + leadPrompt
     
       let maxLen = Math.min(opts.maxTokens || chatSettings.max_tokens || maxTokens, maxTokens)
       const promptTokenCount = countTokens(model, fullPromptInput)

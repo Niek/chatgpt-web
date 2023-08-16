@@ -70,8 +70,8 @@ export const getStopSequence = (chat: Chat): string => {
     return chat.settings.stopSequence || valueOf(chat.id, getChatSettingObjectByKey('stopSequence').placeholder)
 }
 
-export const getDeliminator = (chat: Chat): string => {
-    return chat.settings.deliminator || valueOf(chat.id, getChatSettingObjectByKey('deliminator').placeholder)
+export const getDelimiter = (chat: Chat): string => {
+    return chat.settings.delimiter || valueOf(chat.id, getChatSettingObjectByKey('delimiter').placeholder)
 }
 
 export const getLeadPrompt = (chat: Chat): string => {

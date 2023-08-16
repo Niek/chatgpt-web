@@ -108,7 +108,7 @@ const defaults:ChatSettings = {
   startSequence: '',
   stopSequence: '',
   aggressiveStop: true,
-  deliminator: '',
+  delimiter: '',
   userMessageStart: '',
   userMessageEnd: '',
   assistantMessageStart: '',
@@ -543,12 +543,12 @@ const chatSettingsList: ChatSetting[] = [
         hide: hideModelSetting
       },
       {
-        key: 'deliminator',
-        name: 'Deliminator Sequence',
+        key: 'delimiter',
+        name: 'Delimiter Sequence',
         title: 'Characters used to separate messages in the message chain.',
         type: 'textarea',
         placeholder: (chatId) => {
-          const val = getModelDetail(getChatSettings(chatId).model).deliminator
+          const val = getModelDetail(getChatSettings(chatId).model).delimiter
           return val || ''
         },
         hide: hideModelSetting
