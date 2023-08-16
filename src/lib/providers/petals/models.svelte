@@ -46,10 +46,10 @@ export const chatModels : Record<string, ModelDetail> = {
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
-      'meta-llama/Llama-2-70b-hf': {
-        ...chatModelBase,
-        label: 'Petals - Llama-2-70b'
-      },
+      // 'meta-llama/Llama-2-70b-hf': {
+      //   ...chatModelBase,
+      //   label: 'Petals - Llama-2-70b'
+      // },
       'meta-llama/Llama-2-70b-chat-hf': {
         ...chatModelBase,
         label: 'Petals - Llama-2-70b-chat',
@@ -64,8 +64,7 @@ export const chatModels : Record<string, ModelDetail> = {
       },
       'stabilityai/StableBeluga2': {
         ...chatModelBase,
-        label: 'Petals - StableBeluga-2',
-        max: 2048
+        label: 'Petals - StableBeluga-2'
       }
 }
 
