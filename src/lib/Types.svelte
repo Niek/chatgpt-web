@@ -6,7 +6,7 @@
 
 export type Model = typeof supportedChatModelKeys[number];
 
-export type RequestType = 'chat' | 'image'
+export type RequestType = 'chat' | 'instruct' | 'image'
 
 export type Usage = {
     completion_tokens: number;

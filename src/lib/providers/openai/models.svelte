@@ -18,10 +18,10 @@ const hiddenSettings = {
       userMessageEnd: true,
       assistantMessageStart: true,
       assistantMessageEnd: true,
-      leadPrompt: true,
       systemMessageStart: true,
       systemMessageEnd: true,
       repititionPenalty: true
+      // leadPrompt: true
 }
 
 const chatModelBase = {

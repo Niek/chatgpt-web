@@ -598,17 +598,6 @@ const chatSettingsList: ChatSetting[] = [
         hide: hideModelSetting
       },
       {
-        key: 'leadPrompt',
-        name: 'Completion Lead Sequence ',
-        title: 'Sequence to hint the LLM should answer as assistant.',
-        type: 'textarea',
-        placeholder: (chatId) => {
-          const val = getModelDetail(getChatSettings(chatId).model).leadPrompt
-          return val || ''
-        },
-        hide: hideModelSetting
-      },
-      {
         key: 'systemMessageStart',
         name: 'System Message Start Sequence',
         title: 'Sequence to denote system messages in the message chain.',
@@ -626,6 +615,17 @@ const chatSettingsList: ChatSetting[] = [
         type: 'textarea',
         placeholder: (chatId) => {
           const val = getModelDetail(getChatSettings(chatId).model).systemEnd
+          return val || ''
+        },
+        hide: hideModelSetting
+      },
+      {
+        key: 'leadPrompt',
+        name: 'Completion Lead Sequence',
+        title: 'Sequence to hint to answer as assistant.',
+        type: 'textarea',
+        placeholder: (chatId) => {
+          const val = getModelDetail(getChatSettings(chatId).model).leadPrompt
           return val || ''
         },
         hide: hideModelSetting

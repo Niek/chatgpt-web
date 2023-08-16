@@ -49,7 +49,7 @@ const getSupportedModels = async (): Promise<Record<string, boolean>> => {
 
 export const checkModel = async (modelDetail: ModelDetail) => {
   const supportedModels = await getSupportedModels()
-  if (modelDetail.type === 'chat') {
+  if (modelDetail.type === 'chat' || modelDetail.type === 'instruct') {
         modelDetail.enabled = !!supportedModels[modelDetail.modelQuery || '']
   } else {
         // image request.  If we have any models, allow image endpoint

@@ -8,7 +8,7 @@ export const set = (opt: Record<string, any>) => {
 }
 
 export const checkModel = async (modelDetail: ModelDetail) => {
-  if (modelDetail.type === 'chat') {
+  if (modelDetail.type === 'chat' || modelDetail.type === 'instruct') {
         modelDetail.enabled = get(globalStorage).enablePetals
   }
 }

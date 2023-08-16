@@ -8,7 +8,7 @@
     import { getDefaultModel, getRequestSettingList } from './Settings.svelte'
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
-    import { getModelDetail } from './Models.svelte'
+    import { getLeadPrompt, getModelDetail } from './Models.svelte'
 
 export class ChatRequest {
       constructor () {
@@ -238,9 +238,10 @@ export class ChatRequest {
         const lastMessage = messages[messages.length - 1]
         const isContinue = lastMessage?.role === 'assistant' && lastMessage.finish_reason === 'length'
         const isUserPrompt = lastMessage?.role === 'user'
+        let results: Message[] = []
+        let injectedPrompt = false
         if (hiddenPromptPrefix && (isUserPrompt || isContinue)) {
-          let injectedPrompt = false
-          const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
+          results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
             m = m.trim()
             if (m.length) {
               if (m.match(/\[\[USER_PROMPT\]\]/)) {
@@ -265,9 +266,21 @@ export class ChatRequest {
             }
           }
           if (injectedPrompt) messages.pop()
-          return results
         }
-        return []
+        const model = this.getModel()
+        const messageDetail = getModelDetail(model)
+        if (getLeadPrompt(this.getChat()).trim() && messageDetail.type === 'chat') {
+          const lastMessage = (results.length && injectedPrompt && !isContinue) ? results[results.length - 1] : messages[messages.length - 1]
+          if (lastMessage?.role !== 'assistant') {
+            const leadMessage = { role: 'assistant', content: getLeadPrompt(this.getChat()) } as Message
+            if (insert) {
+              messages.push(leadMessage)
+            } else {
+              results.push(leadMessage)
+            }
+          }
+        }
+        return results
       }
 
       /**

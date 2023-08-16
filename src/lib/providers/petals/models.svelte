@@ -17,7 +17,7 @@ const hideSettings = {
 }
 
 const chatModelBase = {
-  type: 'chat',
+  type: 'instruct', // Used for chat, but these models operate like instruct models -- you have to manually structure the messages sent to them
   help: 'Below are the settings that can be changed for the API calls. See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.',
   check: checkModel,
   start: '<s>',
@@ -45,7 +45,7 @@ const chatModelBase = {
         return prompts.reduce((a, m) => {
           a += countMessageTokens(m, model, chat)
           return a
-        }, 0) + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
+        }, 0) + countTokens(model, getStartSequence(chat)) + ((prompts[prompts.length - 1] || {}).role !== 'assistant' ? countTokens(model, getLeadPrompt(chat)) : 0)
   }
 } as ModelDetail
 
@@ -74,6 +74,7 @@ export const chatModels : Record<string, ModelDetail> = {
         assistantStart: '[[SYSTEM_PROMPT]][[USER_PROMPT]]',
         systemStart: '<<SYS>>\n',
         systemEnd: '\n<</SYS>>\n\n'
+        // leadPrompt: ''
       },
       'stabilityai/StableBeluga2': {
         ...chatModelBase,
