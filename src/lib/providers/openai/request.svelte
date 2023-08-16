@@ -1,24 +1,24 @@
 <script context="module" lang="ts">
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-    import ChatCompletionResponse from './ChatCompletionResponse.svelte'
-    import ChatRequest from './ChatRequest.svelte'
-    import { getEndpoint } from './Models.svelte'
-    import { getApiKey } from './Storage.svelte'
-    import type { ChatCompletionOpts, Request } from './Types.svelte'
+    import { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
+    import { ChatRequest } from '../../ChatRequest.svelte'
+    import { getEndpoint, getModelDetail } from '../../Models.svelte'
+    import { getApiKey } from '../../Storage.svelte'
+    import type { ChatCompletionOpts, Request } from '../../Types.svelte'
 
-export const runOpenAiCompletionRequest = async (
+export const chatRequest = async (
   request: Request,
   chatRequest: ChatRequest,
   chatResponse: ChatCompletionResponse,
-  signal: AbortSignal,
-  opts: ChatCompletionOpts) => {
+  opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
     // OpenAI Request
       const model = chatRequest.getModel()
+      const signal = chatRequest.controller.signal
       const abortListener = (e:Event) => {
         chatRequest.updating = false
         chatRequest.updatingMessage = ''
         chatResponse.updateFromError('User aborted request.')
-        chatRequest.removeEventListener('abort', abortListener)
+        signal.removeEventListener('abort', abortListener)
       }
       signal.addEventListener('abort', abortListener)
       const fetchOptions = {
@@ -93,8 +93,82 @@ export const runOpenAiCompletionRequest = async (
           // Remove updating indicator
           chatRequest.updating = false
           chatRequest.updatingMessage = ''
-          chatResponse.updateFromSyncResponse(json)
+          const images = json?.data.map(d => d.b64_json)
+          chatResponse.updateFromSyncResponse(images || [])
         }
       }
+      return chatResponse
 }
+
+type ResponseImageDetail = {
+    url: string;
+    b64_json: string;
+  }
+
+type RequestImageGeneration = {
+    prompt: string;
+    n?: number;
+    size?: string;
+    response_format?: keyof ResponseImageDetail;
+  }
+
+export const imageRequest = async (
+  na: Request,
+  chatRequest: ChatRequest,
+  chatResponse: ChatCompletionResponse,
+  opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
+  const chat = chatRequest.getChat()
+  const chatSettings = chat.settings
+  const count = opts.count || 1
+  const prompt = opts.prompt || ''
+  chatRequest.updating = true
+  chatRequest.updatingMessage = 'Generating Image...'
+  const imageModel = chatSettings.imageGenerationModel
+  const imageModelDetail = getModelDetail(imageModel)
+  const size = imageModelDetail.opt?.size || '256x256'
+  const request: RequestImageGeneration = {
+        prompt,
+        response_format: 'b64_json',
+        size,
+        n: count
+  }
+  // fetchEventSource doesn't seem to throw on abort,
+  // so we deal with it ourselves
+  const signal = chatRequest.controller.signal
+  const abortListener = (e:Event) => {
+        chatResponse.updateFromError('User aborted request.')
+        signal.removeEventListener('abort', abortListener)
+  }
+  signal.addEventListener('abort', abortListener)
+  // Create request
+  const fetchOptions = {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getApiKey()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request),
+        signal
+  }
+
+  try {
+        const response = await fetch(getEndpoint(imageModel), fetchOptions)
+        if (!response.ok) {
+          await chatRequest.handleError(response)
+        } else {
+          const json = await response.json()
+          // Remove updating indicator
+          chatRequest.updating = false
+          chatRequest.updatingMessage = ''
+          // console.log('image json', json, json?.data[0])
+          const images = json?.data.map(d => d.b64_json)
+          chatResponse.updateImageFromSyncResponse(images, prompt, imageModel)
+        }
+  } catch (e) {
+        chatResponse.updateFromError(e)
+        throw e
+  }
+  return chatResponse
+}
+
 </script>

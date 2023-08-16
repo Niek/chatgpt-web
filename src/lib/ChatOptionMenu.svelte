@@ -18,7 +18,7 @@
     faEyeSlash
   } from '@fortawesome/free-solid-svg-icons/index'
   import { faSquareMinus, faSquarePlus as faSquarePlusOutline } from '@fortawesome/free-regular-svg-icons/index'
-  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat, saveChatStore, saveCustomProfile, hasActiveModels } from './Storage.svelte'
+  import { addChatFromJSON, chatsStorage, checkStateChange, clearChats, clearMessages, copyChat, globalStorage, setGlobalSettingValueByKey, showSetChatSettings, pinMainMenu, getChat, deleteChat, saveChatStore, saveCustomProfile } from './Storage.svelte'
   import { exportAsMarkdown, exportChatAsJSON } from './Export.svelte'
   import { newNameForProfile, restartProfile } from './Profiles.svelte'
   import { replace } from 'svelte-spa-router'
@@ -27,6 +27,7 @@
   import PromptConfirm from './PromptConfirm.svelte'
   import { startNewChatWithWarning, startNewChatFromChatId, errorNotice, encodeHTMLEntities } from './Util.svelte'
   import type { ChatSettings } from './Types.svelte'
+  import { hasActiveModels } from './Models.svelte'
 
   export let chatId
   export const show = (showHide:boolean = true) => {
@@ -223,7 +224,7 @@
       </a>
       <hr class="dropdown-divider">
       <a href={'#/'} class="dropdown-item" on:click={close}>
-        <span class="menu-icon"><Fa icon={faKey}/></span> API Key
+        <span class="menu-icon"><Fa icon={faKey}/></span> API Setting
       </a>
     </div>
   </div>

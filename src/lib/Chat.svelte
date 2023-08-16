@@ -230,7 +230,8 @@
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
-      } else if (!fillMessage && $currentChatMessages.length && $currentChatMessages[$currentChatMessages.length - 1].finish_reason === 'length') {
+      } else if (!fillMessage && $currentChatMessages.length &&
+        $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant') {
         fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
       }
   

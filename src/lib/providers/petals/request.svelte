@@ -1,22 +1,23 @@
 <script context="module" lang="ts">
-    import ChatCompletionResponse from './ChatCompletionResponse.svelte'
-    import ChatRequest from './ChatRequest.svelte'
-    import { getDeliminator, getEndpoint, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence, getStopSequence } from './Models.svelte'
-    import type { ChatCompletionOpts, Message, Request } from './Types.svelte'
-    import { getModelMaxTokens } from './Stats.svelte'
-    import { updateMessages } from './Storage.svelte'
+    import { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
+    import { ChatRequest } from '../../ChatRequest.svelte'
+    import { getDeliminator, getEndpoint, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence, getStopSequence } from '../../Models.svelte'
+    import type { ChatCompletionOpts, Message, Request } from '../../Types.svelte'
+    import { getModelMaxTokens } from '../../Stats.svelte'
+    import { updateMessages } from '../../Storage.svelte'
 
-export const runPetalsCompletionRequest = async (
+export const chatRequest = async (
   request: Request,
   chatRequest: ChatRequest,
   chatResponse: ChatCompletionResponse,
-  signal: AbortSignal,
-  opts: ChatCompletionOpts) => {
+  opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
       // Petals
       const chat = chatRequest.getChat()
+      const chatSettings = chat.settings
       const model = chatRequest.getModel()
       const modelDetail = getModelDetail(model)
       const ws = new WebSocket(getEndpoint(model))
+      const signal = chatRequest.controller.signal
       const abortListener = (e:Event) => {
         chatRequest.updating = false
         chatRequest.updatingMessage = ''
@@ -25,23 +26,16 @@ export const runPetalsCompletionRequest = async (
         ws.close()
       }
       signal.addEventListener('abort', abortListener)
-      const stopSequences = (modelDetail.stop || ['###', '</s>']).slice()
-      const stopSequence = getStopSequence(chat)
+      let stopSequences = [...new Set(getStopSequence(chat).split(',').filter(s => s.trim()).concat((modelDetail.stop || ['###', '</s>']).slice()))]
+      const stopSequence = '</s>'
+      stopSequences.push(stopSequence)
       const deliminator = getDeliminator(chat)
-      if (deliminator) stopSequences.unshift(deliminator)
-      let stopSequenceC = stopSequence
-      if (stopSequence !== '###') {
-        stopSequences.push(stopSequence)
-        stopSequenceC = '</s>'
-      }
-      const haveSeq = {}
-      const stopSequencesC = stopSequences.filter((ss) => {
-        const have = haveSeq[ss]
-        haveSeq[ss] = true
-        return !have && ss !== '###' && ss !== stopSequenceC
-      })
+      const leadPromptSequence = getLeadPrompt(chat)
+      if (deliminator) stopSequences.unshift(deliminator.trim())
+      stopSequences = stopSequences.sort((a, b) => b.length - a.length)
+      const stopSequencesC = stopSequences.filter(s => s !== stopSequence)
       const maxTokens = getModelMaxTokens(model)
-      let maxLen = Math.min(opts.maxTokens || chatRequest.chat.max_tokens || maxTokens, maxTokens)
+      let maxLen = Math.min(opts.maxTokens || chatSettings.max_tokens || maxTokens, maxTokens)
       const promptTokenCount = chatResponse.getPromptTokenCount()
       if (promptTokenCount > maxLen) {
         maxLen = Math.min(maxLen + promptTokenCount, maxTokens)
@@ -135,15 +129,16 @@ export const runPetalsCompletionRequest = async (
             }
             return a
           }, [] as Message[])
-          const leadPrompt = ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant' ? getLeadPrompt(chat) : ''
+          const leadPrompt = (leadPromptSequence && ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant') ? deliminator + leadPromptSequence : ''
           const petalsRequest = {
             type: 'generate',
             inputs: getStartSequence(chat) + inputArray.map(m => m.content).join(deliminator) + leadPrompt,
             max_new_tokens: 1, // wait for up to 1 tokens before displaying
-            stop_sequence: stopSequenceC,
+            stop_sequence: stopSequence,
             do_sample: 1, // enable top p and the like
             temperature,
             top_p: topP
+            // repitition_penalty: chatSettings.repititionPenalty
           } as any
           if (stopSequencesC.length) petalsRequest.extra_stop_sequences = stopSequencesC
           ws.send(JSON.stringify(petalsRequest))
@@ -170,7 +165,7 @@ export const runPetalsCompletionRequest = async (
                   }]
                 } as any
             )
-            if (chat.settings.aggressiveStop && !response.stop) {
+            if (chatSettings.aggressiveStop && !response.stop) {
               // check if we should've stopped
               const message = chatResponse.getMessages()[0]
               const pad = 10 // look back 10 characters + stop sequence
@@ -202,5 +197,6 @@ export const runPetalsCompletionRequest = async (
           throw err
         }
       }
+      return chatResponse
 }
 </script>

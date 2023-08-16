@@ -1,11 +1,12 @@
 <script lang="ts">
   import { replace } from 'svelte-spa-router'
   import type { Chat } from './Types.svelte'
-  import { deleteChat, hasActiveModels, pinMainMenu, saveChatStore } from './Storage.svelte'
+  import { deleteChat, pinMainMenu, saveChatStore } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faTrash, faCircleCheck, faPencil } from '@fortawesome/free-solid-svg-icons/index'
   import { faMessage } from '@fortawesome/free-regular-svg-icons/index'
   import { onMount } from 'svelte'
+  import { hasActiveModels } from './Models.svelte'
 
   export let chat:Chat
   export let activeChatId:number|undefined

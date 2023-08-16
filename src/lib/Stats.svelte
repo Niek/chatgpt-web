@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  import { countTokens, getModelDetail, getRoleTag, getStopSequence } from './Models.svelte'
+  import { countTokens, getDeliminator, getLeadPrompt, getModelDetail, getRoleEnd, getRoleTag, getStartSequence } from './Models.svelte'
   import type { Chat, Message, Model, Usage } from './Types.svelte'
 
   export const getPrice = (tokens: Usage, model: Model): number => {
@@ -15,7 +15,7 @@
     }, 0)
     switch (detail.type) {
       case 'Petals':
-        return count
+        return count + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
       case 'OpenAIChat':
       default:
         // Not sure how OpenAI formats it, but this seems to get close to the right counts.
@@ -27,10 +27,11 @@
 
   export const countMessageTokens = (message:Message, model:Model, chat: Chat):number => {
     const detail = getModelDetail(model)
-    const stop = getStopSequence(chat)
+    const delim = getDeliminator(chat)
     switch (detail.type) {
       case 'Petals':
-        return countTokens(model, getRoleTag(message.role, model, chat) + ': ' + message.content + (stop || '###'))
+        return countTokens(model, getRoleTag(message.role, model, chat) + ': ' +
+        message.content + getRoleEnd(message.role, model, chat) + (delim || '###'))
       case 'OpenAIChat':
       default:
         // Not sure how OpenAI formats it, but this seems to get close to the right counts.

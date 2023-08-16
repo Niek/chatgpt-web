@@ -1,7 +1,7 @@
 <script lang="ts">
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
-  import { apiKeyStorage, chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption, hasActiveModels } from './Storage.svelte'
+  import { chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption } from './Storage.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
@@ -9,6 +9,7 @@
   import { clickOutside } from 'svelte-use-click-outside'
   import { startNewChatWithWarning } from './Util.svelte'
   import { chatSortOptions } from './Settings.svelte'
+  import { hasActiveModels } from './Models.svelte'
 
   $: sortedChats = $chatsStorage.sort(getChatSortOption().sortFn)
   $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
@@ -76,8 +77,8 @@
       <div class="level-right">
         {#if !hasModels}
         <div class="level-item">
-          <a href={'#/'} class="panel-block" class:is-disabled={!$apiKeyStorage}
-            ><span class="greyscale mr-1"><Fa icon={faKey} /></span> API key</a
+          <a href={'#/'} class="panel-block" class:is-disabled={!hasModels}
+            ><span class="greyscale mr-1"><Fa icon={faKey} /></span> API Setting</a
           ></div>
         {:else}
         <div class="level-item">

@@ -30,11 +30,6 @@
     return get(apiKeyStorage)
   }
 
-  export const hasActiveModels = (): boolean => {
-    const globalSettings = get(globalStorage) || {}
-    return !!get(apiKeyStorage) || !!globalSettings.enablePetals
-  }
-
   export const newChatID = (): number => {
     const chats = get(chatsStorage)
     const chatId = chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1

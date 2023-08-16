@@ -254,7 +254,7 @@
   <div class="tool-drawer-mask"></div>
   <div class="tool-drawer">
     <div class="button-pack">
-      {#if message.finish_reason === 'length'}
+      {#if message.finish_reason === 'length' || message.finish_reason === 'abort'}
       <a
         href={'#'}
         title="Continue "

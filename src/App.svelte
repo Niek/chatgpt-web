@@ -7,15 +7,17 @@
   import Home from './lib/Home.svelte'
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
-  import { chatsStorage, apiKeyStorage } from './lib/Storage.svelte'
+  import { chatsStorage } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals'
   import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
+  import { set as setOpenAI } from './lib/providers/openai/util.svelte'
+  import { hasActiveModels } from './lib/Models.svelte'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
   const urlParams: URLSearchParams = new URLSearchParams($querystring)
   if (urlParams.has('key')) {
-    apiKeyStorage.set(urlParams.get('key') as string)
+    setOpenAI({ apiKey: urlParams.get('key') as string })
   }
 
   // The definition of the routes with some conditions
@@ -25,7 +27,7 @@
     '/chat/new': wrap({
       component: NewChat,
       conditions: () => {
-        return !!$apiKeyStorage
+        return hasActiveModels()
       }
     }),
 

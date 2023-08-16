@@ -34,7 +34,7 @@
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getModelOptions } from './Models.svelte'
+  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -47,6 +47,7 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
+  const imageModelSetting = getChatSettingObjectByKey('imageGenerationModel') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
   const excludeFromProfile = getExcludeFromProfile()
 
@@ -185,7 +186,8 @@
 
     // Update the models in the settings
     if (modelSetting) {
-      modelSetting.options = await getModelOptions()
+      modelSetting.options = await getChatModelOptions()
+      imageModelSetting.options = await getImageModelOptions()
     }
     // Refresh settings modal
     showSettingsModal++
