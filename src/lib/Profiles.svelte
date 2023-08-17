@@ -232,7 +232,7 @@ Note that chat with Llama 2 under Petals currently falls apart quickly, devolvin
 This profile uses:
 - A system prompt, with initial User and Assistant prompts embedded in the prompt (::EOM::)
 - A user prompt prefix that draws attention to the last user prompt by prefixing it with a delimiter (###) and "Current user prompt:"
-- A heavyweight Completion Lead Sequence that persistently reminds the model to do what it shouldn't need reminding to do, before it finally signally it should start completion by leading in with the character's name followed by a colon.
+- A heavyweight Completion Lead Sequence that persistently reminds the model to do what it shouldn't need reminding to do, before it finally signals it should start completion by leading in with the character's name followed by a colon.
 There is a fair amount of complexity here that attempts to build a relatively unrestricted character, but that's also not a psychopath.  A fine line of a compassionate, yet mostly un-censored character.
 - Custom Stop Sequences and Delimiter Sequence to keep the completion from running on. (Sometimes you may end up with an empty completion.)
 - Summary prompt for continuous chat. It will trigger after 60% token use of the current model (0.6) and try to form a summary of the current conversation that's less than 500 tokens.  This can be kind of hit or miss. Sometimes you'll get a great summary, other times you'll get nonsense.
