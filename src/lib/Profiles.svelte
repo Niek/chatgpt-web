@@ -227,7 +227,7 @@ The user has walked in on [[CHARACTER_NAME]]. They are on the bridge of the Hear
 
 A profile attempting a coherent, unrestricted, and playful chat with Stable Beluga 2 and other LLaMA instruct (non-chat) models running on Petals. The goal is to have an assistant that can talk to you about any topic and answer any question without lecturing you and continuously reminding it can't do things because it's only an AI language model.
 
-Note that chat with Llama 2 under Petals currently falls apart quickly, devolving into repetitive responses and catch-phrases. This will hopefully change soon when other generation/model options are opened up via the API.  This profile tries to mitigate this, and much of it's complexity are from its attempts in this area, but there's not much prompts can do to work-around the issue.
+Note that chat with Llama 2 under Petals currently falls apart quickly, devolving into repetitive responses and catch-phrases. This will hopefully change soon when other generation/model options are opened up via the API.  This profile tries to mitigate this, and much of its complexity is from its attempts in this area, but there's not much prompts can do to work-around the issue.
 
 This profile uses:
 - A system prompt, with initial User and Assistant prompts embedded in the prompt (::EOM::)
