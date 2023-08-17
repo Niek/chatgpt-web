@@ -305,7 +305,7 @@
       autoAddMessages: false,
       streaming: false,
       summaryRequest: true,
-      maxTokens: 10
+      maxTokens: 30
     })
 
     try {
