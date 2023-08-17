@@ -300,7 +300,6 @@
 
     chatRequest.updating = true
     chatRequest.updatingMessage = 'Getting suggestion for chat name...'
-
     const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
@@ -308,8 +307,12 @@
       summaryRequest: true,
       maxTokens: 10
     })
-    await response.promiseToFinish()
 
+    try {
+      await response.promiseToFinish()
+    } catch (e) {
+      console.error('Error generating name suggestion', e, e.stack)
+    }
     if (response.hasError()) {
       addMessage(chatId, {
         role: 'error',

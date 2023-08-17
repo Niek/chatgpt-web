@@ -93,8 +93,7 @@ export const chatRequest = async (
           // Remove updating indicator
           chatRequest.updating = false
           chatRequest.updatingMessage = ''
-          const images = json?.data.map(d => d.b64_json)
-          chatResponse.updateFromSyncResponse(images || [])
+          chatResponse.updateFromSyncResponse(json)
         }
       }
       return chatResponse

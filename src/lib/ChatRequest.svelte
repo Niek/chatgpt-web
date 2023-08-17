@@ -46,6 +46,7 @@ export class ChatRequest {
           }
           errorResponse = errorResponse || 'Unexpected Response'
         } catch (e) {
+          console.error(e, e.stack)
           errorResponse = 'Unknown Response'
         }
         throw new Error(`${response.status} - ${errorResponse}`)
@@ -219,6 +220,7 @@ export class ChatRequest {
           await modelDetail.request(request, _this, chatResponse, opts)
         } catch (e) {
         // console.error(e)
+          console.error(e, e.stack)
           _this.updating = false
           _this.updatingMessage = ''
           chatResponse.updateFromError(e.message)
@@ -452,6 +454,7 @@ export class ChatRequest {
                 return summary
               }
             } catch (e) {
+              console.error(e, e.stack)
               if (e.message?.includes('network error') && networkRetry > 0) {
                 networkRetry--
                 error = true
