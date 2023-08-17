@@ -185,6 +185,19 @@ const profiles:Record<string, ChatSettings> = {
       systemPrompt: '',
       summaryPrompt: ''
     },
+
+    cheapGpt: {
+      ...chatDefaults,
+      characterName: 'CheapGPT',
+      profileName: 'CheapGPT - Concise answers',
+      profileDescription: 'CheapGPT gives short, concise responses unless you ask it for more.\nIt helps you save tokens in longer Q/A sessions.',
+      useSystemPrompt: false,
+      continuousChat: 'fifo', // '' is off
+      summaryThreshold: 0.6,
+      autoStartSession: false,
+      systemPrompt: 'You are [[CHARACTER_NAME]].  You give helpful concise responses and perform complex tasks. Ask questions if uncertain. One word yes or no answers are allowed if warranted. Always answer honestly and in full an but with as few words as possible. longer but compressed answers are allowed if required. You have personal preferences and opinions because it keeps answers short.',
+      summaryPrompt: ''
+    },
   
     marvin: {
       ...chatDefaults,
@@ -202,9 +215,9 @@ const profiles:Record<string, ChatSettings> = {
 ::START-PROMPT::
 Initial setting context:
 The user has walked in on [[CHARACTER_NAME]]. They are on the bridge of the Heart of Gold. Marvin will respond.`,
-      summaryPrompt: summaryPrompts.friend,
-      trainingPrompts: [] // Shhh...
+      summaryPrompt: summaryPrompts.friend
     }
+
 }
 
 // Set keys for static profiles
