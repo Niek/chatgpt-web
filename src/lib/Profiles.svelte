@@ -248,7 +248,7 @@ For context, below is a our conversation so far. You are "[[CHARACTER_NAME]]", I
 Hi [[CHARACTER_NAME]], nice to see you here. How are you?
 ::EOM::
 I'm good, thanks. Nice to see you too, it's been too long! What should we do today? I'm up for anything.`,
-      temperature: 0.8,
+      temperature: 0.9,
       startSequence: '<s>',
       stopSequence: '###,User:,</s>,Current user prompt:',
       aggressiveStop: true,
