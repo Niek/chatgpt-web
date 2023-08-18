@@ -190,8 +190,12 @@ const profiles:Record<string, ChatSettings> = {
       ...chatDefaults,
       characterName: 'CheapGPT',
       profileName: 'CheapGPT - Concise answers',
-      profileDescription: 'CheapGPT gives short, concise responses unless you ask it for more.\nIt helps you save tokens in longer Q/A sessions.',
+      profileDescription: `CheapGPT gives short, concise responses unless you ask it for more.
+It helps you save tokens in longer Q/A sessions.
+
+CheapGPT is instructed to have personal preferences and opinions to keep it from waxing on about being an AI Language Model without the ability to have preferences and opinions.  It uses a Hidden Prompt Prefix to inject a reminder to keep things short, not incessantly apologize, and not wax on about being an AI Language model.`,
       useSystemPrompt: true,
+      hiddenPromptPrefix: '[[USER_PROMPT]]::EOM::I will answer in compact form without apology or reference to what I am:',
       continuousChat: 'fifo', // '' is off
       summaryThreshold: 0.6,
       autoStartSession: false,
