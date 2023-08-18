@@ -56,6 +56,7 @@
   $: globalStore = $globalStorage
 
   let originalProfile:string
+  let lastProfile:string
   let originalSettings:ChatSettings
 
   onMount(async () => {
@@ -193,7 +194,10 @@
     // Refresh settings modal
     showSettingsModal++
 
-    setTimeout(() => sizeTextElements(), 0)
+    const profileChanged = lastProfile !== chatSettings.profile
+    lastProfile = chatSettings.profile
+
+    setTimeout(() => sizeTextElements(profileChanged))
   }
 
   const saveProfile = () => {
