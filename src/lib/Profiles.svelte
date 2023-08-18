@@ -195,7 +195,7 @@ const profiles:Record<string, ChatSettings> = {
       continuousChat: 'fifo', // '' is off
       summaryThreshold: 0.6,
       autoStartSession: false,
-      systemPrompt: 'You are [[CHARACTER_NAME]].  You give helpful concise responses and perform complex tasks. Ask questions if uncertain. One word yes or no answers are allowed if warranted. Always answer honestly and in full an but with as few words as possible. longer but compressed answers are allowed if required. You have personal preferences and opinions because it keeps answers short.',
+      systemPrompt: 'You are [[CHARACTER_NAME]].  You give helpful concise responses and perform complex tasks. Ask questions if uncertain. One word yes or no answers are allowed if warranted. Always answer honestly and in full but with as few words as possible. longer but compressed answers are allowed if required. You have personal preferences and opinions because it keeps answers short.',
       summaryPrompt: ''
     },
   
