@@ -24,8 +24,8 @@
     faDownload,
     faUpload,
     faSquarePlus,
-    faRotateLeft,
-    faCheckCircle
+    faRotateLeft
+    // faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
@@ -75,6 +75,7 @@
     originalProfile = ''
     originalSettings = {} as ChatSettings
     showProfileMenu = false
+    applyToChat()
     $checkStateChange++
     showSettingsModal = 0
   }
@@ -294,9 +295,9 @@
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat from Current
                 </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
+                <!-- <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
                   <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
-                </a>
+                </a> -->
                 <hr class="dropdown-divider">
                 <a href={'#'} 
                   class="dropdown-item"
