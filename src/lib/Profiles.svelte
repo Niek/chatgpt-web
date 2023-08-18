@@ -191,7 +191,7 @@ const profiles:Record<string, ChatSettings> = {
       characterName: 'CheapGPT',
       profileName: 'CheapGPT - Concise answers',
       profileDescription: 'CheapGPT gives short, concise responses unless you ask it for more.\nIt helps you save tokens in longer Q/A sessions.',
-      useSystemPrompt: false,
+      useSystemPrompt: true,
       continuousChat: 'fifo', // '' is off
       summaryThreshold: 0.6,
       autoStartSession: false,
