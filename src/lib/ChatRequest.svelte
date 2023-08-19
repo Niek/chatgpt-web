@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
-    import { mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
+    import { cleanContent, mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request } from './Types.svelte'
     import { deleteMessage, getChatSettingValueNullDefault, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
@@ -119,7 +119,7 @@ export class ChatRequest {
         const messagePayload = filtered
           .filter(m => { if (m.skipOnce) { delete m.skipOnce; return false } return true })
           .map(m => {
-            const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content }
+            const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content: cleanContent(chatSettings, content) }
           }) as Message[]
 
         // Parse system and expand prompt if needed
