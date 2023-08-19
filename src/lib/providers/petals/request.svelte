@@ -156,6 +156,9 @@ export const chatRequest = async (
             chatRequest.updatingMessage = ''
             const response = JSON.parse(event.data)
             if (!response.ok) {
+              if (response.traceback.includes('Maximum length exceeded')) {
+                return chatResponse.finish('length')
+              }
               const err = new Error('Error in response: ' + response.traceback)
               console.error(err)
               chatResponse.updateFromError(err.message)
