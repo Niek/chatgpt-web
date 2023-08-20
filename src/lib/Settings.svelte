@@ -116,7 +116,7 @@ const defaults:ChatSettings = {
   systemMessageStart: '',
   systemMessageEnd: '',
   leadPrompt: '',
-  repetitionPenalty: 1.2,
+  repetitionPenalty: 1.1,
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
