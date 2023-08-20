@@ -20,7 +20,7 @@ const hiddenSettings = {
       assistantMessageEnd: true,
       systemMessageStart: true,
       systemMessageEnd: true,
-      repititionPenalty: true
+      repetitionPenalty: true
       // leadPrompt: true
 }
 

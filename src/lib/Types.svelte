@@ -94,7 +94,7 @@ export type ChatSettings = {
     leadPrompt: string;
     systemMessageStart: string;
     systemMessageEnd: string;
-    repititionPenalty: number;
+    repetitionPenalty: number;
     isDirty?: boolean;
   } & Request;
 

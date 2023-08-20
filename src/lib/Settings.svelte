@@ -116,7 +116,7 @@ const defaults:ChatSettings = {
   systemMessageStart: '',
   systemMessageEnd: '',
   leadPrompt: '',
-  repititionPenalty: 1,
+  repetitionPenalty: 1,
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -504,7 +504,7 @@ const chatSettingsList: ChatSetting[] = [
         hide: hideModelSetting
       },
       {
-        key: 'repititionPenalty',
+        key: 'repetitionPenalty',
         name: 'Repitition Penalty',
         title: 'Number between 1.0 and infinity. Penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
         min: 0,

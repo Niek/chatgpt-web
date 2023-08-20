@@ -150,7 +150,7 @@ export const chatRequest = async (
             do_sample: 1, // enable top p and the like
             temperature,
             top_p: topP,
-            repitition_penalty: chatSettings.repititionPenalty
+            repitition_penalty: chatSettings.repetitionPenalty
           } as any
           if (stopSequencesC.length) petalsRequest.extra_stop_sequences = stopSequencesC
           // Update token count
