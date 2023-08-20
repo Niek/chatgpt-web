@@ -249,6 +249,13 @@ Keep in mind that most models don't respond well to negative prompts. Telling it
       useSystemPrompt: true,
       sendSystemPromptLast: false,
       continuousChat: 'summary',
+      summaryPrompt: `###
+### Current user request:
+Without talking about it at all, [[CHARACTER_NAME]], your next response must generate a succinct summary of all previous interactions between, you, [[CHARACTER_NAME]], and I. Merge this summary with any previous summaries. Compress the summary in a way where important details are kept. Anything left out from this summary will be lost from your memory forever. It is important to keep pivotal details. This summary is for you, [[CHARACTER_NAME]] and is essential for your memory.
+You must use no more than [[MAX_WORDS]] when generating this summary. Keep as much detail as you can, what we did, what we talked about, what happened, what we shared. Include all important details up to the present.
+
+Example template for summary:
+First we... then you... then I... and the... we continued to... you and I just... we're about to...`,
       hiddenPromptPrefix: `###
 ### Current user prompt:
 [[USER_PROMPT]]`,
