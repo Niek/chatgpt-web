@@ -505,7 +505,7 @@ const chatSettingsList: ChatSetting[] = [
       },
       {
         key: 'repetitionPenalty',
-        name: 'Repitition Penalty',
+        name: 'Repetition Penalty',
         title: 'Number between 1.0 and infinity. Penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
         min: 0,
         max: 1000,
