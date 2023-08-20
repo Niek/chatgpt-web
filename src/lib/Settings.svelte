@@ -503,16 +503,16 @@ const chatSettingsList: ChatSetting[] = [
         type: 'number',
         hide: hideModelSetting
       },
-      // {
-      //   key: 'repititionPenalty',
-      //   name: 'Repitition Penalty',
-      //   title: 'Number between 1.0 and infinity. Penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
-      //   min: 0,
-      //   max: 1000,
-      //   step: 0.1,
-      //   type: 'number',
-      //   hide: isNotPetals
-      // },
+      {
+        key: 'repititionPenalty',
+        name: 'Repitition Penalty',
+        title: 'Number between 1.0 and infinity. Penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.',
+        min: 0,
+        max: 1000,
+        step: 0.1,
+        type: 'number',
+        hide: hideModelSetting
+      },
       {
         key: 'startSequence',
         name: 'Start Sequence',
