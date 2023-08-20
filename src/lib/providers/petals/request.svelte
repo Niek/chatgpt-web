@@ -62,6 +62,12 @@ export const chatRequest = async (
       const buildMessage = (m: Message): string => {
         return getRoleTag(m.role, model, chat) + m.content + getRoleEnd(m.role, model, chat)
       }
+      const lastMessage = rMessages[rMessages.length - 1]
+      let doLead = true
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.content = leadPromptSequence + lastMessage.content
+        doLead = false
+      }
       const inputArray = rMessages.reduce((a, m, i) => {
         let c = buildMessage(m)
         let replace = false
@@ -96,7 +102,7 @@ export const chatRequest = async (
         }
         return a
       }, [] as Message[])
-      const leadPrompt = (leadPromptSequence && ((inputArray[inputArray.length - 1] || {}) as Message).role !== 'assistant') ? delimiter + leadPromptSequence : ''
+      const leadPrompt = (leadPromptSequence && doLead) ? delimiter + leadPromptSequence : ''
       const fullPromptInput = getStartSequence(chat) + inputArray.map(m => m.content).join(delimiter) + leadPrompt
     
       let maxLen = Math.min(opts.maxTokens || chatSettings.max_tokens || maxTokens, maxTokens)

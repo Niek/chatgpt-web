@@ -45,7 +45,7 @@ const chatModelBase = {
         return prompts.reduce((a, m) => {
           a += countMessageTokens(m, model, chat)
           return a
-        }, 0) + countTokens(model, getStartSequence(chat)) + ((prompts[prompts.length - 1] || {}).role !== 'assistant' ? countTokens(model, getLeadPrompt(chat)) : 0)
+        }, 0) + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
   }
 } as ModelDetail
 
