@@ -285,6 +285,7 @@ Okay. *I take a seat next to you* What should we do today? I'm up for anything.
 
 ::NOTE::`,
       temperature: 0.9,
+      top_p: 0.8,
       repetitionPenalty: 1.12,
       startSequence: '<s>',
       stopSequence: '###,User:,</s>,Current user prompt:',
