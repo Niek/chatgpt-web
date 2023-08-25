@@ -93,6 +93,14 @@
       message.content = original
       editing = false
     }
+    if (event.altKey && event.key === 's') {
+      if (!editing) return
+      event.stopPropagation()
+      event.preventDefault()
+      exit()
+      checkTruncate()
+      setTimeout(checkTruncate, 10)
+    }
   }
 
   // Double click for mobile support
