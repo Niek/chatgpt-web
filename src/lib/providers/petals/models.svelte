@@ -18,7 +18,9 @@ const hideSettings = {
 
 const chatModelBase = {
   type: 'instruct', // Used for chat, but these models operate like instruct models -- you have to manually structure the messages sent to them
-  help: 'Below are the settings that can be changed for the API calls. See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.',
+  help: `Below are the settings that can be changed for the API calls. 
+    See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.
+    <i>Note that some models may mot be functional.  See <a target="_blank" href="https://health.petals.dev">https://health.petals.dev</a> for current status.</i>`,
   check: checkModel,
   start: '<s>',
   stop: ['###', '</s>'],
@@ -54,15 +56,20 @@ export const chatModels : Record<string, ModelDetail> = {
       //   ...chatModelBase,
       //   label: 'Petals - Llama-65b'
       // },
+      // 'codellama/CodeLlama-34b-Instruct-hf ': {
+      //   ...chatModelBase,
+      //   label: 'Petals - CodeLlama-34b',
+      //   max: 2048
+      // },
       'timdettmers/guanaco-65b': {
         ...chatModelBase,
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
-      // 'meta-llama/Llama-2-70b-hf': {
-      //   ...chatModelBase,
-      //   label: 'Petals - Llama-2-70b'
-      // },
+      'meta-llama/Llama-2-70b-hf': {
+        ...chatModelBase,
+        label: 'Petals - Llama-2-70b'
+      },
       'meta-llama/Llama-2-70b-chat-hf': {
         ...chatModelBase,
         label: 'Petals - Llama-2-70b-chat',
