@@ -124,8 +124,6 @@ export const chatRequest = async (
             }
           }
         }
-        chatRequest.updating = false
-        chatRequest.updatingMessage = ''
         ws.close()
       })
       ws.onopen = () => {
@@ -205,8 +203,6 @@ export const chatRequest = async (
           }
         }
         ws.onclose = () => {
-          chatRequest.updating = false
-          chatRequest.updatingMessage = ''
           chatResponse.updateFromClose()
         }
         ws.onerror = err => {
