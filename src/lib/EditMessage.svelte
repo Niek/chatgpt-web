@@ -93,7 +93,7 @@
       message.content = original
       editing = false
     }
-    if (event.altKey && event.key === 's') {
+    if (event.ctrlKey && event.key === 'Enter') {
       if (!editing) return
       event.stopPropagation()
       event.preventDefault()
