@@ -313,6 +313,8 @@
     } catch (e) {
       console.error('Error generating name suggestion', e, e.stack)
     }
+    chatRequest.updating = false
+    chatRequest.updatingMessage = ''
     if (response.hasError()) {
       addMessage(chatId, {
         role: 'error',

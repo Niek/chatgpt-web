@@ -37,8 +37,8 @@ export const chatRequest = async (
              * We'll get the response a token at a time, as soon as they are ready
             */
         chatResponse.onFinish(() => {
-          chatRequest.updating = false
-          chatRequest.updatingMessage = ''
+          // chatRequest.updating = false
+          // chatRequest.updatingMessage = ''
         })
         fetchEventSource(getEndpoint(model), {
           ...fetchOptions,
@@ -59,8 +59,6 @@ export const chatRequest = async (
             }
           },
           onclose () {
-            chatRequest.updating = false
-            chatRequest.updatingMessage = ''
             chatResponse.updateFromClose()
           },
           onerror (err) {
@@ -76,8 +74,6 @@ export const chatRequest = async (
             }
           }
         }).catch(err => {
-          chatRequest.updating = false
-          chatRequest.updatingMessage = ''
           chatResponse.updateFromError(err.message)
         })
       } else {
@@ -90,9 +86,6 @@ export const chatRequest = async (
           await chatRequest.handleError(response)
         } else {
           const json = await response.json()
-          // Remove updating indicator
-          chatRequest.updating = false
-          chatRequest.updatingMessage = ''
           chatResponse.updateFromSyncResponse(json)
         }
       }
@@ -156,9 +149,6 @@ export const imageRequest = async (
           await chatRequest.handleError(response)
         } else {
           const json = await response.json()
-          // Remove updating indicator
-          chatRequest.updating = false
-          chatRequest.updatingMessage = ''
           // console.log('image json', json, json?.data[0])
           const images = json?.data.map(d => d.b64_json)
           chatResponse.updateImageFromSyncResponse(images, prompt, imageModel)
