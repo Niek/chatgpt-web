@@ -93,6 +93,14 @@
       message.content = original
       editing = false
     }
+    if (event.ctrlKey && event.key === 'Enter') {
+      if (!editing) return
+      event.stopPropagation()
+      event.preventDefault()
+      exit()
+      checkTruncate()
+      setTimeout(checkTruncate, 10)
+    }
   }
 
   // Double click for mobile support
@@ -254,7 +262,7 @@
   <div class="tool-drawer-mask"></div>
   <div class="tool-drawer">
     <div class="button-pack">
-      {#if message.finish_reason === 'length'}
+      {#if message.finish_reason === 'length' || message.finish_reason === 'abort'}
       <a
         href={'#'}
         title="Continue "

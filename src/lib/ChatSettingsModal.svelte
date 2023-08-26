@@ -24,8 +24,8 @@
     faDownload,
     faUpload,
     faSquarePlus,
-    faRotateLeft,
-    faCheckCircle
+    faRotateLeft
+    // faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
@@ -34,7 +34,7 @@
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getModelOptions } from './Models.svelte'
+  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -47,6 +47,7 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
+  const imageModelSetting = getChatSettingObjectByKey('imageGenerationModel') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
   const excludeFromProfile = getExcludeFromProfile()
 
@@ -55,6 +56,7 @@
   $: globalStore = $globalStorage
 
   let originalProfile:string
+  let lastProfile:string
   let originalSettings:ChatSettings
 
   onMount(async () => {
@@ -74,6 +76,7 @@
     originalProfile = ''
     originalSettings = {} as ChatSettings
     showProfileMenu = false
+    applyToChat()
     $checkStateChange++
     showSettingsModal = 0
   }
@@ -185,12 +188,16 @@
 
     // Update the models in the settings
     if (modelSetting) {
-      modelSetting.options = await getModelOptions()
+      modelSetting.options = await getChatModelOptions()
+      imageModelSetting.options = await getImageModelOptions()
     }
     // Refresh settings modal
     showSettingsModal++
 
-    setTimeout(() => sizeTextElements(), 0)
+    const profileChanged = lastProfile !== chatSettings.profile
+    lastProfile = chatSettings.profile
+
+    setTimeout(() => sizeTextElements(profileChanged))
   }
 
   const saveProfile = () => {
@@ -292,9 +299,9 @@
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat from Current
                 </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
+                <!-- <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
                   <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
-                </a>
+                </a> -->
                 <hr class="dropdown-divider">
                 <a href={'#'} 
                   class="dropdown-item"

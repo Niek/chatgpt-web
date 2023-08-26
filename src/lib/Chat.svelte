@@ -230,7 +230,8 @@
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
-      } else if (!fillMessage && $currentChatMessages.length && $currentChatMessages[$currentChatMessages.length - 1].finish_reason === 'length') {
+      } else if (!fillMessage && $currentChatMessages.length &&
+        $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant') {
         fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
       }
   
@@ -299,16 +300,21 @@
 
     chatRequest.updating = true
     chatRequest.updatingMessage = 'Getting suggestion for chat name...'
-
     const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
       streaming: false,
       summaryRequest: true,
-      maxTokens: 10
+      maxTokens: 30
     })
-    await response.promiseToFinish()
 
+    try {
+      await response.promiseToFinish()
+    } catch (e) {
+      console.error('Error generating name suggestion', e, e.stack)
+    }
+    chatRequest.updating = false
+    chatRequest.updatingMessage = ''
     if (response.hasError()) {
       addMessage(chatId, {
         role: 'error',

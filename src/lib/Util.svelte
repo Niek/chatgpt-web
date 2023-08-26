@@ -6,9 +6,11 @@
   import { replace } from 'svelte-spa-router'
   // import PromptConfirm from './PromptConfirm.svelte'
   import type { ChatSettings } from './Types.svelte'
-  export const sizeTextElements = () => {
+  export const sizeTextElements = (force?: boolean) => {
     const els = document.querySelectorAll('textarea.auto-size')
-    for (let i:number = 0, l = els.length; i < l; i++) autoGrowInput(els[i] as HTMLTextAreaElement)
+    for (let i:number = 0, l = els.length; i < l; i++) {
+      autoGrowInput(els[i] as HTMLTextAreaElement, force)
+    }
   }
 
   export const autoGrowInputOnEvent = (event: Event) => {
@@ -18,9 +20,9 @@
     autoGrowInput(event.target as HTMLTextAreaElement)
   }
 
-  export const autoGrowInput = (el: HTMLTextAreaElement) => {
+  export const autoGrowInput = (el: HTMLTextAreaElement, force?: boolean) => {
     const anyEl = el as any // Oh how I hate typescript.  All the markup of Java with no real payoff..
-    if (!anyEl.__didAutoGrow) el.style.height = '38px' // don't use "auto" here.  Firefox will over-size.
+    if (force || !anyEl.__didAutoGrow) el.style.height = '38px' // don't use "auto" here.  Firefox will over-size.
     el.style.height = el.scrollHeight + 'px'
     setTimeout(() => {
       if (el.scrollHeight > el.getBoundingClientRect().height + 5) {

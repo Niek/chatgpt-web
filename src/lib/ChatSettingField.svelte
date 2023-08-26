@@ -36,12 +36,12 @@
   buildFieldControls()
 
   onMount(() => {
-    show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+    show = (typeof setting.hide !== 'function') || !setting.hide(chatId, setting)
     buildFieldControls()
   })
 
   afterUpdate(() => {
-    show = (typeof setting.hide !== 'function') || !setting.hide(chatId)
+    show = (typeof setting.hide !== 'function') || !setting.hide(chatId, setting)
     header = valueOf(chatId, setting.header)
     headerClass = valueOf(chatId, setting.headerClass)
     placeholder = valueOf(chatId, setting.placeholder)

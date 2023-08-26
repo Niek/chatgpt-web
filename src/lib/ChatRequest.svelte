@@ -1,16 +1,14 @@
 <script context="module" lang="ts">
     import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
-    import { mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
+    import { cleanContent, mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
-    import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request, RequestImageGeneration } from './Types.svelte'
-    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, getApiKey, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
+    import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request } from './Types.svelte'
+    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getDefaultModel, getRequestSettingList } from './Settings.svelte'
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
-    import { getEndpoint, getModelDetail } from './Models.svelte'
-    import { runOpenAiCompletionRequest } from './ChatRequestOpenAi.svelte'
-    import { runPetalsCompletionRequest } from './ChatRequestPetals.svelte'
+    import { getLeadPrompt, getModelDetail } from './Models.svelte'
 
 export class ChatRequest {
       constructor () {
@@ -48,64 +46,12 @@ export class ChatRequest {
           }
           errorResponse = errorResponse || 'Unexpected Response'
         } catch (e) {
+          console.error(e, e.stack)
           errorResponse = 'Unknown Response'
         }
         throw new Error(`${response.status} - ${errorResponse}`)
       }
     
-      async imageRequest (message: Message, prompt: string, count:number, messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> {
-        const _this = this
-        count = count || 1
-        _this.updating = true
-        _this.updatingMessage = 'Generating Image...'
-        const size = this.chat.settings.imageGenerationSize
-        const request: RequestImageGeneration = {
-          prompt,
-          response_format: 'b64_json',
-          size,
-          n: count
-        }
-        // fetchEventSource doesn't seem to throw on abort,
-        // so we deal with it ourselves
-        _this.controller = new AbortController()
-        const signal = _this.controller.signal
-        const abortListener = (e:Event) => {
-          chatResponse.updateFromError('User aborted request.')
-          signal.removeEventListener('abort', abortListener)
-        }
-        signal.addEventListener('abort', abortListener)
-        // Create request
-        const fetchOptions = {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${getApiKey()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(request),
-          signal
-        }
-        const chatResponse = new ChatCompletionResponse(opts)
-
-        try {
-          const response = await fetch(getEndpoint('dall-e-' + size), fetchOptions)
-          if (!response.ok) {
-            await _this.handleError(response)
-          } else {
-            const json = await response.json()
-            // Remove updating indicator
-            _this.updating = false
-            _this.updatingMessage = ''
-            // console.log('image json', json, json?.data[0])
-            chatResponse.updateImageFromSyncResponse(json, prompt, 'dall-e-' + size)
-          }
-        } catch (e) {
-          chatResponse.updateFromError(e)
-          throw e
-        }
-        message.suppress = true
-        return chatResponse
-      }
-
       /**
        * Send API request
        * @param messages
@@ -123,8 +69,10 @@ export class ChatRequest {
         _this.updating = true
 
         const lastMessage = messages[messages.length - 1]
+        const chatResponse = new ChatCompletionResponse(opts)
+        _this.controller = new AbortController()
 
-        if (chatSettings.imageGenerationSize && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
+        if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
           const im = lastMessage.content.match(imagePromptDetect)
           if (im) {
             // console.log('image prompt request', im)
@@ -136,10 +84,23 @@ export class ChatRequest {
             )
             if (isNaN(n)) n = 1
             n = Math.min(Math.max(1, n), 4)
-            return await this.imageRequest(lastMessage, im[9], n, messages, opts, overrides)
+            lastMessage.suppress = true
+
+            const imageModelDetail = getModelDetail(chatSettings.imageGenerationModel)
+            return await imageModelDetail.request({} as unknown as Request, _this, chatResponse, {
+              ...opts,
+              prompt: im[9],
+              count: n
+            })
+    
+            // (lastMessage, im[9], n, messages, opts, overrides)
             // throw new Error('Image prompt:' + im[7])
           }
         }
+
+        const model = this.getModel()
+        const modelDetail = getModelDetail(model)
+        const maxTokens = getModelMaxTokens(model)
 
         const includedRoles = ['user', 'assistant'].concat(chatSettings.useSystemPrompt ? ['system'] : [])
     
@@ -151,9 +112,6 @@ export class ChatRequest {
     
         // If we're doing continuous chat, do it
         if (!opts.didSummary && !opts.summaryRequest && chatSettings.continuousChat) return await this.doContinuousChat(filtered, opts, overrides)
-    
-        const model = this.getModel()
-        const maxTokens = getModelMaxTokens(model)
 
         // Inject hidden prompts if requested
         // if (!opts.summaryRequest)
@@ -161,7 +119,7 @@ export class ChatRequest {
         const messagePayload = filtered
           .filter(m => { if (m.skipOnce) { delete m.skipOnce; return false } return true })
           .map(m => {
-            const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content }
+            const content = m.content + (m.appendOnce || []).join('\n'); delete m.appendOnce; return { role: m.role, content: cleanContent(chatSettings, content) }
           }) as Message[]
 
         // Parse system and expand prompt if needed
@@ -253,28 +211,16 @@ export class ChatRequest {
           stream: opts.streaming
         }
 
-        // Set-up and make the request
-        const chatResponse = new ChatCompletionResponse(opts)
-
-        const modelDetail = getModelDetail(model)
-
+        // Make the chat completion request
         try {
           // Add out token count to the response handler
-          // (streaming doesn't return counts, so we need to do it client side)
+          // (some endpoints do not return counts, so we need to do it client side)
           chatResponse.setPromptTokenCount(promptTokenCount)
-    
-          // fetchEventSource doesn't seem to throw on abort,
-          // so we deal with it ourselves
-          _this.controller = new AbortController()
-          const signal = _this.controller.signal
-
-          if (modelDetail.type === 'Petals') {
-            await runPetalsCompletionRequest(request, _this as any, chatResponse as any, signal, opts)
-          } else {
-            await runOpenAiCompletionRequest(request, _this as any, chatResponse as any, signal, opts)
-          }
+          // run request for given model
+          await modelDetail.request(request, _this, chatResponse, opts)
         } catch (e) {
         // console.error(e)
+          console.error(e, e.stack)
           _this.updating = false
           _this.updatingMessage = ''
           chatResponse.updateFromError(e.message)
@@ -294,9 +240,10 @@ export class ChatRequest {
         const lastMessage = messages[messages.length - 1]
         const isContinue = lastMessage?.role === 'assistant' && lastMessage.finish_reason === 'length'
         const isUserPrompt = lastMessage?.role === 'user'
+        let results: Message[] = []
+        let injectedPrompt = false
         if (hiddenPromptPrefix && (isUserPrompt || isContinue)) {
-          let injectedPrompt = false
-          const results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
+          results = hiddenPromptPrefix.split(/[\s\r\n]*::EOM::[\s\r\n]*/).reduce((a, m) => {
             m = m.trim()
             if (m.length) {
               if (m.match(/\[\[USER_PROMPT\]\]/)) {
@@ -321,9 +268,21 @@ export class ChatRequest {
             }
           }
           if (injectedPrompt) messages.pop()
-          return results
         }
-        return []
+        const model = this.getModel()
+        const messageDetail = getModelDetail(model)
+        if (getLeadPrompt(this.getChat()).trim() && messageDetail.type === 'chat') {
+          const lastMessage = (results.length && injectedPrompt && !isContinue) ? results[results.length - 1] : messages[messages.length - 1]
+          if (lastMessage?.role !== 'assistant') {
+            const leadMessage = { role: 'assistant', content: getLeadPrompt(this.getChat()) } as Message
+            if (insert) {
+              messages.push(leadMessage)
+            } else {
+              results.push(leadMessage)
+            }
+          }
+        }
+        return results
       }
 
       /**
@@ -358,10 +317,15 @@ export class ChatRequest {
         // Get extra counts for when the prompts are finally sent.
         const countPadding = this.getTokenCountPadding(filtered, chat)
 
+        let threshold = chatSettings.summaryThreshold
+        if (threshold < 1) threshold = Math.round(maxTokens * threshold)
+
         // See if we have enough to apply any of the reduction modes
         const fullPromptSize = countPromptTokens(filtered, model, chat) + countPadding
-        if (fullPromptSize < chatSettings.summaryThreshold) return await continueRequest() // nothing to do yet
+        console.log('Check Continuous Chat', fullPromptSize, threshold)
+        if (fullPromptSize < threshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
+        console.log('Running Continuous Chat Reduction', fullPromptSize, threshold)
 
         // Isolate the pool of messages we're going to reduce
         const pinTop = chatSettings.pinTop
@@ -383,7 +347,7 @@ export class ChatRequest {
            */
     
           let promptSize = countPromptTokens(top.concat(rw), model, chat) + countPadding
-          while (rw.length && rw.length > pinBottom && promptSize >= chatSettings.summaryThreshold) {
+          while (rw.length && rw.length > pinBottom && promptSize >= threshold) {
             const rolled = rw.shift()
             // Hide messages we're "rolling"
             if (rolled) rolled.suppress = true
@@ -415,8 +379,8 @@ export class ChatRequest {
           let promptSummarySize = countMessageTokens(summaryRequest, model, chat)
           // Make sure there is enough room to generate the summary, and try to make sure
           // the last prompt is a user prompt as that seems to work better for summaries
-          while ((topSize + reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
-              (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user')) {
+          while (rw.length > 2 && ((topSize + reductionPoolSize + promptSummarySize + maxSummaryTokens) >= maxTokens ||
+              (reductionPoolSize >= 100 && rw[rw.length - 1]?.role !== 'user'))) {
             bottom.unshift(rw.pop() as Message)
             reductionPoolSize = countPromptTokens(rw, model, chat)
             maxSummaryTokens = getSS()
@@ -458,7 +422,7 @@ export class ChatRequest {
               const mergedPrompts = rw.map(m => {
                 return '[' + (m.role === 'assistant' ? '[[CHARACTER_NAME]]' : '[[USER_NAME]]') + ']\n' +
                   m.content
-              }).join('\n\n')
+              }).join('\n###\n\n')
                 .replaceAll('[[CHARACTER_NAME]]', chatSettings.characterName)
                 .replaceAll('[[USER_NAME]]', 'Me')
               summaryRequest.content = summaryRequestMessage.replaceAll('[[MERGED_PROMPTS]]', mergedPrompts)
@@ -490,6 +454,7 @@ export class ChatRequest {
                 return summary
               }
             } catch (e) {
+              console.error(e, e.stack)
               if (e.message?.includes('network error') && networkRetry > 0) {
                 networkRetry--
                 error = true

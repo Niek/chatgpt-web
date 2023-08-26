@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, hasActiveModels, checkStateChange } from './Storage.svelte'
+  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, checkStateChange } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { afterUpdate, onMount } from 'svelte'
-  import { getPetals } from './ApiUtil.svelte'
-  import { clearModelOptionCache } from './Models.svelte'
+  import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
+  import { set as setOpenAI } from './providers/openai/util.svelte'
+  import { hasActiveModels } from './Models.svelte'
 
 $: apiKey = $apiKeyStorage
 
@@ -26,7 +27,6 @@ onMount(() => {
 })
 
 afterUpdate(() => {
-    clearModelOptionCache()
     hasModels = hasActiveModels()
     pedalsEndpoint = $globalStorage.pedalsEndpoint
     $checkStateChange++
@@ -36,6 +36,7 @@ const setPetalsEnabled = (event: Event) => {
     const el = (event.target as HTMLInputElement)
     setGlobalSettingValueByKey('enablePetals', !!el.checked)
     showPetalsSettings = $globalStorage.enablePetals
+    hasModels = hasActiveModels()
 }
 
 </script>
@@ -64,11 +65,12 @@ const setPetalsEnabled = (event: Event) => {
       <form
         class="field has-addons has-addons-right"
         on:submit|preventDefault={(event) => {
+          let val = ''
           if (event.target && event.target[0].value) {
-            apiKeyStorage.set((event.target[0].value).trim())
-          } else {
-            apiKeyStorage.set('') // remove api key
+            val = (event.target[0].value).trim()
           }
+          setOpenAI({ apiKey: val })
+          hasModels = hasActiveModels()
         }}
       >
         <p class="control is-expanded">
@@ -117,7 +119,10 @@ const setPetalsEnabled = (event: Event) => {
           class="field has-addons has-addons-right"
           on:submit|preventDefault={(event) => {
             if (event.target && event.target[0].value) {
-              setGlobalSettingValueByKey('pedalsEndpoint', (event.target[0].value).trim())
+              const v = event.target[0].value.trim()
+              const v2 = v.replace(/^https:/i, 'wss:').replace(/(^wss:\/\/[^/]+)\/*$/i, '$1' + getPetalsWebsocket())
+              setGlobalSettingValueByKey('pedalsEndpoint', v2)
+              event.target[0].value = v2
             } else {
               setGlobalSettingValueByKey('pedalsEndpoint', '')
             }
@@ -128,7 +133,7 @@ const setPetalsEnabled = (event: Event) => {
               aria-label="PetalsAPI Endpoint"
               type="text"
               class="input"
-              placeholder={getPetals()}
+              placeholder={getPetalsBase() + getPetalsWebsocket()}
               value={$globalStorage.pedalsEndpoint || ''}
             />
           </p>
@@ -148,10 +153,10 @@ const setPetalsEnabled = (event: Event) => {
           <a target="_blank" href="https://petals.dev/">Petals</a> lets you run large language models at home by connecting to a public swarm, BitTorrent-style, without hefty GPU requirements.
         </p>
         <p class="mb-4">
-          You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals/wiki/FAQ:-Frequently-asked-questions#running-a-server">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
+          You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
         </p>
         <p class="mb-4">
-          If you're receiving errors while using Petals, <a target="_blank" href="https://health.petals.dev/">check swarm health</a> and consider <a target="_blank" href="https://github.com/bigscience-workshop/petals/wiki/FAQ:-Frequently-asked-questions#running-a-server">adding your GPU to the swarm</a> to help.
+          If you're receiving errors while using Petals, <a target="_blank" href="https://health.petals.dev/">check swarm health</a> and consider <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">adding your GPU to the swarm</a> to help.
         </p>
         <p class="help is-warning">
           Because Petals uses a public swarm, <b>do not send sensitive information</b> when using Petals.

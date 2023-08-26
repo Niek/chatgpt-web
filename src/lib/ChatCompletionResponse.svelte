@@ -1,9 +1,9 @@
 <script context="module" lang="ts">
 import { setImage } from './ImageStore.svelte'
-import { countTokens } from './Models.svelte'
+import { countTokens, getModelDetail } from './Models.svelte'
 // TODO: Integrate API calls
 import { addMessage, getLatestKnownModel, setLatestKnownModel, subtractRunningTotal, updateMessages, updateRunningTotal } from './Storage.svelte'
-import type { Chat, ChatCompletionOpts, ChatImage, Message, Model, Response, ResponseImage, Usage } from './Types.svelte'
+import type { Chat, ChatCompletionOpts, ChatImage, Message, Model, Response, Usage } from './Types.svelte'
 import { v4 as uuidv4 } from 'uuid'
 
 export class ChatCompletionResponse {
@@ -53,9 +53,9 @@ export class ChatCompletionResponse {
   private finishListeners: ((m: Message[]) => void)[] = []
 
   private initialFillMerge (existingContent:string, newContent:string):string {
-    if (!this.didFill && this.isFill && existingContent && !newContent.match(/^'(t|ll|ve|m|d|re)[^a-z]/i)) {
-      // add a trailing space if our new content isn't a contraction
-      existingContent += ' '
+    const modelDetail = getModelDetail(this.model)
+    if (!this.didFill && this.isFill && modelDetail.preFillMerge) {
+      existingContent = modelDetail.preFillMerge(existingContent, newContent)
     }
     this.didFill = true
     return existingContent
@@ -69,15 +69,15 @@ export class ChatCompletionResponse {
     return this.promptTokenCount
   }
 
-  async updateImageFromSyncResponse (response: ResponseImage, prompt: string, model: Model) {
+  async updateImageFromSyncResponse (images: string[], prompt: string, model: Model) {
     this.setModel(model)
-    for (let i = 0; i < response.data.length; i++) {
-      const d = response.data[i]
+    for (let i = 0; i < images.length; i++) {
+      const b64image = images[i]
       const message = {
         role: 'image',
         uuid: uuidv4(),
         content: prompt,
-        image: await setImage(this.chat.id, { b64image: d.b64_json } as ChatImage),
+        image: await setImage(this.chat.id, { b64image } as ChatImage),
         model,
         usage: {
           prompt_tokens: 0,
@@ -175,7 +175,7 @@ export class ChatCompletionResponse {
       } as Message)
     }
     this.notifyMessageChange()
-    setTimeout(() => this.finish(), 200) // give others a chance to signal the finish first
+    setTimeout(() => this.finish('abort'), 200) // give others a chance to signal the finish first
   }
 
   updateFromClose (force: boolean = false): void {
@@ -212,10 +212,13 @@ export class ChatCompletionResponse {
     })
   }
 
-  private finish = (): void => {
-    this.messages.forEach(m => { m.streaming = false }) // make sure all are marked stopped
-    updateMessages(this.chat.id)
+  finish = (reason: string = ''): void => {
     if (this.finished) return
+    this.messages.forEach(m => {
+      m.streaming = false
+      if (reason) m.finish_reason = reason
+    }) // make sure all are marked stopped
+    updateMessages(this.chat.id)
     this.finished = true
     const message = this.messages[0]
     const model = this.model || getLatestKnownModel(this.chat.settings.model)
