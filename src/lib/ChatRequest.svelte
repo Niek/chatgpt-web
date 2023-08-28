@@ -369,9 +369,9 @@ export class ChatRequest {
           rw = rw.slice(0, 0 - pinBottom)
           let reductionPoolSize = countPromptTokens(rw, model, chat)
           const ss = Math.abs(chatSettings.summarySize)
-          const getSS = ():number => (ss < 1 && ss > 0)
+          const getSS = ():number => Math.ceil((ss < 1 && ss > 0)
             ? Math.round(reductionPoolSize * ss) // If summarySize between 0 and 1, use percentage of reduced
-            : Math.min(ss, reductionPoolSize * 0.5) // If > 1, use token count
+            : Math.min(ss, reductionPoolSize * 0.5)) // If > 1, use token count
           const topSize = countPromptTokens(top, model, chat)
           let maxSummaryTokens = getSS()
           let promptSummary = prepareSummaryPrompt(chatId, maxSummaryTokens)
