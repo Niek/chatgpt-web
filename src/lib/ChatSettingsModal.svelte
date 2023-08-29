@@ -35,6 +35,7 @@
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
   import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
+  import { faClipboard } from '@fortawesome/free-regular-svg-icons'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -97,6 +98,20 @@
     showSettingsModal && showSettings()
   }
   
+  const copySettingsAsUri = () => {
+    // location.protocol + '//' + location.host + location.pathname
+    const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
+      const t = typeof v
+      if (t === 'boolean' || t === 'string' || t === 'number') {
+        a.push(encodeURI(k) + '=' + encodeURI(v as any))
+      }
+      return a
+    }, [] as string[]).join('&')
+    const profileUri = window.location.protocol + '//' + window.location.host + window.location.pathname + uri
+    navigator.clipboard.writeText(profileUri)
+    return profileUri
+  }
+
   const cloneProfile = () => {
     showProfileMenu = false
     const clone = JSON.parse(JSON.stringify(chat.settings))
@@ -311,6 +326,9 @@
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
                   <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
+                </a>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; copySettingsAsUri() }}>
+                  <span class="menu-icon"><Fa icon={faClipboard}/></span> Copy Profile URL to Clipboard
                 </a>
                 <hr class="dropdown-divider">
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={promptDeleteProfile}>
