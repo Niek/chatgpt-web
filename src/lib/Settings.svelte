@@ -36,6 +36,10 @@ export const getRequestSettingList = (): ChatSetting[] => {
       return chatSettingsList.filter(s => s.key in gptDefaults)
 }
 
+export const hasChatSetting = (key: keyof ChatSettings): boolean => {
+      return !!chatSettingLookup[key]
+}
+
 export const getChatSettingObjectByKey = (key: keyof ChatSettings): ChatSetting => {
       const result = chatSettingLookup[key]
       if (!result) console.error(`Chat Setting "${key}" not defined in Settings array.`)

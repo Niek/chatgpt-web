@@ -1,6 +1,6 @@
 <script lang="ts">
   import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, newNameForProfile, setSystemPrompt } from './Profiles.svelte'
-  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile } from './Settings.svelte'
+  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile, hasChatSetting } from './Settings.svelte'
   import {
     saveChatStore,
     chatsStorage,
@@ -102,7 +102,7 @@
     // location.protocol + '//' + location.host + location.pathname
     const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
       const t = typeof v
-      if (t === 'boolean' || t === 'string' || t === 'number') {
+      if (hasChatSetting(k) && (t === 'boolean' || t === 'string' || t === 'number')) {
         a.push(encodeURI(k) + '=' + encodeURI(v as any))
       }
       return a
