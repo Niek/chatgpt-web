@@ -98,6 +98,7 @@ const defaults:ChatSettings = {
   summaryPrompt: '',
   useSystemPrompt: false,
   systemPrompt: '',
+  hideSystemPrompt: false,
   sendSystemPromptLast: false,
   autoStartSession: false,
   trainingPrompts: [],
@@ -256,6 +257,13 @@ const systemPromptSettings: ChatSetting[] = [
         title: 'Prompts used to train.',
         type: 'other',
         hide: (chatId) => true
+      },
+      {
+        key: 'hideSystemPrompt',
+        name: 'Hide System Prompt',
+        title: 'Don\'t show system prompt when displaying message stream.',
+        type: 'boolean',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
       {
         key: 'autoStartSession',

@@ -74,6 +74,7 @@ export type ChatSettings = {
     summaryPrompt: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
+    hideSystemPrompt: boolean;
     sendSystemPromptLast: boolean;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;

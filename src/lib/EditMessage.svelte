@@ -32,12 +32,22 @@
     mangle: false // Do not mangle email addresses
   }
 
+  const getDisplayMessage = ():string => {
+    const content = message.content
+    if (isSystem && chatSettings.hideSystemPrompt) {
+      const result = content.match(/::NOTE::[\s\S]+?::NOTE::/g)
+      return result ? result.map(r => r.replace(/::NOTE::([\s\S]+?)::NOTE::/, '$1')).join('') : '(hidden)'
+    }
+    return content
+  }
+
   const dispatch = createEventDispatcher()
   let editing = false
   let original:string
   let defaultModel:Model
   let imageUrl:string
   let refreshCounter = 0
+  let displayMessage = message.content
 
   onMount(() => {
     defaultModel = chatSettings.model
@@ -46,10 +56,12 @@
         imageUrl = 'data:image/png;base64, ' + i.b64image
       })
     }
+    displayMessage = getDisplayMessage()
   })
 
   afterUpdate(() => {
     if (message.streaming && message.content.slice(-5).includes('```')) refreshCounter++
+    displayMessage = getDisplayMessage()
   })
 
   const edit = () => {
@@ -240,7 +252,7 @@
         {/if}
         {#key refreshCounter}
         <SvelteMarkdown 
-          source={message.content} 
+          source={displayMessage} 
           options={markdownOptions} 
           renderers={{ code: Code, html: Code }}
         />
