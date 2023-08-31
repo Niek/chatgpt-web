@@ -96,6 +96,7 @@ export type ChatSettings = {
     systemMessageStart: string;
     systemMessageEnd: string;
     repetitionPenalty: number;
+    holdSocket: boolean;
     isDirty?: boolean;
   } & Request;
 

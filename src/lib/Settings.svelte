@@ -122,6 +122,7 @@ const defaults:ChatSettings = {
   systemMessageEnd: '',
   leadPrompt: '',
   repetitionPenalty: 1.1,
+  holdSocket: true,
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -448,6 +449,13 @@ const chatSettingsList: ChatSetting[] = [
         key: 'stream',
         name: 'Stream Response',
         title: 'Stream responses as they are generated.',
+        type: 'boolean',
+        hide: hideModelSetting
+      },
+      {
+        key: 'holdSocket',
+        name: 'Continue WebSocket',
+        title: 'Hold WebSocket connection open and try to re-use for each new chat message. Faster, but message delimitation could get mangled.',
         type: 'boolean',
         hide: hideModelSetting
       },
