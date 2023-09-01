@@ -52,20 +52,21 @@ const chatModelBase = {
 } as ModelDetail
 
 export const chatModels : Record<string, ModelDetail> = {
-      // 'enoch/llama-65b-hf': {
-      //   ...chatModelBase,
-      //   label: 'Petals - Llama-65b'
-      // },
-      // 'codellama/CodeLlama-34b-Instruct-hf ': {
-      //   ...chatModelBase,
-      //   label: 'Petals - CodeLlama-34b',
-      //   max: 2048
-      // },
+      'enoch/llama-65b-hf': {
+        ...chatModelBase,
+        label: 'Petals - Llama-65b',
+        max: 2048
+      },
       'timdettmers/guanaco-65b': {
         ...chatModelBase,
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
+      // 'codellama/CodeLlama-34b-Instruct-hf ': {
+      //   ...chatModelBase,
+      //   label: 'Petals - CodeLlama-34b',
+      //   max: 2048
+      // },
       // 'meta-llama/Llama-2-70b-hf': {
       //   ...chatModelBase,
       //   label: 'Petals - Llama-2-70b'
