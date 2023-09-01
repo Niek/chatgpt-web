@@ -118,7 +118,7 @@ export class ChatRequest {
         const chat = _this.chat
         const chatSettings = _this.chat.settings
         const chatId = chat.id
-        const imagePromptDetect = /^\s*(please|can\s+you|will\s+you)*\s*(give|generate|create|show|build|design)\s+(me)*\s*(an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(image|photo|picture|pic)s*\s*(for\s+me)*\s*(of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i
+        const imagePromptDetect = /^\s*(por\s+favor|please|can\s+you|will\s+you)*\s*(crie|gere|imagine|mostre|desenhe|give|generate|create|show|build|design)\s+(me)*\s*(uma|um|an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(imagem|foto|image|photo|picture|pic)s*\s*(for\s+me)*\s*(de|sobre|of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i
         opts.chat = chat
         _this.updating = true
 
