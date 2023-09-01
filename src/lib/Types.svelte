@@ -74,6 +74,7 @@ export type ChatSettings = {
     summaryPrompt: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
+    hideSystemPrompt: boolean;
     sendSystemPromptLast: boolean;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
@@ -95,6 +96,7 @@ export type ChatSettings = {
     systemMessageStart: string;
     systemMessageEnd: string;
     repetitionPenalty: number;
+    holdSocket: boolean;
     isDirty?: boolean;
   } & Request;
 

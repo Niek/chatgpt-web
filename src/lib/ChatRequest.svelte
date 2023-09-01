@@ -21,6 +21,7 @@ export class ChatRequest {
       updating: boolean|number = false
       updatingMessage: string = ''
       controller:AbortController
+      providerData: Record<string, any> = {}
 
       setChat (chat: Chat) {
         this.chat = chat

@@ -36,6 +36,10 @@ export const getRequestSettingList = (): ChatSetting[] => {
       return chatSettingsList.filter(s => s.key in gptDefaults)
 }
 
+export const hasChatSetting = (key: keyof ChatSettings): boolean => {
+      return !!chatSettingLookup[key]
+}
+
 export const getChatSettingObjectByKey = (key: keyof ChatSettings): ChatSetting => {
       const result = chatSettingLookup[key]
       if (!result) console.error(`Chat Setting "${key}" not defined in Settings array.`)
@@ -98,6 +102,7 @@ const defaults:ChatSettings = {
   summaryPrompt: '',
   useSystemPrompt: false,
   systemPrompt: '',
+  hideSystemPrompt: false,
   sendSystemPromptLast: false,
   autoStartSession: false,
   trainingPrompts: [],
@@ -117,6 +122,7 @@ const defaults:ChatSettings = {
   systemMessageEnd: '',
   leadPrompt: '',
   repetitionPenalty: 1.1,
+  holdSocket: true,
   // useResponseAlteration: false,
   // responseAlterations: [],
   isDirty: false
@@ -256,6 +262,13 @@ const systemPromptSettings: ChatSetting[] = [
         title: 'Prompts used to train.',
         type: 'other',
         hide: (chatId) => true
+      },
+      {
+        key: 'hideSystemPrompt',
+        name: 'Hide System Prompt',
+        title: 'Don\'t show system prompt when displaying message stream.',
+        type: 'boolean',
+        hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
       {
         key: 'autoStartSession',
@@ -436,6 +449,13 @@ const chatSettingsList: ChatSetting[] = [
         key: 'stream',
         name: 'Stream Response',
         title: 'Stream responses as they are generated.',
+        type: 'boolean',
+        hide: hideModelSetting
+      },
+      {
+        key: 'holdSocket',
+        name: 'Continue WebSocket',
+        title: 'Hold WebSocket connection open and try to re-use for each new chat message. Faster, but message delimitation could get mangled.',
         type: 'boolean',
         hide: hideModelSetting
       },
