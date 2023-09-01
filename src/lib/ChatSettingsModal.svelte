@@ -1,6 +1,6 @@
 <script lang="ts">
   import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, newNameForProfile, setSystemPrompt } from './Profiles.svelte'
-  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile } from './Settings.svelte'
+  import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile, hasChatSetting } from './Settings.svelte'
   import {
     saveChatStore,
     chatsStorage,
@@ -24,8 +24,8 @@
     faDownload,
     faUpload,
     faSquarePlus,
-    faRotateLeft,
-    faCheckCircle
+    faRotateLeft
+    // faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
@@ -34,7 +34,8 @@
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getModelOptions } from './Models.svelte'
+  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
+  import { faClipboard } from '@fortawesome/free-regular-svg-icons'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -47,6 +48,7 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
+  const imageModelSetting = getChatSettingObjectByKey('imageGenerationModel') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
   const excludeFromProfile = getExcludeFromProfile()
 
@@ -55,6 +57,7 @@
   $: globalStore = $globalStorage
 
   let originalProfile:string
+  let lastProfile:string
   let originalSettings:ChatSettings
 
   onMount(async () => {
@@ -74,6 +77,7 @@
     originalProfile = ''
     originalSettings = {} as ChatSettings
     showProfileMenu = false
+    applyToChat()
     $checkStateChange++
     showSettingsModal = 0
   }
@@ -94,6 +98,20 @@
     showSettingsModal && showSettings()
   }
   
+  const copySettingsAsUri = () => {
+    // location.protocol + '//' + location.host + location.pathname
+    const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
+      const t = typeof v
+      if (hasChatSetting(k) && (t === 'boolean' || t === 'string' || t === 'number')) {
+        a.push(encodeURI(k) + '=' + encodeURI(v as any))
+      }
+      return a
+    }, [] as string[]).join('&')
+    const profileUri = window.location.protocol + '//' + window.location.host + window.location.pathname + uri
+    navigator.clipboard.writeText(profileUri)
+    return profileUri
+  }
+
   const cloneProfile = () => {
     showProfileMenu = false
     const clone = JSON.parse(JSON.stringify(chat.settings))
@@ -185,12 +203,16 @@
 
     // Update the models in the settings
     if (modelSetting) {
-      modelSetting.options = await getModelOptions()
+      modelSetting.options = await getChatModelOptions()
+      imageModelSetting.options = await getImageModelOptions()
     }
     // Refresh settings modal
     showSettingsModal++
 
-    setTimeout(() => sizeTextElements(), 0)
+    const profileChanged = lastProfile !== chatSettings.profile
+    lastProfile = chatSettings.profile
+
+    setTimeout(() => sizeTextElements(profileChanged))
   }
 
   const saveProfile = () => {
@@ -292,9 +314,9 @@
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat from Current
                 </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
+                <!-- <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
                   <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
-                </a>
+                </a> -->
                 <hr class="dropdown-divider">
                 <a href={'#'} 
                   class="dropdown-item"
@@ -304,6 +326,9 @@
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
                   <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
+                </a>
+                <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; copySettingsAsUri() }}>
+                  <span class="menu-icon"><Fa icon={faClipboard}/></span> Copy Profile URL to Clipboard
                 </a>
                 <hr class="dropdown-divider">
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={promptDeleteProfile}>

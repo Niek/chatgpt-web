@@ -1,31 +1,12 @@
 <script context="module" lang="ts">
-    import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
-import { supportedModelKeys } from './Models.svelte'
-import { imageGenerationSizeTypes } from './Settings.svelte'
+  import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
+  import { supportedChatModelKeys } from './Models.svelte'
+  import { ChatRequest } from './ChatRequest.svelte'
+  import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
 
-export type Model = typeof supportedModelKeys[number];
+export type Model = typeof supportedChatModelKeys[number];
 
-export type ImageGenerationSizes = typeof imageGenerationSizeTypes[number];
-
-export type RequestType = 'OpenAIChat' | 'OpenAIDall-e' | 'Petals'
-
-export type ModelDetail = {
-    type: RequestType;
-    label?: string;
-    start?: string;
-    stop?: string[];
-    deliminator?: string;
-    userStart?: string,
-    userEnd?: string,
-    assistantStart?: string,
-    assistantEnd?: string,
-    systemStart?: string,
-    systemEnd?: string,
-    leadPrompt?: string,
-    prompt: number;
-    completion: number;
-    max: number;
-  };
+export type RequestType = 'chat' | 'instruct' | 'image'
 
 export type Usage = {
     completion_tokens: number;
@@ -63,23 +44,6 @@ export type ResponseAlteration = {
     replace: string;
   }
 
-export type ResponseImageDetail = {
-    url: string;
-    b64_json: string;
-  }
-
-export type ResponseImage = {
-    created: number;
-    data: ResponseImageDetail[];
-  }
-
-export type RequestImageGeneration = {
-    prompt: string;
-    n?: number;
-    size?: ImageGenerationSizes;
-    response_format?: keyof ResponseImageDetail;
-  }
-
 export type Request = {
     model: Model;
     messages?: Message[];
@@ -110,19 +74,20 @@ export type ChatSettings = {
     summaryPrompt: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
+    hideSystemPrompt: boolean;
     sendSystemPromptLast: boolean;
     autoStartSession: boolean;
     hiddenPromptPrefix: string;
     hppContinuePrompt: string; // hiddenPromptPrefix used, optional glue when trying to continue truncated completion
     hppWithSummaryPrompt: boolean; // include hiddenPromptPrefix when before summary prompt
-    imageGenerationSize: ImageGenerationSizes;
+    imageGenerationModel: Model;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];
     startSequence: string;
     stopSequence: string;
     aggressiveStop: boolean;
-    deliminator: string;
+    delimiter: string;
     userMessageStart: string;
     userMessageEnd: string;
     assistantMessageStart: string;
@@ -130,6 +95,8 @@ export type ChatSettings = {
     leadPrompt: string;
     systemMessageStart: string;
     systemMessageEnd: string;
+    repetitionPenalty: number;
+    holdSocket: boolean;
     isDirty?: boolean;
   } & Request;
 
@@ -171,13 +138,6 @@ export type Chat = {
 
 export type Response = ResponseOK & ResponseError;
 
-export type ResponseModels = {
-    object: 'list';
-    data: {
-      id: string;
-    }[];
-  };
-
 export type ChatCompletionOpts = {
     chat: Chat;
     autoAddMessages: boolean;
@@ -186,7 +146,9 @@ export type ChatCompletionOpts = {
     didSummary?:boolean;
     streaming?:boolean;
     onMessageChange?: (messages: Message[]) => void;
-    fillMessage?:Message,
+    fillMessage?:Message;
+    count?:number;
+    prompt?:string;
   };
 
 export type ChatSortOptions = 'name'|'created'|'lastUse'|'lastAccess';
@@ -276,7 +238,7 @@ export type ChatSetting = {
     header?: string | ValueFn;
     headerClass?: string | ValueFn;
     placeholder?: string | ValueFn;
-    hide?: (chatId:number) => boolean;
+    hide?: (chatId:number, setting:ChatSetting) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
     fieldControls?: FieldControl[];
     beforeChange?: (chatId:number, setting:ChatSetting, value:any) => boolean;
@@ -302,6 +264,38 @@ export type SettingPrompt = {
     onYes?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
     onNo?: (setting:ChatSetting, newVal:any, oldVal:any)=>boolean;
     passed: boolean;
+  };
+
+export type ModelDetail = {
+    type: RequestType;
+    id?: string;
+    modelQuery?: string;
+    label?: string;
+    start?: string;
+    stop?: string[];
+    delimiter?: string;
+    userStart?: string,
+    userEnd?: string,
+    assistantStart?: string,
+    assistantEnd?: string,
+    systemStart?: string,
+    systemEnd?: string,
+    leadPrompt?: string,
+    prompt?: number;
+    completion?: number;
+    max: number;
+    opt?: Record<string, any>;
+    preFillMerge?: (existingContent:string, newContent:string)=>string;
+    enabled?: boolean;
+    hide?: boolean;
+    check: (modelDetail: ModelDetail) => Promise<void>;
+    getTokens: (val: string) => number[];
+    countPromptTokens: (prompts:Message[], model:Model, chat: Chat) => number;
+    countMessageTokens: (message:Message, model:Model, chat: Chat) => number;
+    getEndpoint: (model: Model) => string;
+    help: string;
+    hideSetting: (chatId: number, setting: ChatSetting) => boolean;
+    request: (request: Request, chatRequest: ChatRequest, chatResponse: ChatCompletionResponse, opts: ChatCompletionOpts) => Promise<ChatCompletionResponse>;
   };
 
 </script>
