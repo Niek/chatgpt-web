@@ -42,6 +42,8 @@ export const chatRequest = async (
       const signal = chatRequest.controller.signal
       const providerData = chatRequest.providerData.petals || {}
       chatRequest.providerData.petals = providerData
+      const modelChanged = model !== providerData.lastModel
+      providerData.lastModel = model
       let ws: WebSocket = providerData.ws
       const abortListener = (e:Event) => {
         chatRequest.updating = false
@@ -221,7 +223,8 @@ export const chatRequest = async (
         const kb = providerData.knownBuffer.replace(rgxp, '')
         const lp = lastPrompt.replace(rgxp, '')
         const lm = kb === lp
-        if (!lm || countTokens(model, providerData.knownBuffer + inputPrompt) >= maxTokens) {
+        if (!chatSettings.holdSocket || modelChanged || !lm ||
+            countTokens(model, providerData.knownBuffer + inputPrompt) >= maxTokens) {
           wsOpen && ws.close()
           ws = await getNewWs()
         }
