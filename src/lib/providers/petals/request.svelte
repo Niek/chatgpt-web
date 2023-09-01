@@ -214,7 +214,7 @@ export const chatRequest = async (
         }
       })
 
-      const wsOpen = (ws && ws.readyState !== WebSocket.CLOSED)
+      const wsOpen = (ws && ws.readyState === WebSocket.OPEN)
 
       if (!chatSettings.holdSocket || wsOpen) {
         const rgxp = new RegExp('(<s>|</s>|\\s|' + escapeRegex(stopSequence) + ')', 'g')
@@ -227,7 +227,7 @@ export const chatRequest = async (
         }
       }
 
-      if (!ws || ws.readyState === WebSocket.CLOSED) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
         ws = await getNewWs()
       }
 
@@ -255,13 +255,14 @@ export const chatRequest = async (
       chatResponse.setPromptTokenCount(countTokens(model, providerData.knownBuffer))
       ws.onmessage = event => {
         // Remove updating indicator
-        chatRequest.updating = 1 // hide indicator, but still signal we're updating
+        chatRequest.updating = chatRequest.updating && 1 // hide indicator, but still signal we're updating
         chatRequest.updatingMessage = ''
         const response = JSON.parse(event.data)
         if (!response.ok) {
           if (response.traceback.includes('Maximum length exceeded')) {
             return chatResponse.finish('length')
           }
+          if (!chatRequest.updating) return
           const err = new Error('Error in response: ' + response.traceback)
           console.error(err)
           chatResponse.updateFromError(err.message)
