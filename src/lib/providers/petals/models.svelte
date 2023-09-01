@@ -66,10 +66,10 @@ export const chatModels : Record<string, ModelDetail> = {
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
-      'meta-llama/Llama-2-70b-hf': {
-        ...chatModelBase,
-        label: 'Petals - Llama-2-70b'
-      },
+      // 'meta-llama/Llama-2-70b-hf': {
+      //   ...chatModelBase,
+      //   label: 'Petals - Llama-2-70b'
+      // },
       'meta-llama/Llama-2-70b-chat-hf': {
         ...chatModelBase,
         label: 'Petals - Llama-2-70b-chat',
