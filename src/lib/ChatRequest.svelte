@@ -3,7 +3,7 @@
     import { cleanContent, mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request } from './Types.svelte'
-    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage } from './Storage.svelte'
+    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage, getChat } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getDefaultModel, getRequestSettingList } from './Settings.svelte'
     import { v4 as uuidv4 } from 'uuid'
@@ -62,7 +62,8 @@ export class ChatRequest {
       async sendRequest (messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> {
         // TODO:  Continue to break this method down to smaller chunks
         const _this = this
-        const chat = _this.chat
+        const chat = getChat(_this.chat.id)
+        this.setChat(chat)
         const chatSettings = _this.chat.settings
         const chatId = chat.id
         const imagePromptDetect = /^\s*(please|can\s+you|will\s+you)*\s*(give|generate|create|show|build|design)\s+(me)*\s*(an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(image|photo|picture|pic)s*\s*(for\s+me)*\s*(of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i

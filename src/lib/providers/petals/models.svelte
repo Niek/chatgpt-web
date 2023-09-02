@@ -22,14 +22,14 @@ const chatModelBase = {
     See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.
     <i>Note that some models may mot be functional.  See <a target="_blank" href="https://health.petals.dev">https://health.petals.dev</a> for current status.</i>`,
   check: checkModel,
-  start: '<s>',
+  start: '###',
   stop: ['###', '</s>'],
-  delimiter: '\n###\n\n',
-  userStart: 'User:\n',
+  delimiter: '\n###\n###',
+  userStart: ' User: ',
   userEnd: '',
-  assistantStart: '[[CHARACTER_NAME]]:\n',
+  assistantStart: ' [[CHARACTER_NAME]]: ',
   assistantEnd: '',
-  leadPrompt: '[[CHARACTER_NAME]]:\n',
+  leadPrompt: ' [[CHARACTER_NAME]]: ',
   systemEnd: '',
   prompt: 0.000000, // $0.000 per 1000 tokens prompt
   completion: 0.000000, // $0.000 per 1000 tokens completion
@@ -52,35 +52,35 @@ const chatModelBase = {
 } as ModelDetail
 
 export const chatModels : Record<string, ModelDetail> = {
-      // 'enoch/llama-65b-hf': {
-      //   ...chatModelBase,
-      //   label: 'Petals - Llama-65b'
-      // },
-      // 'codellama/CodeLlama-34b-Instruct-hf ': {
-      //   ...chatModelBase,
-      //   label: 'Petals - CodeLlama-34b',
-      //   max: 2048
-      // },
+      'enoch/llama-65b-hf': {
+        ...chatModelBase,
+        label: 'Petals - Llama-65b',
+        max: 2048
+      },
       'timdettmers/guanaco-65b': {
         ...chatModelBase,
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
-      'meta-llama/Llama-2-70b-hf': {
-        ...chatModelBase,
-        label: 'Petals - Llama-2-70b'
-      },
+      // 'codellama/CodeLlama-34b-Instruct-hf ': {
+      //   ...chatModelBase,
+      //   label: 'Petals - CodeLlama-34b',
+      //   max: 2048
+      // },
+      // 'meta-llama/Llama-2-70b-hf': {
+      //   ...chatModelBase,
+      //   label: 'Petals - Llama-2-70b'
+      // },
       'meta-llama/Llama-2-70b-chat-hf': {
         ...chatModelBase,
         label: 'Petals - Llama-2-70b-chat',
         start: '<s>',
         stop: ['</s>', '[INST]', '[/INST]', '<<SYS>>', '<</SYS>>'],
-        delimiter: ' </s><s>',
-        userStart: '[INST][[SYSTEM_PROMPT]]',
+        delimiter: '</s><s>',
+        userStart: '[INST] User: ',
         userEnd: ' [/INST]',
-        assistantStart: '[[SYSTEM_PROMPT]][[USER_PROMPT]]',
-        systemStart: '<<SYS>>\n',
-        systemEnd: '\n<</SYS>>\n\n'
+        systemStart: '[INST] <<SYS>>\n',
+        systemEnd: '\n<</SYS>> [/INST]'
         // leadPrompt: ''
       },
       'stabilityai/StableBeluga2': {
