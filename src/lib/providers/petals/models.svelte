@@ -24,7 +24,7 @@ const chatModelBase = {
   check: checkModel,
   start: '###',
   stop: ['###', '</s>'],
-  delimiter: '###',
+  delimiter: '\n###\n###',
   userStart: ' User: ',
   userEnd: '',
   assistantStart: ' [[CHARACTER_NAME]]: ',
