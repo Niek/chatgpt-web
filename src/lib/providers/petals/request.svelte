@@ -163,7 +163,14 @@ export const chatRequest = async (
 
       let maxLen = Math.min(opts.maxTokens || chatSettings.max_tokens || maxTokens, maxTokens)
 
-      let inputPrompt = startSequence
+      let midDel = ''
+      for (let i = 0, l = delimiter.length; i < l; i++) {
+        const chk = delimiter.slice(0, i)
+        if ((providerData.knownBuffer || '').slice(0 - (i + 1)) === chk) midDel = chk
+      }
+      midDel = midDel.length ? delimiter.slice(0, 0 - midDel.length) : delimiter
+
+      let inputPrompt = midDel
 
       const getNewWs = ():Promise<WebSocket> => new Promise<WebSocket>((resolve, reject) => {
         // console.warn('requesting new ws')
@@ -185,7 +192,7 @@ export const chatRequest = async (
             throw err
           }
           // console.warn('got new ws')
-          inputPrompt = lastPrompt
+          inputPrompt = lastPrompt + delimiter
           providerData.knownBuffer = ''
           providerData.ws = nws
           resolve(nws)
@@ -234,7 +241,7 @@ export const chatRequest = async (
         ws = await getNewWs()
       }
 
-      inputPrompt += delimiter + nextPrompt
+      inputPrompt += nextPrompt
       providerData.knownBuffer += inputPrompt
     
       // console.log(
