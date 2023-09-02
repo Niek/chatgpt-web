@@ -89,6 +89,7 @@
 
   const continueIncomplete = () => {
     editing = false
+    truncateFromMessage(chatId, message.uuid)
     $continueMessage = message.uuid
   }
 
