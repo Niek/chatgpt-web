@@ -76,12 +76,11 @@ export const chatModels : Record<string, ModelDetail> = {
         label: 'Petals - Llama-2-70b-chat',
         start: '<s>',
         stop: ['</s>', '[INST]', '[/INST]', '<<SYS>>', '<</SYS>>'],
-        delimiter: ' </s><s>',
-        userStart: '[INST][[SYSTEM_PROMPT]]',
+        delimiter: '</s><s>',
+        userStart: '[INST] User: ',
         userEnd: ' [/INST]',
-        assistantStart: '[[SYSTEM_PROMPT]][[USER_PROMPT]]',
-        systemStart: '<<SYS>>\n',
-        systemEnd: '\n<</SYS>>\n\n'
+        systemStart: '[INST] <<SYS>>\n',
+        systemEnd: '\n<</SYS>> [/INST]'
         // leadPrompt: ''
       },
       'stabilityai/StableBeluga2': {
