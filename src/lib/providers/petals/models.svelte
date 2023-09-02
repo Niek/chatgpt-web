@@ -22,14 +22,14 @@ const chatModelBase = {
     See <a target="_blank" href="https://platform.openai.com/docs/api-reference/chat/create">this overview</a> to start, though not all settings translate to Petals.
     <i>Note that some models may mot be functional.  See <a target="_blank" href="https://health.petals.dev">https://health.petals.dev</a> for current status.</i>`,
   check: checkModel,
-  start: '<s>',
+  start: '###',
   stop: ['###', '</s>'],
-  delimiter: '\n###\n\n',
-  userStart: 'User:\n',
+  delimiter: '###',
+  userStart: ' User: ',
   userEnd: '',
-  assistantStart: '[[CHARACTER_NAME]]:\n',
+  assistantStart: ' [[CHARACTER_NAME]]: ',
   assistantEnd: '',
-  leadPrompt: '[[CHARACTER_NAME]]:\n',
+  leadPrompt: ' [[CHARACTER_NAME]]: ',
   systemEnd: '',
   prompt: 0.000000, // $0.000 per 1000 tokens prompt
   completion: 0.000000, // $0.000 per 1000 tokens completion
