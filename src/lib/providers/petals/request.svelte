@@ -140,11 +140,13 @@ export const chatRequest = async (
         doLead = false
       }
       // const inputArray = buildInputArray(rMessages).map(m => m.content)
-      const lInputArray = buildInputArray(rMessages.slice(0, -1)).map(m => m.content)
+      const lInputArray = doLead
+        ? buildInputArray(rMessages.slice(0, -1)).map(m => m.content)
+        : buildInputArray(rMessages.slice()).map(m => m.content)
       const nInputArray = buildInputArray(rMessages.slice(-1)).map(m => m.content)
       const leadPrompt = (leadPromptSequence && doLead) ? delimiter + leadPromptSequence : ''
       const lastPrompt = startSequence + lInputArray.join(delimiter)
-      const nextPrompt = nInputArray.slice(-1).join('') + leadPrompt
+      const nextPrompt = doLead ? nInputArray.slice(-1).join('') + leadPrompt : ''
     
       // set up the request
       chatResponse.onFinish(() => {
@@ -170,7 +172,7 @@ export const chatRequest = async (
       }
       midDel = midDel.length ? delimiter.slice(0, 0 - midDel.length) : delimiter
 
-      let inputPrompt = midDel
+      let inputPrompt = doLead ? midDel : ''
 
       const getNewWs = ():Promise<WebSocket> => new Promise<WebSocket>((resolve, reject) => {
         // console.warn('requesting new ws')
@@ -192,7 +194,7 @@ export const chatRequest = async (
             throw err
           }
           // console.warn('got new ws')
-          inputPrompt = lastPrompt + delimiter
+          inputPrompt = lastPrompt + (doLead ? delimiter : '')
           providerData.knownBuffer = ''
           providerData.ws = nws
           resolve(nws)
