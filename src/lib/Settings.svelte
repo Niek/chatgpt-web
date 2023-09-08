@@ -21,7 +21,7 @@ import {
     import { getModelDetail, getTokens } from './Models.svelte'
 
 const defaultModel:Model = 'gpt-3.5-turbo'
-const defaultModelPetals:Model = 'meta-llama/Llama-2-70b-chat-hf'
+const defaultModelPetals:Model = 'stabilityai/StableBeluga2'
 
 export const getDefaultModel = (): Model => {
   if (!get(apiKeyStorage)) return defaultModelPetals
