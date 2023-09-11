@@ -14,7 +14,7 @@ const hideSettings = {
   n: true,
   presence_penalty: true,
   frequency_penalty: true
-}
+} as any
 
 const chatModelBase = {
   type: 'instruct', // Used for chat, but these models operate like instruct models -- you have to manually structure the messages sent to them
@@ -85,8 +85,14 @@ export const chatModels : Record<string, ModelDetail> = {
       },
       'stabilityai/StableBeluga2': {
         ...chatModelBase,
-        label: 'Petals - StableBeluga-2'
+        label: 'Petals - StableBeluga-2-70b'
       }
+      // 'tiiuae/falcon-180B-chat': {
+      //   ...chatModelBase,
+      //   start: '###',
+      //   stop: ['###', '</s>', '<|endoftext|>'],
+      //   label: 'Petals - Falcon-180b-chat'
+      // }
 }
 
 </script>

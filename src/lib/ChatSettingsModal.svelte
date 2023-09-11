@@ -102,8 +102,8 @@
     // location.protocol + '//' + location.host + location.pathname
     const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
       const t = typeof v
-      if (hasChatSetting(k) && (t === 'boolean' || t === 'string' || t === 'number')) {
-        a.push(encodeURI(k) + '=' + encodeURI(v as any))
+      if (hasChatSetting(k as any) && (t === 'boolean' || t === 'string' || t === 'number')) {
+        a.push(encodeURIComponent(k) + '=' + encodeURIComponent(v as any))
       }
       return a
     }, [] as string[]).join('&')

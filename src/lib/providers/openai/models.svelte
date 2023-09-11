@@ -23,7 +23,7 @@ const hiddenSettings = {
       repetitionPenalty: true,
       holdSocket: true
       // leadPrompt: true
-}
+} as any
 
 const chatModelBase = {
   type: 'chat',

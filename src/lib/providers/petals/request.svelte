@@ -70,13 +70,15 @@ export const chatRequest = async (
       stopSequences = stopSequences.sort((a, b) => b.length - a.length)
       const stopSequencesC = stopSequences.filter(s => s !== stopSequence)
       const maxTokens = getModelMaxTokens(model)
+      const userAfterSystem = true
     
       // Enforce strict order of messages
       const fMessages = (request.messages || [] as Message[])
       const rMessages = fMessages.reduce((a, m, i) => {
         a.push(m)
+        // if (m.role === 'system') m.content = m.content.trim()
         const nm = fMessages[i + 1]
-        if (m.role === 'system' && (!nm || nm.role !== 'user')) {
+        if (userAfterSystem && m.role === 'system' && (!nm || nm.role !== 'user')) {
           const nc = {
             role: 'user',
             content: ''
@@ -97,7 +99,7 @@ export const chatRequest = async (
       const buildMessage = (m: Message): string => {
         return getRoleTag(m.role, model, chat) + m.content + getRoleEnd(m.role, model, chat)
       }
-      const buildInputArray = (a) => {
+      const buildInputArray = (a: Message[]) => {
         return a.reduce((a, m, i) => {
           let c = buildMessage(m)
           let replace = false
@@ -141,7 +143,7 @@ export const chatRequest = async (
       }
       // const inputArray = buildInputArray(rMessages).map(m => m.content)
       const lInputArray = doLead
-        ? buildInputArray(rMessages.slice(0, -1)).map(m => m.content)
+        ? (rMessages.length > 1 ? buildInputArray(rMessages.slice(0, -1)).map(m => m.content) : [])
         : buildInputArray(rMessages.slice()).map(m => m.content)
       const nInputArray = buildInputArray(rMessages.slice(-1)).map(m => m.content)
       const leadPrompt = (leadPromptSequence && doLead) ? delimiter + leadPromptSequence : ''
@@ -194,7 +196,7 @@ export const chatRequest = async (
             throw err
           }
           // console.warn('got new ws')
-          inputPrompt = lastPrompt + (doLead ? delimiter : '')
+          inputPrompt = lastPrompt + (doLead && lInputArray.length ? delimiter : '')
           providerData.knownBuffer = ''
           providerData.ws = nws
           resolve(nws)
@@ -217,11 +219,12 @@ export const chatRequest = async (
           }
           // update with real count
           chatResponse.setPromptTokenCount(promptTokenCount)
-          nws.send(JSON.stringify({
+          const req = {
             type: 'open_inference_session',
             model,
             max_length: chatSettings.holdSocket ? maxTokens : maxLen
-          }))
+          } as any
+          nws.send(JSON.stringify(req))
         }
       })
 
