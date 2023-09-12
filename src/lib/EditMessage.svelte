@@ -359,7 +359,7 @@
         {/if}
         </a>
       {/if}
-      {#if !imageUrl}
+      {#if !isImage}
         <a
           href={'#'}
           title="Copy to Clipboard"
