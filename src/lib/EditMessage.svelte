@@ -6,7 +6,7 @@
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
@@ -357,6 +357,18 @@
         {:else}
         <span class="icon"><Fa icon={faEyeSlash} /></span>
         {/if}
+        </a>
+      {/if}
+      {#if !isImage}
+        <a
+          href={'#'}
+          title="Copy to Clipboard"
+          class="msg-image button is-small"
+          on:click|preventDefault={() => {
+            navigator.clipboard.writeText(message.content)
+          }}
+        >
+        <span class="icon"><Fa icon={faClipboard} /></span>
         </a>
       {/if}
       {#if imageUrl}
