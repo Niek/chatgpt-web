@@ -19,7 +19,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fullhuman/postcss-purgecss": "^5.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "@rollup/plugin-dsv": "^3.0.2",
+    "@rollup/plugin-dsv": "^3.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.4.6",
     "@tauri-apps/cli": "^1.5.2",
     "@tsconfig/svelte": "^5.0.0",
