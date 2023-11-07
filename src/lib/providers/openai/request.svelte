@@ -102,6 +102,9 @@ type RequestImageGeneration = {
     n?: number;
     size?: string;
     response_format?: keyof ResponseImageDetail;
+    model?: string;
+    quality?: string;
+    style?: string;
   }
 
 export const imageRequest = async (
@@ -118,11 +121,17 @@ export const imageRequest = async (
   const imageModel = chatSettings.imageGenerationModel
   const imageModelDetail = getModelDetail(imageModel)
   const size = imageModelDetail.opt?.size || '256x256'
+  const model = imageModelDetail.opt?.model
+  const style = imageModelDetail.opt?.style
+  const quality = imageModelDetail.opt?.quality
   const request: RequestImageGeneration = {
         prompt,
         response_format: 'b64_json',
         size,
-        n: count
+        n: count,
+        ...(model ? { model } : {}),
+        ...(style ? { style } : {}),
+        ...(quality ? { quality } : {})
   }
   // fetchEventSource doesn't seem to throw on abort,
   // so we deal with it ourselves
