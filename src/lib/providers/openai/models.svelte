@@ -65,8 +65,8 @@ const gpt35 = {
 }
 const gpt3516k = {
       ...chatModelBase,
-      prompt: 0.000003, // $0.003 per 1000 tokens prompt
-      completion: 0.000004, // $0.004 per 1000 tokens completion
+      prompt: 0.000001, // $0.001 per 1000 tokens prompt
+      completion: 0.0000015, // $0.0015 per 1000 tokens completion
       max: 16384 // 16k max token buffer
 }
 const gpt4 = {
@@ -81,22 +81,24 @@ const gpt432k = {
       completion: 0.00012, // $0.12 per 1000 tokens completion
       max: 32768 // 32k max token buffer
 }
-const gpt4120kpreview = {
+const gpt4128kpreview = {
       ...chatModelBase,
-      prompt: 0.00003, // $0.03 per 1000 tokens prompt
-      completion: 0.00006, // $0.06 per 1000 tokens completion
-      max: 128000 // 128k max token buffer
+      prompt: 0.00001, // $0.01 per 1000 tokens prompt
+      completion: 0.00003, // $0.03 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
 }
 
 export const chatModels : Record<string, ModelDetail> = {
-  'gpt-3.5-turbo': { ...gpt35 },
+  'gpt-3.5-turbo': { ...gpt3516k },
   'gpt-3.5-turbo-0301': { ...gpt35 },
   'gpt-3.5-turbo-0613': { ...gpt35 },
+  'gpt-3.5-turbo-1106': { ...gpt3516k },
   'gpt-3.5-turbo-16k': { ...gpt3516k },
+  'gpt-3.5-turbo-16k-0613': { ...gpt3516k },
   'gpt-4': { ...gpt4 },
   'gpt-4-0314': { ...gpt4 },
   'gpt-4-0613': { ...gpt4 },
-  'gpt-4-1106-preview': { ...gpt4120kpreview },
+  'gpt-4-1106-preview': { ...gpt4128kpreview },
   'gpt-4-32k': { ...gpt432k },
   'gpt-4-32k-0314': { ...gpt432k },
   'gpt-4-32k-0613': { ...gpt432k }
