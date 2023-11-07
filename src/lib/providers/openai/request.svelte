@@ -121,18 +121,17 @@ export const imageRequest = async (
   const imageModel = chatSettings.imageGenerationModel
   const imageModelDetail = getModelDetail(imageModel)
   const size = imageModelDetail.opt?.size || '256x256'
-  const model = imageModelDetail.opt?.model;
-  const style = imageModelDetail.opt?.style;
-  const quality = imageModelDetail.opt?.quality;
+  const model = imageModelDetail.opt?.model
+  const style = imageModelDetail.opt?.style
+  const quality = imageModelDetail.opt?.quality
   const request: RequestImageGeneration = {
         prompt,
         response_format: 'b64_json',
         size,
         n: count,
-        // Include these parameters if specified in the image model
-        ...(model ? { model } :{}),
-        ...(style ? { style } :{}),
-        ...(quality ? { quality } :{})
+        ...(model ? { model } : {}),
+        ...(style ? { style } : {}),
+        ...(quality ? { quality } : {})
   }
   // fetchEventSource doesn't seem to throw on abort,
   // so we deal with it ourselves

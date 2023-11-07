@@ -96,7 +96,7 @@ export const chatModels : Record<string, ModelDetail> = {
   'gpt-4': { ...gpt4 },
   'gpt-4-0314': { ...gpt4 },
   'gpt-4-0613': { ...gpt4 },
-  'gpt-4-1106-preview': {...gpt4120kpreview},
+  'gpt-4-1106-preview': { ...gpt4120kpreview },
   'gpt-4-32k': { ...gpt432k },
   'gpt-4-32k-0314': { ...gpt432k },
   'gpt-4-32k-0613': { ...gpt432k }
