@@ -9,7 +9,7 @@
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, setGlobalSettingValueByKey } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals'
-  import { dispatchModalEsc } from './lib/Util.svelte'
+  import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
   import { set as setOpenAI } from './lib/providers/openai/util.svelte'
   import { hasActiveModels } from './lib/Models.svelte'
 
@@ -72,3 +72,18 @@
     on:click={closeModal}
   />
 </Modals>
+
+<svelte:window
+  on:keydown={(e) => checkModalEsc(e)}
+/>
+
+<style>
+    .backdrop {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: transparent
+    }
+</style>
