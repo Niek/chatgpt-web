@@ -27,7 +27,6 @@
     faPaperPlane,
     faGear,
     faPenToSquare,
-    faMicrophone,
     faLightbulb,
     faCommentSlash,
     faCircleCheck
@@ -342,18 +341,6 @@
         $checkStateChange++
       }
     })
-  }
-
-  const recordToggle = () => {
-    ttsStop()
-    if (chatRequest.updating) return
-    // Check if already recording - if so, stop - else start
-    if (recording) {
-      recognition?.stop()
-      recording = false
-    } else {
-      recognition?.start()
-    }
   }
 
 </script>

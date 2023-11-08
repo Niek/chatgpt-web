@@ -57,12 +57,12 @@ const chatModelBase = {
 } as ModelDetail
 
 // Reference: https://openai.com/pricing#language-models
-const gpt35 = {
-      ...chatModelBase,
-      prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
-      completion: 0.000002, // $0.002 per 1000 tokens completion
-      max: 4096 // 4k max token buffer
-}
+// const gpt35 = {
+//       ...chatModelBase,
+//       prompt: 0.0000015, // $0.0015 per 1000 tokens prompt
+//       completion: 0.000002, // $0.002 per 1000 tokens completion
+//       max: 4096 // 4k max token buffer
+// }
 const gpt3516k = {
       ...chatModelBase,
       prompt: 0.000001, // $0.001 per 1000 tokens prompt
@@ -75,12 +75,12 @@ const gpt4 = {
       completion: 0.00006, // $0.06 per 1000 tokens completion
       max: 8192 // 8k max token buffer
 }
-const gpt432k = {
-      ...chatModelBase,
-      prompt: 0.00006, // $0.06 per 1000 tokens prompt
-      completion: 0.00012, // $0.12 per 1000 tokens completion
-      max: 32768 // 32k max token buffer
-}
+// const gpt432k = {
+//       ...chatModelBase,
+//       prompt: 0.00006, // $0.06 per 1000 tokens prompt
+//       completion: 0.00012, // $0.12 per 1000 tokens completion
+//       max: 32768 // 32k max token buffer
+// }
 const gpt4128kpreview = {
       ...chatModelBase,
       prompt: 0.00001, // $0.01 per 1000 tokens prompt
