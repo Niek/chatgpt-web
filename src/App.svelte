@@ -72,18 +72,3 @@
     on:click={closeModal}
   />
 </Modals>
-
-<svelte:window
-  on:keydown={(e) => checkModalEsc(e)}
-/>
-
-<style>
-  .backdrop {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    background: transparent
-  }
-</style>
