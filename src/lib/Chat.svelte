@@ -27,6 +27,7 @@
     faPaperPlane,
     faGear,
     faPenToSquare,
+    faMicrophone,
     faLightbulb,
     faCommentSlash,
     faCircleCheck
@@ -343,6 +344,18 @@
     })
   }
 
+  const recordToggle = () => {
+      ttsStop()
+      if (chatRequest.updating) return
+      // Check if already recording - if so, stop - else start
+      if (recording) {
+          recognition?.stop()
+          recording = false
+      } else {
+          recognition?.start()
+      }
+  }
+
 </script>
 {#if chat}
 <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
@@ -400,13 +413,14 @@
           }
         }}
         on:input={e => autoGrowInputOnEvent(e)}
-        bind:this={input}></textarea>
+        bind:this={input}
+      />
     </p>
-    <!-- <p class="control mic" class:is-hidden={!recognition}>
+    <p class="control mic" class:is-hidden={!recognition}>
       <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
         ><span class="icon"><Fa icon={faMicrophone} /></span></button
       >
-    </p> -->
+    </p>
     <p class="control settings">
       <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
     </p>
