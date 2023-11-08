@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, checkStateChange } from './Storage.svelte'
+  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, checkStateChange } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { afterUpdate, onMount } from 'svelte'
+  import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
+  import { set as setOpenAI } from './providers/openai/util.svelte'
   import { hasActiveModels } from './Models.svelte'
 
 $: apiKey = $apiKeyStorage
 
+let showPetalsSettings = $globalStorage.enablePetals
 let pedalsEndpoint = $globalStorage.pedalsEndpoint
 let hasModels = hasActiveModels()
 
@@ -29,10 +32,17 @@ afterUpdate(() => {
     $checkStateChange++
 })
 
+const setPetalsEnabled = (event: Event) => {
+    const el = (event.target as HTMLInputElement)
+    setGlobalSettingValueByKey('enablePetals', !!el.checked)
+    showPetalsSettings = $globalStorage.enablePetals
+    hasModels = hasActiveModels()
+}
+
 </script>
 
 <section class="section">
-  <!--<article class="message">
+  <article class="message">
     <div class="message-body">
     <p class="mb-4">
       <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
@@ -94,11 +104,11 @@ afterUpdate(() => {
   <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
     <div class="message-body">
       <label class="label" for="enablePetals">
-        <input 
+        <input
         type="checkbox"
-        class="checkbox" 
+        class="checkbox"
         id="enablePetals"
-        checked={!!$globalStorage.enablePetals} 
+        checked={!!$globalStorage.enablePetals}
         on:click={setPetalsEnabled}
       >
         Use Petals API and Models (Llama 2)
@@ -153,7 +163,7 @@ afterUpdate(() => {
         </p>
       {/if}
     </div>
-  </article> -->
+  </article>
   {#if apiKey}
     <article class="message is-info">
       <div class="message-body">
