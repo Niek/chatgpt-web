@@ -21,7 +21,8 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
             })
           ]
         }
-      }
+      },
+      base: './'
     }
   } else {
     return {

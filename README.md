@@ -14,7 +14,7 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 ## Features
 * **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
 * **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
-* **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GTP-4) are supported.
+* **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GPT-4) are supported.
 * **Cheaper**: ChatGPT-web uses the commercial OpenAI API, so it's much cheaper than a ChatGPT Plus subscription.
 * **Fast**: ChatGPT-web is a single-page web app, so it's [fast and responsive](https://pagespeed.web.dev/analysis/https-niek-github-io-chatgpt-web/8xv5uwrnes).
 * **Mobile-friendly**: ChatGPT-web is mobile-friendly, so you can use it on your phone.
@@ -23,6 +23,8 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 * **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
 * **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them with one click.
 * **Desktop app**: ChatGPT-web can be bundled as a desktop app, so you can use it outside of the browser.
+* **Image generation**: ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
+* **Streaming**: ChatGPT-web can stream the response from the API, so you can see the response as it's being generated.
 
 ## Development
 
@@ -45,7 +47,7 @@ docker compose up -d
 ```
 
 ## Mocked api
-If you don't want to wait for the API to respond, you can use the mocked API instead. To use the mocked API, edit the `.env` file at root of the project ans set the key `VITE_API_BASE=http://localhost:5174` in it. Then, run the `docker compose up -d` command above.
+If you don't want to wait for the API to respond, you can use the mocked API instead. To use the mocked API, edit the `.env` file at root of the project and set the key `VITE_API_BASE=http://localhost:5174` in it. Then, run the `docker compose up -d` command above.
 
 You can customize the mocked API response by sending a message that consists of `d` followed by a number, it will delay the response the the specified number of seconds. You can customize the length of the response by including `l` followed by a number, it will return a response with the specified number of sentences.
 For example, sending the message `d2 l10` will result in a 2 seconds delay and 10 sentences response.
@@ -77,6 +79,14 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/yang-lyu-902/"><img src="https://avatars.githubusercontent.com/u/15838074?v=4?s=100" width="100px;" alt="Yang Lyu"/><br /><sub><b>Yang Lyu</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/issues?q=author%3Ayanglyu902" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ryanhex53"><img src="https://avatars.githubusercontent.com/u/360426?v=4?s=100" width="100px;" alt="ryanhex53"/><br /><sub><b>ryanhex53</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=ryanhex53" title="Code">💻</a> <a href="#design-ryanhex53" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/shivan2418"><img src="https://avatars.githubusercontent.com/u/40603805?v=4?s=100" width="100px;" alt="Emil Elgaard"/><br /><sub><b>Emil Elgaard</b></sub></a><br /><a href="#ideas-shivan2418" title="Ideas, Planning, & Feedback">🤔</a> <a href="#design-shivan2418" title="Design">🎨</a> <a href="https://github.com/Niek/chatgpt-web/commits?author=shivan2418" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/felixschwamm"><img src="https://avatars.githubusercontent.com/u/50438383?v=4?s=100" width="100px;" alt="felixschwamm"/><br /><sub><b>felixschwamm</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=felixschwamm" title="Code">💻</a> <a href="#ideas-felixschwamm" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Webifi"><img src="https://avatars.githubusercontent.com/u/5082671?v=4?s=100" width="100px;" alt="Webifi"/><br /><sub><b>Webifi</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Webifi" title="Code">💻</a> <a href="#ideas-Webifi" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Madrawn"><img src="https://avatars.githubusercontent.com/u/1095756?v=4?s=100" width="100px;" alt="Daniel Dengler"/><br /><sub><b>Daniel Dengler</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Madrawn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://ashkanph.github.io"><img src="https://avatars.githubusercontent.com/u/22937754?v=4?s=100" width="100px;" alt="Ashkan"/><br /><sub><b>Ashkan</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Ashkanph" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/antopoid"><img src="https://avatars.githubusercontent.com/u/83502336?v=4?s=100" width="100px;" alt="antopoid"/><br /><sub><b>antopoid</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=antopoid" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MitchBoss"><img src="https://avatars.githubusercontent.com/u/42152605?v=4?s=100" width="100px;" alt="MitchBoss"/><br /><sub><b>MitchBoss</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=MitchBoss" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

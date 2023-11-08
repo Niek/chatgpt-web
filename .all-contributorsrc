@@ -127,11 +127,68 @@
         "design",
         "code"
       ]
+    },
+    {
+      "login": "felixschwamm",
+      "name": "felixschwamm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50438383?v=4",
+      "profile": "https://github.com/felixschwamm",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Webifi",
+      "name": "Webifi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5082671?v=4",
+      "profile": "https://github.com/Webifi",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Madrawn",
+      "name": "Daniel Dengler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1095756?v=4",
+      "profile": "https://github.com/Madrawn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Ashkanph",
+      "name": "Ashkan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22937754?v=4",
+      "profile": "http://ashkanph.github.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "antopoid",
+      "name": "antopoid",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83502336?v=4",
+      "profile": "https://github.com/antopoid",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "MitchBoss",
+      "name": "MitchBoss",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42152605?v=4",
+      "profile": "https://github.com/MitchBoss",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "files": [
     "README.md"
   ],
   "commitConvention": "angular",
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
