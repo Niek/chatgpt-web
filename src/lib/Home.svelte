@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, checkStateChange } from './Storage.svelte'
+  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, checkStateChange } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { afterUpdate, onMount } from 'svelte'
