@@ -1,9 +1,4 @@
 <script lang="ts">
-  import Fa from 'svelte-fa/src/fa.svelte'
-  import {
-    faGithub
-  } from '@fortawesome/free-brands-svg-icons/index'
-
   let classes = ''
 export { classes as class }
   export let pin: boolean = false

@@ -3,13 +3,10 @@
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { afterUpdate, onMount } from 'svelte'
-  import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
-  import { set as setOpenAI } from './providers/openai/util.svelte'
   import { hasActiveModels } from './Models.svelte'
 
 $: apiKey = $apiKeyStorage
 
-let showPetalsSettings = $globalStorage.enablePetals
 let pedalsEndpoint = $globalStorage.pedalsEndpoint
 let hasModels = hasActiveModels()
 
@@ -31,13 +28,6 @@ afterUpdate(() => {
     pedalsEndpoint = $globalStorage.pedalsEndpoint
     $checkStateChange++
 })
-
-const setPetalsEnabled = (event: Event) => {
-    const el = (event.target as HTMLInputElement)
-    setGlobalSettingValueByKey('enablePetals', !!el.checked)
-    showPetalsSettings = $globalStorage.enablePetals
-    hasModels = hasActiveModels()
-}
 
 </script>
 
