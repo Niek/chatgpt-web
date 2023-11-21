@@ -29,7 +29,7 @@
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^3.3.3",
     "dexie": "^4.0.1-beta.1",
-    "eslint-config-standard-with-typescript": "^35.0.0",
+    "eslint-config-standard-with-typescript": "^40.0.0",
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.4",
     "gpt-tokenizer": "^2.1.2",
