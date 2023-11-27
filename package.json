@@ -38,7 +38,7 @@
     "sass": "^1.69.5",
     "stacking-order": "^2.0.0",
     "svelte": "^3.59.2",
-    "svelte-check": "^3.6.0",
+    "svelte-check": "^3.6.2",
     "svelte-fa": "^3.0.3",
     "svelte-highlight": "^7.4.2",
     "svelte-local-storage-store": "^0.6.4",
