@@ -40,7 +40,7 @@
     "svelte": "^3.59.2",
     "svelte-check": "^3.6.0",
     "svelte-fa": "^3.0.3",
-    "svelte-highlight": "^7.4.1",
+    "svelte-highlight": "^7.4.2",
     "svelte-local-storage-store": "^0.6.4",
     "svelte-markdown": "^0.2.3",
     "svelte-modals": "^1.2.1",
