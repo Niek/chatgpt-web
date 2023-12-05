@@ -268,7 +268,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   display: flex;
 
   ul.svelte-typeahead-list {
-    max-height: calc(60vh);
+    max-height: 60vh;
     overflow: auto;
 
     > li {
