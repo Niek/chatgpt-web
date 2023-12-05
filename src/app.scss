@@ -264,6 +264,38 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
 }
 
+[data-svelte-typeahead] {
+  display: flex;
+
+  ul.svelte-typeahead-list {
+    max-height: calc(60vh);
+    overflow: auto;
+
+    > li:not(:last-of-type) {
+      padding: 0;
+      border-bottom: 0 none;
+    }
+  }
+  
+  &[aria-expanded="true"] {
+    z-index: 3;
+  }
+
+  [data-svelte-search] {
+    flex: 1;
+  
+    input {
+      @extend .button;
+      @extend .default-text;
+      text-align: center;
+  
+      &::placeholder {
+        @extend .default-text;
+      }
+    }
+  }
+}
+
 /* Bulma layout hacks */
 
 .chat-option-menu.navbar-item {
