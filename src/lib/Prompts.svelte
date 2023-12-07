@@ -1,4 +1,5 @@
 <script lang="ts">
+  import DOMPurify from 'dompurify'
   import Typeahead from 'svelte-typeahead'
   import prompts from '../awesome-chatgpt-prompts/prompts.csv'
 
@@ -29,7 +30,11 @@
       let:result
     >
       <a class="dropdown-item" href="#top" on:click|preventDefault title="{result.original.prompt}">
-        {@html result.string}
+        <!--
+          Sanitize result.string because Typeahead introduces HTML tags and prompt
+          strings are untrusted.
+        -->
+        {@html DOMPurify.sanitize(result.string, { ALLOWED_TAGS: ['mark'] })}
       </a>
     </Typeahead>
   </div>
