@@ -3,7 +3,7 @@
   import flourite from 'flourite'
 
   // Import both dark and light styles
-  import { github, githubDark } from 'svelte-highlight/styles'
+  import { github, githubDark } from 'svelte-highlight/styles/index'
 
   // Style depends on system theme
   const style = window.matchMedia('(prefers-color-scheme: dark)').matches ? githubDark : github
@@ -25,7 +25,7 @@
     plaintext,
     yaml,
     type LanguageType
-  } from 'svelte-highlight/languages'
+  } from 'svelte-highlight/languages/index'
 
   export const type: 'code' = 'code'
   export const raw: string = ''
