@@ -1,39 +1,42 @@
 <script lang="ts">
+  import DOMPurify from 'dompurify'
+  import Typeahead from 'svelte-typeahead'
   import prompts from '../awesome-chatgpt-prompts/prompts.csv'
 
   const inputPrompt = (prompt: string) => {
     input.value = prompt
     input.style.height = 'auto'
     input.style.height = input.scrollHeight + 'px'
-    active = false
   }
 
-  export let input : HTMLTextAreaElement
+  const extract = (prompt: typeof prompts[0]) => prompt.act
 
-  let active: boolean = false
+  export let input : HTMLTextAreaElement
 </script>
 
 {#if input}
 <div class="columns is-centered">
   <div class="column is-half">
-    <div class="dropdown is-fullwidth" class:is-active={active}>
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <div class="dropdown-trigger" on:click={() => { active = !active }}>
-        <button class="button is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu">
-          <span>Select a pre-made prompt</span>
-          <span class="icon is-small">👇</span>
-        </button>
-      </div>
-      <div class="dropdown-menu" id="dropdown-menu" role="menu">
-        <div class="dropdown-content">
-          {#each prompts as prompt}
-            <a title={prompt.prompt} class="dropdown-item" href={'#'} on:click|preventDefault={() => inputPrompt(prompt.prompt)}>
-              {prompt.act}
-            </a>
-          {/each}
-        </div>
-      </div>
-    </div>
+    <Typeahead
+      data={prompts}
+      {extract}
+      label="Select a pre-made prompt"
+      hideLabel
+      showDropdownOnFocus
+      showAllResultsOnFocus
+      inputAfterSelect="clear"
+      on:select={({ detail }) => inputPrompt(detail.original.prompt)}
+      placeholder="Select a pre-made prompt 👇"
+      let:result
+    >
+      <a class="dropdown-item" href="#top" on:click|preventDefault title="{result.original.prompt}">
+        <!--
+          Sanitize result.string because Typeahead introduces HTML tags and prompt
+          strings are untrusted.
+        -->
+        {@html DOMPurify.sanitize(result.string, { ALLOWED_TAGS: ['mark'] })}
+      </a>
+    </Typeahead>
   </div>
 </div>
 
