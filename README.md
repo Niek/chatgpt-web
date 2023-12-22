@@ -88,6 +88,7 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/antopoid"><img src="https://avatars.githubusercontent.com/u/83502336?v=4?s=100" width="100px;" alt="antopoid"/><br /><sub><b>antopoid</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=antopoid" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MitchBoss"><img src="https://avatars.githubusercontent.com/u/42152605?v=4?s=100" width="100px;" alt="MitchBoss"/><br /><sub><b>MitchBoss</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=MitchBoss" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/eltociear"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Eltociear Ashimine"/><br /><sub><b>Ikko Eltociear Ashimine</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=eltociear" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jaxtew"><img src="https://avatars.githubusercontent.com/u/6759159?v=4?s=100" width="100px;" alt="Jackson Stewart"/><br /><sub><b>Jackson Stewart</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/issues?q=author%3Ajaxtew" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
