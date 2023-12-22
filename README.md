@@ -90,6 +90,9 @@ You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](ht
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/eltociear"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Eltociear Ashimine"/><br /><sub><b>Ikko Eltociear Ashimine</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=eltociear" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jaxtew"><img src="https://avatars.githubusercontent.com/u/6759159?v=4?s=100" width="100px;" alt="Jackson Stewart"/><br /><sub><b>Jackson Stewart</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/issues?q=author%3Ajaxtew" title="Bug reports">🐛</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nielthiart"><img src="https://avatars.githubusercontent.com/u/154435?v=4?s=100" width="100px;" alt="Niel Thiart"/><br /><sub><b>Niel Thiart</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=nielthiart" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
