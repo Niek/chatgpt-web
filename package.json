@@ -31,7 +31,7 @@
     "copy-to-clipboard": "^3.3.3",
     "dexie": "^4.0.1-beta.5",
     "dompurify": "^3.0.6",
-    "eslint-config-standard-with-typescript": "^35.0.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
     "eslint-plugin-svelte3": "^4.0.0",
     "flourite": "^1.2.4",
     "gpt-tokenizer": "^2.1.2",
