@@ -11,7 +11,7 @@
 
   const extract = (prompt: typeof prompts[0]) => prompt.act
 
-  export let input : HTMLTextAreaElement
+  export let input: HTMLTextAreaElement
 </script>
 
 {#if input}
@@ -25,7 +25,7 @@
       showDropdownOnFocus
       showAllResultsOnFocus
       inputAfterSelect="clear"
-      on:select={({ detail }) => inputPrompt(detail.original.prompt)}
+      on:select={({ detail }) => { inputPrompt(detail.original.prompt) }}
       placeholder="Select a pre-made prompt 👇"
       let:result
     >

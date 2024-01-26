@@ -2,7 +2,7 @@
   import { params } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
   import { chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption } from './Storage.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import { faSquarePlus, faKey } from '@fortawesome/free-solid-svg-icons/index'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
   import logo from '../assets/logo.svg'
@@ -12,12 +12,12 @@
   import { hasActiveModels } from './Models.svelte'
 
   $: sortedChats = $chatsStorage.sort(getChatSortOption().sortFn)
-  $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
+  $: activeChatId = $params?.chatId ? parseInt($params.chatId) : undefined
 
   let sortOption = getChatSortOption()
   let hasModels = hasActiveModels()
 
-  const onStateChange = (...args:any) => {
+  const onStateChange = (...args: any) => {
     sortOption = getChatSortOption()
     sortedChats = $chatsStorage.sort(sortOption.sortFn)
     hasModels = hasActiveModels()
@@ -45,7 +45,7 @@
         <li><a href={'#'} class="is-disabled">No chats yet...</a></li>
       {:else}
         {#key $checkStateChange}
-        {#each sortedChats as chat, i}       
+        {#each sortedChats as chat, i}
         {#key chat.id}
         <ChatMenuItem activeChatId={activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
         {/key}
@@ -66,7 +66,7 @@
             <div class="dropdown-content">
               {#each Object.values(chatSortOptions) as opt}
               <a href={'#'} class="dropdown-item" class:is-active={sortOption === opt} on:click|preventDefault={() => { showSortMenu = false; setChatSortOption(opt.value) }}>
-                <span class="menu-icon"><Fa icon={opt.icon}/></span> 
+                <span class="menu-icon"><Fa icon={opt.icon}/></span>
                 {opt.text}
               </a>
               {/each}

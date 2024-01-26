@@ -38,61 +38,61 @@ const chatModelBase = {
   getEndpoint: (model) => get(globalStorage).pedalsEndpoint || (getPetalsBase() + getPetalsWebsocket()),
   getTokens: (value) => llamaTokenizer.encode(value),
   hideSetting: (chatId, setting) => !!hideSettings[setting.key],
-  countMessageTokens: (message:Message, model:Model, chat: Chat):number => {
-        const delim = getDelimiter(chat)
-        return countTokens(model, getRoleTag(message.role, model, chat) + ': ' +
+  countMessageTokens: (message: Message, model: Model, chat: Chat): number => {
+    const delim = getDelimiter(chat)
+    return countTokens(model, getRoleTag(message.role, model, chat) + ': ' +
         message.content + getRoleEnd(message.role, model, chat) + (delim || '###'))
   },
-  countPromptTokens: (prompts:Message[], model:Model, chat: Chat):number => {
-        return prompts.reduce((a, m) => {
-          a += countMessageTokens(m, model, chat)
-          return a
-        }, 0) + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
+  countPromptTokens: (prompts: Message[], model: Model, chat: Chat): number => {
+    return prompts.reduce((a, m) => {
+      a += countMessageTokens(m, model, chat)
+      return a
+    }, 0) + countTokens(model, getStartSequence(chat)) + countTokens(model, getLeadPrompt(chat))
   }
 } as ModelDetail
 
-export const chatModels : Record<string, ModelDetail> = {
-      'enoch/llama-65b-hf': {
-        ...chatModelBase,
-        label: 'Petals - Llama-65b',
-        max: 2048
-      },
-      'timdettmers/guanaco-65b': {
-        ...chatModelBase,
-        label: 'Petals - Guanaco-65b',
-        max: 2048
-      },
-      // 'codellama/CodeLlama-34b-Instruct-hf ': {
-      //   ...chatModelBase,
-      //   label: 'Petals - CodeLlama-34b',
-      //   max: 2048
-      // },
-      // 'meta-llama/Llama-2-70b-hf': {
-      //   ...chatModelBase,
-      //   label: 'Petals - Llama-2-70b'
-      // },
-      'meta-llama/Llama-2-70b-chat-hf': {
-        ...chatModelBase,
-        label: 'Petals - Llama-2-70b-chat',
-        start: '<s>',
-        stop: ['</s>', '[INST]', '[/INST]', '<<SYS>>', '<</SYS>>'],
-        delimiter: '</s><s>',
-        userStart: '[INST] User: ',
-        userEnd: ' [/INST]',
-        systemStart: '[INST] <<SYS>>\n',
-        systemEnd: '\n<</SYS>> [/INST]'
-        // leadPrompt: ''
-      },
-      'stabilityai/StableBeluga2': {
-        ...chatModelBase,
-        label: 'Petals - StableBeluga-2-70b'
-      }
-      // 'tiiuae/falcon-180B-chat': {
-      //   ...chatModelBase,
-      //   start: '###',
-      //   stop: ['###', '</s>', '<|endoftext|>'],
-      //   label: 'Petals - Falcon-180b-chat'
-      // }
+export const chatModels: Record<string, ModelDetail> = {
+  'enoch/llama-65b-hf': {
+    ...chatModelBase,
+    label: 'Petals - Llama-65b',
+    max: 2048
+  },
+  'timdettmers/guanaco-65b': {
+    ...chatModelBase,
+    label: 'Petals - Guanaco-65b',
+    max: 2048
+  },
+  // 'codellama/CodeLlama-34b-Instruct-hf ': {
+  //   ...chatModelBase,
+  //   label: 'Petals - CodeLlama-34b',
+  //   max: 2048
+  // },
+  // 'meta-llama/Llama-2-70b-hf': {
+  //   ...chatModelBase,
+  //   label: 'Petals - Llama-2-70b'
+  // },
+  'meta-llama/Llama-2-70b-chat-hf': {
+    ...chatModelBase,
+    label: 'Petals - Llama-2-70b-chat',
+    start: '<s>',
+    stop: ['</s>', '[INST]', '[/INST]', '<<SYS>>', '<</SYS>>'],
+    delimiter: '</s><s>',
+    userStart: '[INST] User: ',
+    userEnd: ' [/INST]',
+    systemStart: '[INST] <<SYS>>\n',
+    systemEnd: '\n<</SYS>> [/INST]'
+    // leadPrompt: ''
+  },
+  'stabilityai/StableBeluga2': {
+    ...chatModelBase,
+    label: 'Petals - StableBeluga-2-70b'
+  }
+  // 'tiiuae/falcon-180B-chat': {
+  //   ...chatModelBase,
+  //   start: '###',
+  //   stop: ['###', '</s>', '<|endoftext|>'],
+  //   label: 'Petals - Falcon-180b-chat'
+  // }
 }
 
 </script>

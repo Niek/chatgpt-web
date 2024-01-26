@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import {
     faGear,
     faTrash,
@@ -30,7 +30,7 @@
   import { hasActiveModels } from './Models.svelte'
 
   export let chatId
-  export const show = (showHide:boolean = true) => {
+  export const show = (showHide: boolean = true) => {
     showChatMenu = showHide
   }
   export let style: string = 'is-right'
@@ -161,8 +161,8 @@
 
 <div class="dropdown {style}" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
   <div class="dropdown-trigger">
-    <button class="button is-ghost default-text" aria-haspopup="true" 
-      aria-controls="dropdown-menu3" 
+    <button class="button is-ghost default-text" aria-haspopup="true"
+      aria-controls="dropdown-menu3"
       on:click|preventDefault|stopPropagation={() => { showChatMenu = !showChatMenu }}
       >
       <span class="icon "><Fa icon={faEllipsis}/></span>
@@ -230,5 +230,5 @@
   </div>
 </div>
 
-<input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
-<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={(e) => { importChatFromFile(e) }} bind:this={chatFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={(e) => { importProfileFromFile(e) }} bind:this={profileFileInput} >

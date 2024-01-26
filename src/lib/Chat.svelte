@@ -21,7 +21,7 @@
   import Messages from './Messages.svelte'
   import { restartProfile } from './Profiles.svelte'
   import { afterUpdate, onMount, onDestroy } from 'svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import {
     faArrowUpFromBracket,
     faPaperPlane,
@@ -56,7 +56,7 @@
   let showSettingsModal
 
   let scDelay
-  const onStateChange = (...args:any) => {
+  const onStateChange = (...args: any) => {
     if (!chat) return
     clearTimeout(scDelay)
     setTimeout(() => {
@@ -86,10 +86,10 @@
       }
     })
   }
-  
+
   $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
 
-  const afterChatLoad = (...args:any) => {
+  const afterChatLoad = (...args: any) => {
     scrollToBottom()
   }
 
@@ -123,10 +123,10 @@
 
     // Try to detect speech recognition support
     if ('SpeechRecognition' in window) {
-      // @ts-ignore
+      // @ts-expect-error
       recognition = new window.SpeechRecognition()
     } else if ('webkitSpeechRecognition' in window) {
-      // @ts-ignore
+      // @ts-expect-error
       recognition = new window.webkitSpeechRecognition() // eslint-disable-line new-cap
     }
 
@@ -191,7 +191,7 @@
     focusInput()
   }
 
-  const ttsStart = (text:string, recorded:boolean) => {
+  const ttsStart = (text: string, recorded: boolean) => {
     // Use TTS to read the response, if query was recorded
     if (recorded && 'SpeechSynthesisUtterance' in window) {
       const utterance = new SpeechSynthesisUtterance(text)
@@ -205,7 +205,7 @@
     }
   }
 
-  let waitingForCancel:any = 0
+  let waitingForCancel: any = 0
 
   const cancelRequest = () => {
     if (!waitingForCancel) {
@@ -217,12 +217,12 @@
     chatRequest.controller.abort()
   }
 
-  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
+  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message | undefined = undefined): Promise<void> => {
     // Compose the system prompt message if there are no messages yet - disabled for now
     if (chatRequest.updating) return
 
     lastSubmitRecorded = recorded
-  
+
     if (!skipInput) {
       chat.sessionStarted = true
       saveChatStore()
@@ -234,11 +234,11 @@
         $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant') {
         fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
       }
-  
+
       // Clear the input value
       input.value = ''
       input.blur()
-  
+
       // Resize back to single line height
       input.style.height = 'auto'
     }
@@ -279,7 +279,7 @@
     } catch (e) {
       console.error(e)
     }
-  
+
     window.removeEventListener('scroll', checkUserScroll)
 
     chatRequest.updating = false
@@ -397,7 +397,7 @@
 {/if}
 </div>
 <Footer class="prompt-input-container" strongMask={true}>
-  <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
+  <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={async () => { await submitForm() }}>
     <p class="control is-expanded">
       <textarea
         class="input is-info is-focused chat-input auto-size"

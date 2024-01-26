@@ -4,11 +4,11 @@
     import type { ModelDetail } from '../../Types.svelte'
     import { getApiBase, getEndpointModels } from '../../ApiUtil.svelte'
 
-type ResponseModels = {
-  object?: string;
-  data: {
-    id: string;
-  }[];
+interface ResponseModels {
+  object?: string
+  data: Array<{
+    id: string
+  }>
 }
 
 let availableModels: Record<string, boolean> | undefined
@@ -25,35 +25,35 @@ const getSupportedModels = async (): Promise<Record<string, boolean>> => {
   const openAiKey = get(apiKeyStorage)
   if (!openAiKey) return {}
   try {
-        const result = (await (
-          await fetch(getApiBase() + getEndpointModels(), {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${openAiKey}`,
-              'Content-Type': 'application/json'
-            }
-          })
-        ).json()) as ResponseModels
-        availableModels = result.data.reduce((a, v) => {
-          a[v.id] = v
-          return a
-        }, {})
-        return availableModels
+    const result = (await (
+      await fetch(getApiBase() + getEndpointModels(), {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${openAiKey}`,
+          'Content-Type': 'application/json'
+        }
+      })
+    ).json()) as ResponseModels
+    availableModels = result.data.reduce((a, v) => {
+      a[v.id] = v
+      return a
+    }, {})
+    return availableModels
   } catch (e) {
-        availableModels = {}
-        clearTimeout(_resetSupportedModelsTimer)
-        _resetSupportedModelsTimer = setTimeout(() => { availableModels = undefined }, 1000)
-        return availableModels
+    availableModels = {}
+    clearTimeout(_resetSupportedModelsTimer)
+    _resetSupportedModelsTimer = setTimeout(() => { availableModels = undefined }, 1000)
+    return availableModels
   }
 }
 
 export const checkModel = async (modelDetail: ModelDetail) => {
   const supportedModels = await getSupportedModels()
   if (modelDetail.type === 'chat' || modelDetail.type === 'instruct') {
-        modelDetail.enabled = !!supportedModels[modelDetail.modelQuery || '']
+    modelDetail.enabled = !!supportedModels[modelDetail.modelQuery || '']
   } else {
-        // image request.  If we have any models, allow image endpoint
-        modelDetail.enabled = !!Object.keys(supportedModels).length
+    // image request.  If we have any models, allow image endpoint
+    modelDetail.enabled = !(Object.keys(supportedModels).length === 0)
   }
 }
 

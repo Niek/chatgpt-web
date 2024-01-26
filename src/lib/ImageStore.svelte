@@ -6,7 +6,7 @@
   let _hasIndexedDb = !!window.indexedDB
   const dbCheck = _hasIndexedDb && window.indexedDB.open('test')
   if (_hasIndexedDb) dbCheck.onerror = () => { _hasIndexedDb = false }
-  
+
   let imageCache: Record<string, ChatImage> = {}
 
   class ChatImageStore extends Dexie {
@@ -23,20 +23,20 @@
 
   export const hasIndexedDb = () => _hasIndexedDb
 
-  export const getImage = async (uuid:string): Promise<ChatImage> => {
+  export const getImage = async (uuid: string): Promise<ChatImage> => {
     let image = imageCache[uuid]
     if (image || !_hasIndexedDb) return image
-    image = await imageDb.images.get(uuid) as any
+    image = await imageDb.images.get(uuid)
     imageCache[uuid] = image
     return image
   }
 
-  export const deleteImage = async (chatId:number, uuid:string): Promise<void> => {
+  export const deleteImage = async (chatId: number, uuid: string): Promise<void> => {
     const cached = imageCache[uuid]
     if (cached) cached.chats = cached.chats?.filter(c => c !== chatId)
     if (!cached?.chats?.length) delete imageCache[uuid]
     if (_hasIndexedDb) {
-      const stored:ChatImage = await imageDb.images.get({ id: uuid }) as any
+      const stored: ChatImage = await imageDb.images.get({ id: uuid })
       if (stored) stored.chats = stored.chats?.filter(c => c !== chatId)
       if (!stored?.chats?.length) {
         imageDb.images.delete(uuid)
@@ -53,11 +53,11 @@
     }
   }
 
-  export const setImage = async (chatId:number, image:ChatImage): Promise<ChatImage> => {
+  export const setImage = async (chatId: number, image: ChatImage): Promise<ChatImage> => {
     image.id = image.id || uuidv4()
     let current: ChatImage
     if (_hasIndexedDb) {
-      current = await imageDb.images.get({ id: image.id }) as any
+      current = await imageDb.images.get({ id: image.id })
     } else {
       current = imageCache[image.id]
     }

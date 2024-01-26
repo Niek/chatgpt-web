@@ -14,29 +14,29 @@ let pedalsEndpoint = $globalStorage.pedalsEndpoint
 let hasModels = hasActiveModels()
 
 onMount(() => {
-    if (!$started) {
-      $started = true
-      // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
-      if (hasActiveModels() && getChat($lastChatId)) {
-        const chatId = $lastChatId
-        $lastChatId = 0
-        replace(`/chat/${chatId}`)
-      }
+  if (!$started) {
+    $started = true
+    // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
+    if (hasActiveModels() && getChat($lastChatId)) {
+      const chatId = $lastChatId
+      $lastChatId = 0
+      replace(`/chat/${chatId}`)
     }
-    $lastChatId = 0
+  }
+  $lastChatId = 0
 })
 
 afterUpdate(() => {
-    hasModels = hasActiveModels()
-    pedalsEndpoint = $globalStorage.pedalsEndpoint
-    $checkStateChange++
+  hasModels = hasActiveModels()
+  pedalsEndpoint = $globalStorage.pedalsEndpoint
+  $checkStateChange++
 })
 
 const setPetalsEnabled = (event: Event) => {
-    const el = (event.target as HTMLInputElement)
-    setGlobalSettingValueByKey('enablePetals', !!el.checked)
-    showPetalsSettings = $globalStorage.enablePetals
-    hasModels = hasActiveModels()
+  const el = (event.target as HTMLInputElement)
+  setGlobalSettingValueByKey('enablePetals', !!el.checked)
+  showPetalsSettings = $globalStorage.enablePetals
+  hasModels = hasActiveModels()
 }
 
 </script>
@@ -54,7 +54,7 @@ const setPetalsEnabled = (event: Event) => {
       <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
     </p>
     <p>
-      As an alternative to OpenAI, you can also use Petals swarm as a free API option for open chat models like Llama 2. 
+      As an alternative to OpenAI, you can also use Petals swarm as a free API option for open chat models like Llama 2.
     </p>
     </div>
   </article>
@@ -66,7 +66,7 @@ const setPetalsEnabled = (event: Event) => {
         class="field has-addons has-addons-right"
         on:submit|preventDefault={(event) => {
           let val = ''
-          if (event.target && event.target[0].value) {
+          if (event.target?.[0].value) {
             val = (event.target[0].value).trim()
           }
           setOpenAI({ apiKey: val })
@@ -88,7 +88,6 @@ const setPetalsEnabled = (event: Event) => {
           <button class="button is-info" type="submit">Save</button>
         </p>
 
-
       </form>
 
       {#if !apiKey}
@@ -100,15 +99,14 @@ const setPetalsEnabled = (event: Event) => {
     </div>
   </article>
 
-  
   <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
     <div class="message-body">
       <label class="label" for="enablePetals">
-        <input 
+        <input
         type="checkbox"
-        class="checkbox" 
+        class="checkbox"
         id="enablePetals"
-        checked={!!$globalStorage.enablePetals} 
+        checked={!!$globalStorage.enablePetals}
         on:click={setPetalsEnabled}
       >
         Use Petals API and Models (Llama 2)
@@ -118,7 +116,7 @@ const setPetalsEnabled = (event: Event) => {
         <form
           class="field has-addons has-addons-right"
           on:submit|preventDefault={(event) => {
-            if (event.target && event.target[0].value) {
+            if (event.target?.[0].value) {
               const v = event.target[0].value.trim()
               const v2 = v.replace(/^https:/i, 'wss:').replace(/(^wss:\/\/[^/]+)\/*$/i, '$1' + getPetalsWebsocket())
               setGlobalSettingValueByKey('pedalsEndpoint', v2)
@@ -141,9 +139,8 @@ const setPetalsEnabled = (event: Event) => {
             <button class="button is-info" type="submit">Save</button>
           </p>
 
-          
         </form>
-        
+
         {#if !pedalsEndpoint}
           <p class="help is-warning">
             Please only use the default public API for testing. It's best to <a target="_blank" href="https://github.com/petals-infra/chat.petals.dev">configure a private endpoint</a> and enter it above for connection to the Petals swarm.

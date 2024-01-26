@@ -101,7 +101,7 @@
     clickedElement.innerHTML = 'Copied!'
 
     // Retrieve the code in the code block
-    const codeBlock = (nextElement.querySelector('pre > code') as HTMLPreElement).innerText
+    const codeBlock = (nextElement.querySelector('pre > code')!).innerText
     copy(codeBlock)
 
     // Restored the button after copying the text in 1 second.

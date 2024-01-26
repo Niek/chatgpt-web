@@ -14,18 +14,18 @@
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
   export const apiKeyStorage = persisted('apiKey', '' as string)
-  export let checkStateChange = writable(0) // Trigger for Chat
-  export let showSetChatSettings = writable(false) //
-  export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
-  export let pinMainMenu = writable(false) // Show menu (for mobile use)
-  export let continueMessage = writable('') //
-  export let currentChatMessages = writable([] as Message[])
-  export let started = writable(false)
-  export let currentChatId = writable(0)
-  export let lastChatId = persisted('lastChatId', 0)
+  export const checkStateChange = writable(0) // Trigger for Chat
+  export const showSetChatSettings = writable(false) //
+  export const submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
+  export const pinMainMenu = writable(false) // Show menu (for mobile use)
+  export const continueMessage = writable('') //
+  export const currentChatMessages = writable([] as Message[])
+  export const started = writable(false)
+  export const currentChatId = writable(0)
+  export const lastChatId = persisted('lastChatId', 0)
 
   const chatDefaults = getChatDefaults()
-  
+
   export const getApiKey = (): string => {
     return get(apiKeyStorage)
   }
@@ -36,7 +36,7 @@
     return chatId
   }
 
-  export const addChat = (profile:ChatSettings|undefined = undefined): number => {
+  export const addChat = (profile: ChatSettings | undefined = undefined): number => {
     const chats = get(chatsStorage)
 
     // Find the max chatId
@@ -98,7 +98,7 @@
   }
 
   // Make sure a chat's settings are set with current values or defaults
-  export const updateChatSettings = (chatId:number) => {
+  export const updateChatSettings = (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     if (!chat.settings) {
@@ -116,7 +116,7 @@
       typeof chat.usage === 'object' &&
       Object.values(chat.usage).find(v => 'prompt_tokens' in v)
     if (!hasUsage) {
-      const usageMap:Record<Model, Usage> = {}
+      const usageMap: Record<Model, Usage> = {}
       chat.usage = usageMap
     }
     if (chat.startSession === undefined) chat.startSession = false
@@ -125,7 +125,7 @@
   }
 
   // Make sure profile options are set with current values or defaults
-  export const updateProfile = (profile:ChatSettings, exclude:boolean):ChatSettings => {
+  export const updateProfile = (profile: ChatSettings, exclude: boolean): ChatSettings => {
     Object.entries(getChatDefaults()).forEach(([k, v]) => {
       const val = profile[k]
       profile[k] = (val === undefined || val === null ? v : profile[k])
@@ -149,9 +149,9 @@
     }
     return profile
   }
-  
+
   // Reset all setting to current profile defaults
-  export const resetChatSettings = (chatId, resetAll:boolean = false) => {
+  export const resetChatSettings = (chatId, resetAll: boolean = false) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const profile = getProfile(chat.settings.profile)
@@ -178,20 +178,20 @@
     chatsStorage.set(chats)
   }
 
-  export const getChat = (chatId: number):Chat => {
+  export const getChat = (chatId: number): Chat => {
     const chats = get(chatsStorage)
     return chats.find((chat) => chat.id === chatId) as Chat
   }
 
-  export const getChatSettings = (chatId: number):ChatSettings => {
+  export const getChatSettings = (chatId: number): ChatSettings => {
     const chats = get(chatsStorage)
     return (chats.find((chat) => chat.id === chatId) as Chat).settings
   }
 
-  export const updateRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+  export const updateRunningTotal = (chatId: number, usage: Usage, model: Model) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let total:Usage = chat.usage[model]
+    let total: Usage = chat.usage[model]
     if (!total) {
       total = {
         prompt_tokens: 0,
@@ -206,10 +206,10 @@
     chatsStorage.set(chats)
   }
 
-  export const subtractRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+  export const subtractRunningTotal = (chatId: number, usage: Usage, model: Model) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let total:Usage = chat.usage[model]
+    let total: Usage = chat.usage[model]
     if (!total) {
       total = {
         prompt_tokens: 0,
@@ -286,14 +286,14 @@
     const messages = getMessages(chatId)
     if (!message.uuid) message.uuid = uuidv4()
     if (!message.created) message.created = Date.now()
-    if (messages.indexOf(message) < 0) {
+    if (!messages.includes(message)) {
       // Don't have message, add it
       messages[messages.length] = message
     }
     setMessages(chatId, messages)
   }
 
-  export const getMessage = (chatId: number, uuid:string):Message|undefined => {
+  export const getMessage = (chatId: number, uuid: string): Message | undefined => {
     return getMessages(chatId).find((m) => m.uuid === uuid)
   }
 
@@ -314,8 +314,8 @@
 
   export const deleteSummaryMessage = (chatId: number, uuid: string) => {
     const message = getMessage(chatId, uuid)
-    if (message && message.summarized) throw new Error('Unable to delete summarized message')
-    if (message && message.summary) { // messages we summarized
+    if (message?.summarized) throw new Error('Unable to delete summarized message')
+    if (message?.summary) { // messages we summarized
       message.summary.forEach(sid => {
         const m = getMessage(chatId, sid)
         if (m) {
@@ -356,7 +356,7 @@
     const messages = getMessages(chatId)
     const index = messages.findIndex((m) => m.uuid === uuid)
     const message = getMessage(chatId, uuid)
-    if (message && message.summarized) throw new Error('Unable to truncate from a summarized message')
+    if (message?.summarized) throw new Error('Unable to truncate from a summarized message')
     if (index < 0) {
       throw new Error(`Unable to find message with ID: ${uuid}`)
     }
@@ -401,12 +401,12 @@
 
     // Add a new chat
     chats.push(chatCopy)
-  
+
     // chatsStorage
     chatsStorage.set(chats)
   }
 
-  export const cleanSettingValue = (type:string, value: any) => {
+  export const cleanSettingValue = (type: string, value: any) => {
     switch (type) {
       case 'number':
       case 'select-number':
@@ -420,10 +420,10 @@
         return value
     }
   }
-  
+
   export const setChatSettingValueByKey = (chatId: number, key: keyof ChatSettings, value) => {
     const setting = getChatSettingObjectByKey(key)
-    if (setting) return setChatSettingValue(chatId, setting, value)
+    if (setting) { setChatSettingValue(chatId, setting, value); return }
     if (!(key in chatDefaults)) throw new Error('Invalid chat setting: ' + key)
     const d = chatDefaults[key]
     if (d === null || d === undefined) {
@@ -448,17 +448,17 @@
     chatsStorage.set(chats)
   }
 
-  export const getChatSettingValueNullDefault = (chatId: number, setting: ChatSetting):any => {
+  export const getChatSettingValueNullDefault = (chatId: number, setting: ChatSetting): any => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let value = chat.settings && chat.settings[setting.key]
+    let value = chat.settings?.[setting.key]
     value = (value === undefined) ? null : value
     if (!setting.forceApi && value === chatDefaults[setting.key]) value = null
     return value
   }
-  
+
   export const setGlobalSettingValueByKey = (key: keyof GlobalSettings, value) => {
-    return setGlobalSettingValue(getGlobalSettingObjectByKey(key), value)
+    setGlobalSettingValue(getGlobalSettingObjectByKey(key), value)
   }
 
   export const setGlobalSettingValue = (setting: GlobalSetting, value) => {
@@ -467,22 +467,21 @@
     globalStorage.set(store)
   }
 
-  
-  export const getGlobalSettingValue = (key:keyof GlobalSetting, value):any => {
+  export const getGlobalSettingValue = (key: keyof GlobalSetting, value): any => {
     const store = get(globalStorage)
     return store[key]
   }
 
-  export const getGlobalSettings = ():GlobalSettings => {
+  export const getGlobalSettings = (): GlobalSettings => {
     return get(globalStorage)
   }
 
-  export const getCustomProfiles = ():Record<string, ChatSettings> => {
+  export const getCustomProfiles = (): Record<string, ChatSettings> => {
     const store = get(globalStorage)
     return store.profiles || {}
   }
 
-  export const deleteCustomProfile = (chatId:number, profileId:string) => {
+  export const deleteCustomProfile = (chatId: number, profileId: string) => {
     if (isStaticProfile(profileId)) {
       throw new Error('Sorry, you can\'t delete a static profile.')
     }
@@ -497,7 +496,7 @@
     getProfiles(true) // force update profile cache
   }
 
-  export const saveCustomProfile = (profile:ChatSettings) => {
+  export const saveCustomProfile = (profile: ChatSettings) => {
     const store = get(globalStorage)
     let profiles = store.profiles
     if (!profiles) {
@@ -505,7 +504,7 @@
       store.profiles = profiles
     }
     if (!profile.profile) profile.profile = uuidv4()
-    const mt = profile.profileName && profile.profileName.trim().toLocaleLowerCase()
+    const mt = profile.profileName?.trim().toLocaleLowerCase()
     const sameTitle = Object.values(profiles).find(c => c.profile !== profile.profile &&
     c.profileName && c.profileName.trim().toLocaleLowerCase() === mt)
     if (sameTitle) {
@@ -551,10 +550,10 @@
     checkStateChange.set(get(checkStateChange) + 1)
   }
 
-  export const newName = (name:string, nameMap:Record<string, any>):string => {
+  export const newName = (name: string, nameMap: Record<string, any>): string => {
     if (!nameMap[name]) return name
     const nm = name.match(/^(.*[^0-9]+)([- ])*([0-9]+)$/)
-    let i:number = 1
+    let i: number = 1
     let s = ' '
     if (nm) {
       name = nm[1]
@@ -569,16 +568,15 @@
     return cname
   }
 
-  export const getLatestKnownModel = (model:Model) => {
+  export const getLatestKnownModel = (model: Model) => {
     const modelMapStore = get(latestModelMap)
     return modelMapStore[model] || model
   }
 
-  
-  export const setLatestKnownModel = (requestedModel:Model, responseModel:Model) => {
+  export const setLatestKnownModel = (requestedModel: Model, responseModel: Model) => {
     const modelMapStore = get(latestModelMap)
     modelMapStore[requestedModel] = responseModel
     latestModelMap.set(modelMapStore)
   }
-  
+
 </script>

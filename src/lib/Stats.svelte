@@ -7,15 +7,15 @@
     return ((tokens.prompt_tokens * (t.prompt || 0)) + (tokens.completion_tokens * (t.completion || 0)))
   }
 
-  export const countPromptTokens = (prompts:Message[], model:Model, chat: Chat):number => {
+  export const countPromptTokens = (prompts: Message[], model: Model, chat: Chat): number => {
     return getModelDetail(model).countPromptTokens(prompts, model, chat)
   }
 
-  export const countMessageTokens = (message:Message, model:Model, chat: Chat):number => {
+  export const countMessageTokens = (message: Message, model: Model, chat: Chat): number => {
     return getModelDetail(model).countMessageTokens(message, model, chat)
   }
 
-  export const getModelMaxTokens = (model:Model):number => {
+  export const getModelMaxTokens = (model: Model): number => {
     return getModelDetail(model).max
   }
 

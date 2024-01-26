@@ -1,24 +1,22 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, afterUpdate, onMount } from 'svelte'
   // import { getProfile } from './Profiles.svelte'
   import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent, errorNotice, valueOf } from './Util.svelte'
   // import { replace } from 'svelte-spa-router'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { afterUpdate, onMount } from 'svelte'
 
-  export let setting:ChatSetting
-  export let chatSettings:ChatSettings
-  export let chat:Chat
-  export let chatDefaults:Record<string, any>
-  export let originalProfile:String
-  export let rkey:number = 0
+  export let setting: ChatSetting
+  export let chatSettings: ChatSettings
+  export let chat: Chat
+  export let chatDefaults: Record<string, any>
+  export let originalProfile: string
+  export let rkey: number = 0
 
-
-  let fieldControls:ControlAction[]
+  let fieldControls: ControlAction[]
 
   const chatId = chat.id
   let show = false
@@ -26,7 +24,7 @@
   let header = valueOf(chatId, setting.header)
   let headerClass = valueOf(chatId, setting.headerClass)
   let placeholder = valueOf(chatId, setting.placeholder)
-  
+
   const buildFieldControls = () => {
     fieldControls = (setting.fieldControls || [] as FieldControl[]).map(fc => {
       return fc.getAction(chatId, setting, chatSettings[setting.key])
@@ -48,7 +46,6 @@
     buildFieldControls()
   })
 
-
   if (originalProfile) {
     // eventually...
   }
@@ -59,7 +56,7 @@
     dispatch('refresh')
   }
 
-  const settingChecks:Record<string, SettingPrompt[]> = {
+  const settingChecks: Record<string, SettingPrompt[]> = {
     profile: [
       {
         title: 'Unsaved Profile Changes',
@@ -72,7 +69,7 @@
     ]
   }
 
-  const resetSettingCheck = (key:keyof ChatSettings) => {
+  const resetSettingCheck = (key: keyof ChatSettings) => {
     const checks = settingChecks[key]
     checks && checks.forEach((c) => { c.passed = false })
   }
@@ -121,7 +118,7 @@
           class: c.class || 'is-warning',
           onConfirm: () => {
             c.passed = true
-            if (c.onYes && c.onYes(setting, newVal, val)) {
+            if (c.onYes?.(setting, newVal, val)) {
               resetSettingCheck(setting.key)
             } else {
               queueSettingValueChange(event, setting)
@@ -129,11 +126,11 @@
           },
           onCancel: () => {
             // roll-back
-            if (!c.onNo || !c.onNo(setting, newVal, val)) {
+            if (!c.onNo?.(setting, newVal, val)) {
               resetSettingCheck(setting.key)
               setChatSettingValue(chatId, setting, val)
               // refresh setting modal, if open
-              c.onNo && c.onNo(setting, newVal, val)
+              c.onNo?.(setting, newVal, val)
               refreshSettings()
             } else {
               queueSettingValueChange(event, setting)
@@ -162,13 +159,13 @@
     {#if setting.type === 'boolean'}
     <div class="field is-normal">
       <label class="label" for="settings-{setting.key}" title="{setting.title}">
-        <input 
+        <input
         type="checkbox"
         title="{setting.title}"
-        class="checkbox" 
+        class="checkbox"
         id="settings-{setting.key}"
-        checked={!!chatSettings[setting.key]} 
-        on:click={e => queueSettingValueChange(e, setting)}
+        checked={!!chatSettings[setting.key]}
+        on:click={e => { queueSettingValueChange(e, setting) }}
       >
         {setting.name}
       </label>
@@ -203,13 +200,13 @@
             max={setting.max}
             step={setting.step}
             placeholder={String(placeholder || chatDefaults[setting.key])}
-            on:change={e => queueSettingValueChange(e, setting)}
+            on:change={e => { queueSettingValueChange(e, setting) }}
           />
         {:else if setting.type === 'select' || setting.type === 'select-number'}
           <!-- <div class="select"> -->
             <div class="select" class:control={fieldControls.length}>
             {#key rkey}
-            <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
+            <select id="settings-{setting.key}" title="{setting.title}" on:change={e => { queueSettingValueChange(e, setting) } } >
               {#each setting.options as option}
                 <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]} disabled={option.disabled}>{option.text}</option>
               {/each}
@@ -218,16 +215,16 @@
             </div>
             {#each fieldControls as cont}
             <div class="control">
-              <button title={cont.text} on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
+              <button title={cont.text} on:click={() => { cont.action?.(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
                 {#if cont.text}
                 <span class="text">
                   <Fa icon={cont.icon} />
-                </span> 
+                </span>
                 {/if}
                 {#if cont.icon}
                 <span class="icon">
                   <Fa icon={cont.icon} />
-                </span> 
+                </span>
                 {/if}
               </button>
             </div>
@@ -235,11 +232,11 @@
 
         {:else if setting.type === 'text'}
           <div class="field">
-              <input 
+              <input
               type="text"
               title="{setting.title}"
-              class="input" 
-              value={chatSettings[setting.key]} 
+              class="input"
+              value={chatSettings[setting.key]}
               placeholder={String(placeholder || chatDefaults[setting.key])}
               on:change={e => { queueSettingValueChange(e, setting) }}
             >

@@ -1,21 +1,21 @@
 <script lang="ts">
   import { closeModal } from 'svelte-modals'
 
-  export let isOpen:boolean
+  export let isOpen: boolean
 
-  export let title:string
-  export let message:string
-  export let asHtml:boolean = false
+  export let title: string
+  export let message: string
+  export let asHtml: boolean = false
 
-  export let onConfirm:(()=>boolean|void)|null = null
+  export let onConfirm: (() => boolean) | null = null
 
-  export let confirmButton:string = 'Close'
-  export let confirmButtonClass:string = 'is-info'
-  let classes:string = ''
+  export let confirmButton: string = 'Close'
+  export let confirmButtonClass: string = 'is-info'
+  let classes: string = ''
   export { classes as class }
 
   const doConfirm = () => {
-    if (!onConfirm || !onConfirm()) closeModal()
+    if ((onConfirm == null) || !onConfirm()) closeModal()
   }
 
 </script>
@@ -23,6 +23,7 @@
 {#if isOpen}
 <div class="modal is-active" on:modal-esc={doConfirm}>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div class="modal-background" on:click={doConfirm} />
   <div class="modal-content nomax">
     <article class="message {classes}">
@@ -43,7 +44,7 @@
             </div>
           </div>
         </div>
-      </div>     
+      </div>
     </article>
   </div>
 </div>

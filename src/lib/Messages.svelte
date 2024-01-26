@@ -4,10 +4,10 @@
   import { globalStorage } from './Storage.svelte'
   import EditMessage from './EditMessage.svelte'
 
-  export let messages : Message[]
+  export let messages: Message[]
   export let chatId: number
   export let chat: Chat
-  
+
   $: chatSettings = chat.settings
 
 </script>

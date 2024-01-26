@@ -19,12 +19,12 @@ export class ChatCompletionResponse {
     if (opts.onMessageChange) this.messageChangeListeners.push(opts.onMessageChange)
   }
 
-  private offsetTotals: Usage
-  private isFill: boolean = false
+  private readonly offsetTotals: Usage
+  private readonly isFill: boolean = false
   private didFill: boolean = false
 
-  private opts: ChatCompletionOpts
-  private chat: Chat
+  private readonly opts: ChatCompletionOpts
+  private readonly chat: Chat
 
   private messages: Message[]
 
@@ -33,7 +33,7 @@ export class ChatCompletionResponse {
   private model: Model
   private lastModel: Model
 
-  private setModel = (model: Model) => {
+  private readonly setModel = (model: Model) => {
     if (!model) return
     !this.model && setLatestKnownModel(this.chat.settings.model, model)
     this.lastModel = this.model || model
@@ -42,17 +42,17 @@ export class ChatCompletionResponse {
 
   private finishResolver: (value: Message[]) => void
   private errorResolver: (error: string) => void
-  private finishPromise = new Promise<Message[]>((resolve, reject) => {
+  private readonly finishPromise = new Promise<Message[]>((resolve, reject) => {
     this.finishResolver = resolve
     this.errorResolver = reject
   })
 
-  private promptTokenCount:number
+  private promptTokenCount: number
   private finished = false
-  private messageChangeListeners: ((m: Message[]) => void)[] = []
-  private finishListeners: ((m: Message[]) => void)[] = []
+  private readonly messageChangeListeners: Array<(m: Message[]) => void> = []
+  private readonly finishListeners: Array<(m: Message[]) => void> = []
 
-  private initialFillMerge (existingContent:string, newContent:string):string {
+  private initialFillMerge (existingContent: string, newContent: string): string {
     const modelDetail = getModelDetail(this.model)
     if (!this.didFill && this.isFill && modelDetail.preFillMerge) {
       existingContent = modelDetail.preFillMerge(existingContent, newContent)
@@ -61,7 +61,7 @@ export class ChatCompletionResponse {
     return existingContent
   }
 
-  setPromptTokenCount (tokens:number) {
+  setPromptTokenCount (tokens: number) {
     this.promptTokenCount = tokens
   }
 
@@ -95,7 +95,7 @@ export class ChatCompletionResponse {
   updateFromSyncResponse (response: Response) {
     this.setModel(response.model)
     if (!response.choices) {
-      return this.updateFromError(response?.error?.message || 'unexpected response from API')
+      this.updateFromError(response?.error?.message || 'unexpected response from API'); return
     }
     response.choices?.forEach((choice, i) => {
       const exitingMessage = this.messages[i]
@@ -129,7 +129,7 @@ export class ChatCompletionResponse {
     let completionTokenCount = 0
     this.setModel(response.model)
     if (!response.choices || response?.error) {
-      return this.updateFromError(response?.error?.message || 'unexpected streaming response from API')
+      this.updateFromError(response?.error?.message || 'unexpected streaming response from API'); return
     }
     response.choices?.forEach((choice, i) => {
       const message = this.messages[i] || {
@@ -175,15 +175,15 @@ export class ChatCompletionResponse {
       } as Message)
     }
     this.notifyMessageChange()
-    setTimeout(() => this.finish('abort'), 200) // give others a chance to signal the finish first
+    setTimeout(() => { this.finish('abort') }, 200) // give others a chance to signal the finish first
   }
 
   updateFromClose (force: boolean = false): void {
     if (!this.finished && !this.error && !this.messages?.find(m => m.content)) {
-      if (!force) return setTimeout(() => this.updateFromClose(true), 300) as any
-      if (!this.finished) return this.updateFromError('Unexpected connection termination')
+      if (!force) return setTimeout(() => { this.updateFromClose(true) }, 300) as any
+      if (!this.finished) { this.updateFromError('Unexpected connection termination'); return }
     }
-    setTimeout(() => this.finish(), 260) // give others a chance to signal the finish first
+    setTimeout(() => { this.finish() }, 260) // give others a chance to signal the finish first
   }
 
   onMessageChange = (listener: (m: Message[]) => void): number =>
@@ -192,7 +192,7 @@ export class ChatCompletionResponse {
   onFinish = (listener: (m: Message[]) => void): number =>
     this.finishListeners.push(listener)
 
-  promiseToFinish = (): Promise<Message[]> => this.finishPromise
+  promiseToFinish = async (): Promise<Message[]> => await this.finishPromise
 
   hasFinished = (): boolean => this.finished
 
@@ -233,12 +233,12 @@ export class ChatCompletionResponse {
       // this.model is set when we received a valid response. If we've made it that
       //  far, we'll assume we've been charged for the prompts sent.
       // This could under-count in some cases.
-      const usage:Usage = {
+      const usage: Usage = {
         prompt_tokens: this.promptTokenCount,
         completion_tokens: 0, // We have no idea if there are any to count
         total_tokens: this.promptTokenCount
       }
-      updateRunningTotal(this.chat.id, usage as Usage, model)
+      updateRunningTotal(this.chat.id, usage, model)
     }
     this.notifyFinish()
     if (this.error) {

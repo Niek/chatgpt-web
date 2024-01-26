@@ -1,25 +1,25 @@
 <script lang="ts">
   import { closeModal } from 'svelte-modals'
 
-  export let isOpen:boolean
+  export let isOpen: boolean
 
-  export let title:string
-  export let message:string
-  export let asHtml:boolean = false
+  export let title: string
+  export let message: string
+  export let asHtml: boolean = false
 
-  export let onConfirm:()=>boolean|void
-  export let onCancel:(()=>boolean|void)|null = null
+  export let onConfirm: () => boolean
+  export let onCancel: (() => boolean) | null = null
 
-  export let confirmButton:string = 'Yes'
-  export let confirmButtonClass:string = 'is-info'
-  export let cancelButton:string = 'No'
-  export let cancelButtonClass:string = ''
-  let classes:string = ''
+  export let confirmButton: string = 'Yes'
+  export let confirmButtonClass: string = 'is-info'
+  export let cancelButton: string = 'No'
+  export let cancelButtonClass: string = ''
+  let classes: string = ''
   export { classes as class }
 
   const doCancel = () => {
     closeModal()
-    onCancel && onCancel()
+    onCancel != null && onCancel()
   }
 
   const doConfirm = () => {
@@ -32,6 +32,7 @@
 {#if isOpen}
 <div class="modal is-active" on:modal-esc={doCancel}>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div class="modal-background" on:click={doCancel} />
   <div class="modal-content nomax">
     <article class="message {classes}">
@@ -50,12 +51,12 @@
             <div class="level-item">
               <button class="button {confirmButtonClass}" type="button" on:click={doConfirm} >{confirmButton}</button>
             </div>
-            <div class="level-item">      
+            <div class="level-item">
               <button class="button {cancelButtonClass}" type="button" on:click={doCancel} >{cancelButton}</button>
             </div>
           </div>
         </div>
-      </div>     
+      </div>
     </article>
   </div>
 </div>

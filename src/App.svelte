@@ -17,7 +17,7 @@
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
   const urlParams: URLSearchParams = new URLSearchParams($querystring)
   if (urlParams.has('key')) {
-    setOpenAI({ apiKey: urlParams.get('key') as string })
+    setOpenAI({ apiKey: urlParams.get('key') })
   }
   if (urlParams.has('petals')) {
     console.log('enablePetals')
@@ -38,14 +38,14 @@
     '/chat/:chatId': wrap({
       component: Chat,
       conditions: (detail) => {
-        return $chatsStorage.find((chat) => chat.id === parseInt(detail?.params?.chatId as string)) !== undefined
+        return $chatsStorage.find((chat) => chat.id === parseInt(detail?.params?.chatId!)) !== undefined
       }
     }),
 
     '*': Home
   }
 
-  const onLocationChange = (...args:any) => {
+  const onLocationChange = (...args: any) => {
     // close all modals on route change
     dispatchModalEsc()
   }
@@ -60,12 +60,13 @@
 </div>
 <div class="main-content-column" id="content">
   {#key $location}
-    <Router {routes} on:conditionsFailed={() => replace('/')}/>
+    <Router {routes} on:conditionsFailed={async () => { await replace('/') }}/>
   {/key}
 </div>
 
 <Modals>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div
     slot="backdrop"
     class="backdrop"

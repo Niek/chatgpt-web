@@ -1,4 +1,4 @@
-<script  context="module" lang="ts">
+<script context="module" lang="ts">
   import { compare } from 'stacking-order'
   import { openModal } from 'svelte-modals'
   import PromptNotice from './PromptNotice.svelte'
@@ -8,7 +8,7 @@
   import type { ChatSettings } from './Types.svelte'
   export const sizeTextElements = (force?: boolean) => {
     const els = document.querySelectorAll('textarea.auto-size')
-    for (let i:number = 0, l = els.length; i < l; i++) {
+    for (let i: number = 0, l = els.length; i < l; i++) {
       autoGrowInput(els[i] as HTMLTextAreaElement, force)
     }
   }
@@ -34,7 +34,7 @@
     anyEl.__didAutoGrow = true // don't resize this one again unless it's via an event
   }
 
-  export const scrollIntoViewWithOffset = (element:HTMLElement, offset:number, instant:boolean = false, bottom:boolean = false) => {
+  export const scrollIntoViewWithOffset = (element: HTMLElement, offset: number, instant: boolean = false, bottom: boolean = false) => {
     const behavior = instant ? 'instant' : 'smooth'
     if (bottom) {
       window.scrollTo({
@@ -54,7 +54,7 @@
     }
   }
 
-  export const scrollToMessage = (uuid:string | string[] | undefined, offset:number = 60, instant:boolean = false, bottom:boolean = false) => {
+  export const scrollToMessage = (uuid: string | string[] | undefined, offset: number = 60, instant: boolean = false, bottom: boolean = false) => {
     if (Array.isArray(uuid)) {
       uuid = uuid[0]
     }
@@ -70,21 +70,20 @@
     }
   }
 
-  export const scrollToBottom = (instant:boolean = false) => {
+  export const scrollToBottom = (instant: boolean = false) => {
     setTimeout(() => document.querySelector('body')?.scrollIntoView({ behavior: (instant ? 'instant' : 'smooth') as any, block: 'end' }), 0)
   }
 
-
-  export const checkModalEsc = (event:KeyboardEvent|undefined):boolean|void => {
+  export const checkModalEsc = (event: KeyboardEvent | undefined): boolean | void => {
     if (!event || event.key !== 'Escape') return
     dispatchModalEsc()
   }
 
-  export const dispatchModalEsc = ():boolean|void => {
+  export const dispatchModalEsc = (): boolean | void => {
     const stack = Array.from(document.querySelectorAll('.modal, .has-esc')).filter(s =>
       window.getComputedStyle(s).getPropertyValue('display') !== 'none'
     )
-    const top:HTMLElement = stack.length === 1
+    const top: HTMLElement = stack.length === 1
       ? stack[0]
       : stack.find(m1 => {
         return stack.find(m2 => {
@@ -98,11 +97,11 @@
     }
   }
 
-  export const encodeHTMLEntities = (rawStr:string) => {
+  export const encodeHTMLEntities = (rawStr: string) => {
     return rawStr.replace(/[\u00A0-\u9999<>&]/g, (i) => `&#${i.charCodeAt(0)};`)
   }
 
-  export const errorNotice = (message:string, error:Error|undefined = undefined):any => {
+  export const errorNotice = (message: string, error: Error | undefined = undefined): any => {
     openModal(PromptNotice, {
       title: 'Error',
       class: 'is-danger',
@@ -111,8 +110,8 @@
       onConfirm: () => {}
     })
   }
-  
-  export const warningNotice = (message:string, error:Error|undefined = undefined):any => {
+
+  export const warningNotice = (message: string, error: Error | undefined = undefined): any => {
     openModal(PromptNotice, {
       title: 'Warning',
       class: 'is-warning',
@@ -128,7 +127,7 @@
     replace(`/chat/${newChatId}`)
   }
 
-  export const startNewChatWithWarning = (activeChatId: number|undefined, profile?: ChatSettings|undefined) => {
+  export const startNewChatWithWarning = (activeChatId: number | undefined, profile?: ChatSettings | undefined) => {
     const newChat = () => {
       const chatId = addChat(profile)
       replace(`/chat/${chatId}`)
@@ -158,4 +157,4 @@
     return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
   }
 
-</script> 
+</script>

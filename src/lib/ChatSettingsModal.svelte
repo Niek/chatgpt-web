@@ -14,7 +14,7 @@
   } from './Storage.svelte'
   import type { Chat, ChatSetting, SettingSelect, ChatSettings } from './Types.svelte'
   import { errorNotice, sizeTextElements } from './Util.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import {
     faTrash,
     faClone,
@@ -37,11 +37,11 @@
   import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
   import { faClipboard } from '@fortawesome/free-regular-svg-icons'
 
-  export let chatId:number
+  export let chatId: number
   export const show = () => { showSettings() }
-  
+
   let showSettingsModal = 0
-  let showProfileMenu:boolean = false
+  let showProfileMenu: boolean = false
   let profileFileInput
   let defaultProfile = getDefaultProfileKey()
   let isDefault = false
@@ -56,23 +56,23 @@
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
-  let originalProfile:string
-  let lastProfile:string
-  let originalSettings:ChatSettings
+  let originalProfile: string
+  let lastProfile: string
+  let originalSettings: ChatSettings
 
   onMount(async () => {
-    originalProfile = chatSettings && chatSettings.profile
+    originalProfile = chatSettings?.profile
     originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
   })
 
   afterUpdate(() => {
     if (!originalProfile) {
-      originalProfile = chatSettings && chatSettings.profile
+      originalProfile = chatSettings?.profile
       originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
     }
     sizeTextElements()
   })
-  
+
   const closeSettings = () => {
     originalProfile = ''
     originalSettings = {} as ChatSettings
@@ -97,16 +97,16 @@
   const refreshSettings = async () => {
     showSettingsModal && showSettings()
   }
-  
+
   const copySettingsAsUri = () => {
     // location.protocol + '//' + location.host + location.pathname
-    const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
+    const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce<string[]>((a, [k, v]) => {
       const t = typeof v
       if (hasChatSetting(k as any) && (t === 'boolean' || t === 'string' || t === 'number')) {
         a.push(encodeURIComponent(k) + '=' + encodeURIComponent(v as any))
       }
       return a
-    }, [] as string[]).join('&')
+    }, []).join('&')
     const profileUri = window.location.protocol + '//' + window.location.host + window.location.pathname + uri
     navigator.clipboard.writeText(profileUri)
     return profileUri
@@ -189,7 +189,7 @@
     defaultProfile = getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
   }
-  
+
   const showSettings = async () => {
     setDirty()
     // Show settings modal
@@ -238,7 +238,7 @@
     replace(`/chat/${newChatId}`)
   }
 
-  const deepEqual = (x:any, y:any) => {
+  const deepEqual = (x: any, y: any) => {
     const ok = Object.keys; const tx = typeof x; const ty = typeof y
     return x && y && tx === 'object' && tx === ty
       ? (
@@ -247,7 +247,7 @@
       : (x === y || ((x === undefined || x === null || x === false) && (y === undefined || y === null || y === false)))
   }
 
-  const setDirty = (e:CustomEvent|undefined = undefined) => {
+  const setDirty = (e: CustomEvent | undefined = undefined) => {
     if (e) {
       const setting = e.detail as ChatSetting
       const key = setting.key
@@ -266,6 +266,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="modal chat-settings" class:is-active={showSettingsModal} on:modal-esc={closeSettings}>
   <div class="modal-background" on:click={closeSettings} />
   <div class="modal-card wide" on:click={() => { showProfileMenu = false }}>
@@ -285,7 +286,7 @@
       <div class="level is-mobile">
         <div class="level-left">
           <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
-          <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
+          <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>
           <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
           <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat <span class="is-hidden-mobile">&nbsp;from Current</span></button>
         </div>
@@ -318,7 +319,7 @@
                   <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
                 </a> -->
                 <hr class="dropdown-divider">
-                <a href={'#'} 
+                <a href={'#'}
                   class="dropdown-item"
                   on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
                 >
@@ -338,9 +339,9 @@
             </div>
           </div>
         </div>
-      </div>  
+      </div>
     </footer>
   </div>
 </div>
 
-<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={(e) => { importProfileFromFile(e) }} bind:this={profileFileInput} >

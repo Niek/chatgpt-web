@@ -5,7 +5,7 @@
   import { getPrice } from './Stats.svelte'
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
@@ -13,9 +13,9 @@
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
 
-  export let message:Message
-  export let chatId:number
-  export let chat:Chat
+  export let message: Message
+  export let chatId: number
+  export let chat: Chat
 
   $: chatSettings = chat.settings
 
@@ -32,7 +32,7 @@
     mangle: false // Do not mangle email addresses
   }
 
-  const getDisplayMessage = ():string => {
+  const getDisplayMessage = (): string => {
     const content = message.content
     if (isSystem && chatSettings.hideSystemPrompt) {
       const result = content.match(/::NOTE::[\s\S]+?::NOTE::/g)
@@ -43,9 +43,9 @@
 
   const dispatch = createEventDispatcher()
   let editing = false
-  let original:string
-  let defaultModel:Model
-  let imageUrl:string
+  let original: string
+  let defaultModel: Model
+  let imageUrl: string
   let refreshCounter = 0
   let displayMessage = message.content
 
@@ -98,7 +98,7 @@
     editing = false
   }
 
-  const keydown = (event:KeyboardEvent) => {
+  const keydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       if (!editing) return
       event.stopPropagation()
@@ -127,7 +127,7 @@
     lastTap = new Date().getTime()
   }
 
-  let waitingForDeleteConfirm:any = 0
+  let waitingForDeleteConfirm: any = 0
 
   const checkDelete = () => {
     clearTimeout(waitingForTruncateConfirm); waitingForTruncateConfirm = 0
@@ -169,7 +169,7 @@
     }
   }
 
-  let waitingForTruncateConfirm:any = 0
+  let waitingForTruncateConfirm: any = 0
 
   const checkTruncate = () => {
     clearTimeout(waitingForDeleteConfirm); waitingForDeleteConfirm = 0
@@ -193,7 +193,7 @@
     }
   }
 
-  const setSuppress = (value:boolean) => {
+  const setSuppress = (value: boolean) => {
     if (message.summarized) {
       // is in a summary, so we're summarized
       errorNotice('Sorry, you can\'t suppress a summarized message')
@@ -218,7 +218,7 @@
 
 <article
   id="{'message-' + message.uuid}"
-  class="message chat-message" 
+  class="message chat-message"
   class:is-info={isUser}
   class:is-success={isAssistant || isImage}
   class:is-warning={isSystem}
@@ -226,13 +226,14 @@
   class:user-message={isUser || isSystem}
   class:assistant-message={isError || isAssistant || isImage}
   class:summarized={message.summarized}
-  class:suppress={message.suppress} 
+  class:suppress={message.suppress}
   class:editing={editing}
   class:streaming={message.streaming}
   class:incomplete={message.finish_reason === 'length'}
 >
   <div class="message-body content">
- 
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     {#if editing}
       <form class="message-edit" on:submit|preventDefault={update} on:keydown={keydown}>
         <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
@@ -242,19 +243,18 @@
           <img src={imageUrl} alt="">
         {/if}
     {:else}
-      <div 
-        class="message-display" 
-         
+      <div
+        class="message-display"
         on:touchend={editOnDoubleTap}
-          on:dblclick|preventDefault={() => edit()}
+        on:dblclick|preventDefault={() => { edit() }}
         >
         {#if message.summary && !message.summary.length}
         <p><b>Summarizing...</b></p>
         {/if}
         {#key refreshCounter}
-        <SvelteMarkdown 
-          source={displayMessage} 
-          options={markdownOptions} 
+        <SvelteMarkdown
+          source={displayMessage}
+          options={markdownOptions}
           renderers={{ code: Code, html: Code }}
         />
         {/key}

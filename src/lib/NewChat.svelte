@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { querystring } from 'svelte-spa-router'
+  import { querystring, replace } from 'svelte-spa-router'
   import { addChat, setChatSettingValueByKey } from './Storage.svelte'
-  import { replace } from 'svelte-spa-router'
-  import { getProfile, restartProfile } from './Profiles.svelte'
+    import { getProfile, restartProfile } from './Profiles.svelte'
   import { getChatDefaults, hasChatSetting } from './Settings.svelte'
 
   // Create the new chat instance then redirect to it
@@ -14,7 +13,7 @@
       setChatSettingValueByKey(chatId, k as any, urlParams.get(k))
     }
   })
-  
+
   restartProfile(chatId)
   replace(`/chat/${chatId}`)
 </script>

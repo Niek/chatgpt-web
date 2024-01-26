@@ -8,11 +8,11 @@
   const petalsBase = import.meta.env.VITE_PEDALS_WEBSOCKET || 'wss://chat.petals.dev'
   const endpointPetals = import.meta.env.VITE_PEDALS_WEBSOCKET || '/api/v2/generate'
 
-  export const getApiBase = ():string => apiBase
-  export const getEndpointCompletions = ():string => endpointCompletions
-  export const getEndpointGenerations = ():string => endpointGenerations
-  export const getEndpointModels = ():string => endpointModels
-  export const getEndpointEmbeddings = ():string => endpointEmbeddings
-  export const getPetalsBase = ():string => petalsBase
-  export const getPetalsWebsocket = ():string => endpointPetals
+  export const getApiBase = (): string => apiBase
+  export const getEndpointCompletions = (): string => endpointCompletions
+  export const getEndpointGenerations = (): string => endpointGenerations
+  export const getEndpointModels = (): string => endpointModels
+  export const getEndpointEmbeddings = (): string => endpointEmbeddings
+  export const getPetalsBase = (): string => petalsBase
+  export const getPetalsWebsocket = (): string => endpointPetals
 </script>
