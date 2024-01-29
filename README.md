@@ -1,17 +1,18 @@
 # ChatGPT-web
+
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Niek/chatgpt-web/pages.yml?style=flat-square)](https://github.com/Niek/chatgpt-web/actions/workflows/pages.yml)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg?style=flat-square)](https://standardjs.com)
 [![GitHub](https://img.shields.io/github/license/Niek/chatgpt-web)](/LICENSE)
 [![All Contributors](https://img.shields.io/github/all-contributors/Niek/chatgpt-web?color=ee8449&style=flat-square)](#contributors)
 
-## **URL**: https://niek.github.io/chatgpt-web/
+## **URL**: <https://niek.github.io/chatgpt-web/>
 
 ![Screenshot of ChatGPT-web](.github/screenshot.png)
-
 
 ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for [an OpenAI API key](https://platform.openai.com/account/api-keys) first. All messages are stored in your browser's local storage, so everything is **private**. You can also close the browser tab and come back later to continue the conversation.
 
 ## Features
+
 * **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
 * **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
 * **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GPT-4) are supported.
@@ -26,35 +27,81 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 * **Image generation**: ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
 * **Streaming**: ChatGPT-web can stream the response from the API, so you can see the response as it's being generated.
 
-## Development
+## Development and Building
 
-To run the development server, run
+Here’s how to participate in development and prepare your build for production:
+
+### Setting Up and Running the Development Server
+
+To install dependencies and start the development server:
 
 ```bash
 npm ci
-npm run dev # or: npm run build
+npm run dev
 ```
 
-To update the [`awesome-chatgpt-prompts`](/src/awesome-chatgpt-prompts/) subtree, run :
+### Preparing the Production Build
+
+To compile the project for production, ensuring optimal performance:
+
+```bash
+npm run build
+```
+
+This command generates a `dist` folder containing the production build of your project, ready for deployment.
+
+### Incorporating Awesome ChatGPT Prompts
+
+The *[Awesome ChatGPT Prompts](/src/awesome-chatgpt-prompts/)* repository is a treasure trove of prompt examples designed for use with the ChatGPT model. This collection can inspire new conversations or expand existing ones with the model. Get involved by adding your prompts or utilizing the repository to inspire your contributions:
+
+To update and integrate the latest prompts from the repository into your project, run:
+
 ```bash
 git subtree pull --prefix src/awesome-chatgpt-prompts https://github.com/f/awesome-chatgpt-prompts.git main --squash
 ```
 
-## Use with Docker compose
+This command synchronizes the latest set of prompts into your project's `src/awesome-chatgpt-prompts/` directory, fostering an environment of continuous innovation and expansion.
+
+## Using Docker Compose for Local Deployment
+
+Deploying the application and its mocked API locally is streamlined using Docker Compose. By executing the following command, you initialize both services effortlessly:
 
 ```bash
 docker compose up -d
 ```
 
-## Mocked api
-If you don't want to wait for the API to respond, you can use the mocked API instead. To use the mocked API, edit the `.env` file at root of the project and set the key `VITE_API_BASE=http://localhost:5174` in it. Then, run the `docker compose up -d` command above.
+### Accessing the Local Web Service
 
-You can customize the mocked API response by sending a message that consists of `d` followed by a number, it will delay the response the the specified number of seconds. You can customize the length of the response by including `l` followed by a number, it will return a response with the specified number of sentences.
-For example, sending the message `d2 l10` will result in a 2 seconds delay and 10 sentences response.
+Upon successfully running the Docker Compose command, the local version of the web service becomes accessible. You can interact with it by visiting: <http://localhost:5173/>
+
+## Mocked API Usage
+
+For instances where immediate API responses are preferred, consider utilizing the mocked API. Follow the steps below to configure and customize your mocked API responses:
+
+* **Configuration**:
+  * Open the `.env` file located at the project's root.
+  * Assign the key `VITE_API_BASE=http://localhost:5174` to redirect requests to the mocked API.
+  * Execute `docker compose up -d mocked_api` to start the mocked API service.
+
+* **Customizing Responses**:
+  * To introduce a delay in the API response, use `d` followed by the desired number of seconds (e.g., `d2` for a 2-second delay).
+  * To specify the length of the response, use `l` followed by the desired number of sentences (e.g., `l10` for a response of 10 sentences).
+  * For instance, sending `d2 l10` configures the mocked API to delay the response by 2 seconds and to include 10 sentences.
 
 ## Desktop app
 
-You can also use ChatGPT-web as a desktop app. To do so, [install Rust first](https://www.rust-lang.org/tools/install). Then, simply run `npm run tauri dev` for the development version or `npm run tauri build` for the production version of the desktop app. The desktop app will be built in the `src-tauri/target` folder.
+To use ChatGPT-web as a desktop application:
+
+* **Installation**: First, ensure [Rust is installed](https://www.rust-lang.org/tools/install) on your computer.
+  
+* **Development Version**:
+  * Run `npm run tauri dev` to start the desktop app in development mode.
+  
+* **Production Version**:
+  * Use `npm run tauri build` to compile the production version of the app.
+  
+* **Location of the Built Application**:
+  * The built application will be available in the `src-tauri/target` folder.
 
 ## Contributors
 
