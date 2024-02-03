@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     ports:
-      - 5173:5173
+      - 5173:80
     volumes:
       - .:/app
     build:
