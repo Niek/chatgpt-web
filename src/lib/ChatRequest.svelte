@@ -50,7 +50,7 @@ export class ChatRequest {
             }
             throw new Error(`${response.status} - ${errorResponse}`);
         }
-      }
+    }
     
       /**
        * Send API request
