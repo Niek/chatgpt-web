@@ -37,20 +37,20 @@ export class ChatRequest {
       }
 
       // Common error handler
-      async handleError(response) {
-    if (!response.ok) { // Check if the response status is an error
-        let errorResponse;
-        let responseData = await response.text();
-        try {
-            const errObj = JSON.parse(responseData);
-            errorResponse = errObj.error.message || errObj.error.code || 'Unknown error';
-        } catch (e) {
-            console.error('Error parsing JSON:', e, 'Response Data:', responseData);
-            errorResponse = 'Malformed JSON or Unknown Response';
+      async handleError(response: Response) {
+        if (!response.ok) { // Check if the response status is an error
+            let errorResponse: string;
+            let responseData = await response.text();
+            try {
+                const errObj = JSON.parse(responseData);
+                errorResponse = errObj.error.message || errObj.error.code || 'Unknown error';
+            } catch (e) {
+                console.error('Error parsing JSON:', e, 'Response Data:', responseData);
+                errorResponse = 'Malformed JSON or Unknown Response';
+            }
+            throw new Error(`${response.status} - ${errorResponse}`);
         }
-        throw new Error(`${response.status} - ${errorResponse}`);
-    }
-}
+      }
     
       /**
        * Send API request
