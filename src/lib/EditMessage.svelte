@@ -1,5 +1,6 @@
 <script lang="ts">
   import Code from './Code.svelte'
+  import Codespan from './Codespan.svelte'
   import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
   import { deleteMessage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
@@ -12,6 +13,8 @@
   import PromptConfirm from './PromptConfirm.svelte'
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
+
+  import '../katex.min.css';
 
   export let message:Message
   export let chatId:number
@@ -30,6 +33,12 @@
     gfm: true, // Use GitHub Flavored Markdown
     breaks: true, // Enable line breaks in markdown
     mangle: false // Do not mangle email addresses
+  }
+  
+  const renderers = { 
+    code: Code, 
+    html: Code,
+    codespan: Codespan,
   }
 
   const getDisplayMessage = ():string => {
@@ -214,6 +223,53 @@
     document.body.removeChild(a)
   }
 
+  const preprocessMath = (text: string): string => {     
+    var codeBlockPlaceholderPrefix = "__prefix__c0d3b10ck__";
+    while (text.indexOf(codeBlockPlaceholderPrefix) > 0) {
+      codeBlockPlaceholderPrefix = codeBlockPlaceholderPrefix + "_";
+    }
+    let index = 0;
+    const codeBlocks = [];
+
+    const codeBlockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
+    
+    text = text.replace(codeBlockRegex, (match) => {
+      const placeholder = `${codeBlockPlaceholderPrefix}idx${index}__`;
+      codeBlocks.push(match);
+      index++;
+      return placeholder;
+    });
+
+    text = text
+            .replace(/(\\\[((?:\s|\S)*?)\\\])|(\$\$((?:\s|\S)*?)\$\$)/g, (match, p1, p2, p3, p4) => {
+              let math = p2 || p4;
+              return '\n```rendermath\n' + math.trim() + '\n```\n';
+            })
+            .replace(/(\\\((?!\$)(.*?)\\\))|(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, p1, p2, p3) => {
+              let math = p2 || p3;
+              return '`rendermath' + math.trim() + '`';
+            });
+
+            // .replace(/\\\[((?:\s|\S)*?)\\\]/g, (match, math) => {
+            //     return '\n```rendermath\n' + math.trim() + '\n```\n'
+            // })
+            // .replace(/\$\$((?:\s|\S)*?)\$\$/g, (match, math) => {
+            //     return '\n```rendermath\n' + math.trim() + '\n```\n'
+            // })
+            // .replace(/\\\((?!\$)(.*?[^\\])\\\)/g, (match, math) => {
+            //     return '`rendermath' + math.trim() + '`'
+            // })
+            // .replace(/(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, math) => {
+            //     return '`rendermath' + math.trim() + '`'
+            // })
+
+    text = text.replace(new RegExp(`${codeBlockPlaceholderPrefix}idx(\\d+)__`, 'g'), (match, p1) => {
+              return codeBlocks[p1];
+            });
+
+    return text;
+  };
+
 </script>
 
 <article
@@ -253,9 +309,9 @@
         {/if}
         {#key refreshCounter}
         <SvelteMarkdown 
-          source={displayMessage} 
+          source={preprocessMath(displayMessage)} 
           options={markdownOptions} 
-          renderers={{ code: Code, html: Code }}
+          renderers={renderers}
         />
         {/key}
         {#if imageUrl}

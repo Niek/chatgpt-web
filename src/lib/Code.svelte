@@ -27,13 +27,27 @@
     type LanguageType
   } from 'svelte-highlight/languages/index'
 
+  import katex from 'katex';
+  import 'katex/contrib/mhchem';  
+
   export const type: 'code' = 'code'
   export const raw: string = ''
   export const codeBlockStyle: 'indented' | undefined = undefined
   export let lang: string | undefined
   export let text: string
 
-  // Map lang string to LanguageType
+  let renderedMath: string | undefined;
+
+  $: if (lang === "rendermath") {
+    renderedMath = katex.renderToString(text, {
+      throwOnError: false,
+      displayMode: true
+    });
+  } else {
+    renderedMath = undefined;
+  }
+  
+  // Map lang string to LanguageType 
   let language: LanguageType<string>
 
   // If no language is set, try to detect it using flourite
@@ -117,7 +131,11 @@
   {@html style}
 </svelte:head>
 
-<div class="code-block is-relative">
-  <button class="button is-light is-outlined is-small p-2" on:click={copyFunction}>Copy</button>
-  <Highlight code={text} {language} />
-</div>
+{#if lang === "rendermath"}
+  {@html renderedMath}
+{:else}
+  <div class="code-block is-relative">
+    <button class="button is-light is-outlined is-small p-2" on:click={copyFunction}>Copy</button>
+    <Highlight code={text} {language} />
+  </div>
+{/if}
