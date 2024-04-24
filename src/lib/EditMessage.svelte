@@ -19,6 +19,8 @@
   export let message:Message
   export let chatId:number
   export let chat:Chat
+ 
+  const renderLatexFlag = import.meta.env.VITE_RENDER_LATEX || true
 
   $: chatSettings = chat.settings
 
@@ -224,6 +226,9 @@
   }
 
   const preprocessMath = (text: string): string => {     
+    if (renderLatexFlag !== true) {
+        return text
+    }
     var codeBlockPlaceholderPrefix = "__prefix__c0d3b10ck__";
     while (text.indexOf(codeBlockPlaceholderPrefix) > 0) {
       codeBlockPlaceholderPrefix = codeBlockPlaceholderPrefix + "_";
