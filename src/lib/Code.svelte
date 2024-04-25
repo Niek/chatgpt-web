@@ -27,8 +27,8 @@
     type LanguageType
   } from 'svelte-highlight/languages/index'
 
-  import katex from 'katex';
-  import 'katex/contrib/mhchem';  
+  import katex from 'katex'
+  import 'katex/contrib/mhchem'
 
   export const type: 'code' = 'code'
   export const raw: string = ''
@@ -36,18 +36,18 @@
   export let lang: string | undefined
   export let text: string
 
-  let renderedMath: string | undefined;
+  let renderedMath: string | undefined
 
-  $: if (lang === "rendermath") {
+  $: if (lang === 'rendermath') {
     renderedMath = katex.renderToString(text, {
       throwOnError: false,
       displayMode: true
-    });
+    })
   } else {
-    renderedMath = undefined;
+    renderedMath = undefined
   }
   
-  // Map lang string to LanguageType 
+  // Map lang string to LanguageType
   let language: LanguageType<string>
 
   // If no language is set, try to detect it using flourite
@@ -131,7 +131,7 @@
   {@html style}
 </svelte:head>
 
-{#if lang === "rendermath"}
+{#if lang === 'rendermath'}
   {@html renderedMath}
 {:else}
   <div class="code-block is-relative">

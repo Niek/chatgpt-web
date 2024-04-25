@@ -14,12 +14,12 @@
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
 
-  import '../katex.min.css';
+  import '../katex.min.css'
 
   export let message:Message
   export let chatId:number
   export let chat:Chat
- 
+
   const renderLatexFlag = import.meta.env.VITE_RENDER_LATEX || true
 
   $: chatSettings = chat.settings
@@ -37,10 +37,10 @@
     mangle: false // Do not mangle email addresses
   }
   
-  const renderers = { 
-    code: Code, 
+  const renderers = {
+    code: Code,
     html: Code,
-    codespan: Codespan,
+    codespan: Codespan
   }
 
   const getDisplayMessage = ():string => {
@@ -225,55 +225,55 @@
     document.body.removeChild(a)
   }
 
-  const preprocessMath = (text: string): string => {     
+  const preprocessMath = (text: string): string => {
     if (renderLatexFlag !== true) {
-        return text
+      return text
     }
-    var codeBlockPlaceholderPrefix = "__prefix__c0d3b10ck__";
+    let codeBlockPlaceholderPrefix = '__prefix__c0d3b10ck__'
     while (text.indexOf(codeBlockPlaceholderPrefix) > 0) {
-      codeBlockPlaceholderPrefix = codeBlockPlaceholderPrefix + "_";
+      codeBlockPlaceholderPrefix = codeBlockPlaceholderPrefix + '_'
     }
-    let index = 0;
-    const codeBlocks = [];
+    let index = 0
+    const codeBlocks = []
 
-    const codeBlockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
-    
+    const codeBlockRegex = /(```[\s\S]*?```|`[^`]*`)/g
+  
     text = text.replace(codeBlockRegex, (match) => {
-      const placeholder = `${codeBlockPlaceholderPrefix}idx${index}__`;
-      codeBlocks.push(match);
-      index++;
-      return placeholder;
-    });
+      const placeholder = `${codeBlockPlaceholderPrefix}idx${index}__`
+      codeBlocks.push(match)
+      index++
+      return placeholder
+    })
 
     text = text
-            .replace(/(\\\[((?:\s|\S)*?)\\\])|(\$\$((?:\s|\S)*?)\$\$)/g, (match, p1, p2, p3, p4) => {
-              let math = p2 || p4;
-              return '\n```rendermath\n' + math.trim() + '\n```\n';
-            })
-            .replace(/(\\\((?!\$)(.*?)\\\))|(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, p1, p2, p3) => {
-              let math = p2 || p3;
-              return '`rendermath' + math.trim() + '`';
-            });
+      .replace(/(\\\[((?:\s|\S)*?)\\\])|(\$\$((?:\s|\S)*?)\$\$)/g, (match, p1, p2, p3, p4) => {
+        const math = p2 || p4
+        return '\n```rendermath\n' + math.trim() + '\n```\n'
+      })
+      .replace(/(\\\((?!\$)(.*?)\\\))|(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, p1, p2, p3) => {
+        const math = p2 || p3
+        return '`rendermath' + math.trim() + '`'
+      })
 
-            // .replace(/\\\[((?:\s|\S)*?)\\\]/g, (match, math) => {
-            //     return '\n```rendermath\n' + math.trim() + '\n```\n'
-            // })
-            // .replace(/\$\$((?:\s|\S)*?)\$\$/g, (match, math) => {
-            //     return '\n```rendermath\n' + math.trim() + '\n```\n'
-            // })
-            // .replace(/\\\((?!\$)(.*?[^\\])\\\)/g, (match, math) => {
-            //     return '`rendermath' + math.trim() + '`'
-            // })
-            // .replace(/(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, math) => {
-            //     return '`rendermath' + math.trim() + '`'
-            // })
+    // .replace(/\\\[((?:\s|\S)*?)\\\]/g, (match, math) => {
+    //     return '\n```rendermath\n' + math.trim() + '\n```\n'
+    // })
+    // .replace(/\$\$((?:\s|\S)*?)\$\$/g, (match, math) => {
+    //     return '\n```rendermath\n' + math.trim() + '\n```\n'
+    // })
+    // .replace(/\\\((?!\$)(.*?[^\\])\\\)/g, (match, math) => {
+    //     return '`rendermath' + math.trim() + '`'
+    // })
+    // .replace(/(?<!\\|\$)\$(?!\$)(.*?[^\\])\$(?!\$)/g, (match, math) => {
+    //     return '`rendermath' + math.trim() + '`'
+    // })
 
     text = text.replace(new RegExp(`${codeBlockPlaceholderPrefix}idx(\\d+)__`, 'g'), (match, p1) => {
-              return codeBlocks[p1];
-            });
+      return codeBlocks[p1]
+    })
 
-    return text;
-  };
+    return text
+  }
 
 </script>
 

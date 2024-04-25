@@ -1,14 +1,14 @@
 <script lang="ts">
   export let raw
-  import katex from 'katex';
-  import 'katex/contrib/mhchem';  
+  import katex from 'katex'
+  import 'katex/contrib/mhchem'
 
-  let renderedMath: string | undefined;
-  if (raw.startsWith("`rendermath")) {
+  let renderedMath: string | undefined
+  if (raw.startsWith('`rendermath')) {
     renderedMath = katex.renderToString(raw.replace(/`rendermath|`/g, ''), {
       throwOnError: false,
       displayMode: false
-    });
+    })
   }
 
 </script>
