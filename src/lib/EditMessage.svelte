@@ -14,7 +14,7 @@
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
 
-  import '../katex.min.css'
+  import 'katex/dist/katex.min.css'
 
   export let message:Message
   export let chatId:number
