@@ -7,7 +7,7 @@
   import SvelteMarkdown from 'svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
-  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard } from '@fortawesome/free-solid-svg-icons/index'
+  import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard, faSquareRootVariable } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
@@ -19,8 +19,6 @@
   export let message:Message
   export let chatId:number
   export let chat:Chat
-
-  const renderLatexFlag = import.meta.env.VITE_RENDER_LATEX || true
 
   $: chatSettings = chat.settings
 
@@ -226,9 +224,6 @@
   }
 
   const preprocessMath = (text: string): string => {
-    if (renderLatexFlag !== true) {
-      return text
-    }
     let codeBlockPlaceholderPrefix = '__prefix__c0d3b10ck__'
     while (text.indexOf(codeBlockPlaceholderPrefix) > 0) {
       codeBlockPlaceholderPrefix = codeBlockPlaceholderPrefix + '_'
@@ -275,6 +270,10 @@
     return text
   }
 
+  const renderMathMsg = () => {
+    displayMessage = preprocessMath(message.content);
+  };
+
 </script>
 
 <article
@@ -314,7 +313,7 @@
         {/if}
         {#key refreshCounter}
         <SvelteMarkdown 
-          source={preprocessMath(displayMessage)} 
+          bind:source={displayMessage} 
           options={markdownOptions} 
           renderers={renderers}
         />
@@ -432,6 +431,16 @@
         <span class="icon"><Fa icon={faClipboard} /></span>
         </a>
       {/if}
+      <a
+        href={'#'}
+        title="Render LaTeX in message"
+        class="button is-small"
+        on:click|preventDefault={() => {
+          renderMathMsg()
+        }}
+      >
+      <span class="icon"><Fa icon={faSquareRootVariable} /></span>
+      </a>
       {#if imageUrl}
         <a
           href={'#'}
