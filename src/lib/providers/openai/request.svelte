@@ -66,7 +66,7 @@ export const chatRequest = async (
             throw err
           },
           async onopen (response) {
-            if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+            if (response.ok && response.headers.get('content-type').startsWith(EventStreamContentType)) {
             // everything's good
             } else {
             // client-side errors are usually non-retriable:
