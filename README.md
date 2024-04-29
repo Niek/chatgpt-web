@@ -142,6 +142,7 @@ To use ChatGPT-web as a desktop application:
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaksimMisin"><img src="https://avatars.githubusercontent.com/u/6176998?v=4?s=100" width="100px;" alt="Maksim Misin"/><br /><sub><b>Maksim Misin</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=MaksimMisin" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://r-wg.it/"><img src="https://avatars.githubusercontent.com/u/22281217?v=4?s=100" width="100px;" alt="romain.wg"/><br /><sub><b>romain.wg</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=romainwg" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://morgan.kr"><img src="https://avatars.githubusercontent.com/u/53516171?v=4?s=100" width="100px;" alt="Morgan"/><br /><sub><b>Morgan</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=morgan9e" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://codeberg.org/udon"><img src="https://avatars.githubusercontent.com/u/143291288?v=4?s=100" width="100px;" alt="Udon"/><br /><sub><b>Udon</b></sub></a><br /><a href="#design-UdonCodes" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>
