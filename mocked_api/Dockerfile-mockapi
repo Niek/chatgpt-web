@@ -1,4 +1,4 @@
-FROM python:3.10.10-alpine3.17
+FROM python:3-alpine
 WORKDIR /work
 
 RUN pip install "fastapi<1.0" "uvicorn<0.22" "lorem-text<=2.1.x"
