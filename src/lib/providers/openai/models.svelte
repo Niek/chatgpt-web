@@ -75,6 +75,12 @@ const gpt4 = {
       completion: 0.00006, // $0.06 per 1000 tokens completion
       max: 8192 // 8k max token buffer
 }
+const gpt4o = {
+      ...chatModelBase,
+      prompt: 0.000005, // $0.005 per 1000 tokens prompt
+      completion: 0.000015, // $0.015 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
 const gpt432k = {
       ...chatModelBase,
       prompt: 0.00006, // $0.06 per 1000 tokens prompt
@@ -96,6 +102,7 @@ export const chatModels : Record<string, ModelDetail> = {
   'gpt-3.5-turbo-16k': { ...gpt3516k },
   'gpt-3.5-turbo-16k-0613': { ...gpt3516k },
   'gpt-4': { ...gpt4 },
+  'gpt-4o': { ...gpt4o },
   'gpt-4-turbo-preview': { ...gpt4128kpreview },
   'gpt-4-turbo-2024-04-09': { ...gpt4128kpreview },
   'gpt-4-0314': { ...gpt4 },
