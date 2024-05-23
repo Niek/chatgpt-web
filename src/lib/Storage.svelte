@@ -13,7 +13,8 @@
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
-  export const apiKeyStorage = persisted('apiKey', '' as string)
+  const apiKeyFromEnv = import.meta.env.OPENAI_API_KEY || ''
+  export const apiKeyStorage = persisted('apiKey', apiKeyFromEnv as string)
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
   export let submitExitingPromptsNow = writable(false) // for them to go now.  Will not submit anything in the input
