@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
-    import { getApiBase, getEndpointCompletions, getEndpointGenerations } from '../../ApiUtil.svelte'
+    import { getEndpointCompletions, getEndpointGenerations } from '../../ApiUtil.svelte'
     import { countTokens } from '../../Models.svelte'
     import { countMessageTokens } from '../../Stats.svelte'
-    import { globalStorage } from '../../Storage.svelte'
+    import { getApiBase, globalStorage } from '../../Storage.svelte'
     import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
     import { chatRequest, imageRequest } from './request.svelte'
     import { checkModel } from './util.svelte'
@@ -94,7 +94,18 @@ const gpt4128kpreview = {
       max: 131072 // 128k max token buffer
 }
 
+// Fallback model details for unknown models. Since we do not
+// know the pricing or context limits, we will assume a free
+// model with high limits.
+export const fallbackModelDetail = {
+  ...chatModelBase,
+  prompt: 0, // $0.00 per 1000 tokens prompt
+  completion: 0, // $0.00 per 1000 tokens completion
+  max: 1024000 // 1M max token buffer
+}
+
 export const chatModels : Record<string, ModelDetail> = {
+  'openchat-3.5-0106.Q5_K_M.gguf': { ...fallbackModelDetail },
   'gpt-3.5-turbo': { ...gpt3516k },
   'gpt-3.5-turbo-0301': { ...gpt35 },
   'gpt-3.5-turbo-0613': { ...gpt35 },

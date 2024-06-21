@@ -36,24 +36,34 @@ export const supportedChatModelKeys = Object.keys({ ...supportedChatModels })
 const tpCache : Record<string, ModelDetail> = {}
 
 export const getModelDetail = (model: Model): ModelDetail => {
-    // First try to get exact match, then from cache
-    let r = lookupList[model] || tpCache[model]
-    if (r) return r
-    // If no exact match, find closest match
-    const k = Object.keys(lookupList)
-      .sort((a, b) => b.length - a.length) // Longest to shortest for best match
-      .find((k) => model.startsWith(k))
-    if (k) {
-      r = lookupList[k]
+  // Ensure model is a string for typesafety
+    if (typeof model !== 'string') {
+      console.warn('Invalid type for model:', model)
+      return unknownDetail
     }
-    if (!r) {
-      console.warn('Unable to find model detail for:', model, lookupList)
-      r = unknownDetail
+
+    // Attempt to fetch the model details directly from lookupList or cache
+    let result = lookupList[model] || tpCache[model]
+    if (result) {
+      return result
     }
+
+    // No direct match found, attempting to find the closest match
+    const sortedKeys = Object.keys(lookupList).sort((a, b) => b.length - a.length) // Longest to shortest for best match
+    const bestMatchKey = sortedKeys.find(key => model.startsWith(key))
+
+    if (bestMatchKey) {
+      result = lookupList[bestMatchKey]
+    } else {
+      console.warn('Unable to find model detail for:', model)
+      result = unknownDetail // Assign a default detail for undefined models
+    }
+
     // Cache it so we don't need to do that again
-    tpCache[model] = r
-    return r
+    tpCache[model] = result
+    return result
 }
+
 
 export const getEndpoint = (model: Model): string => {
     return getModelDetail(model).getEndpoint(model)

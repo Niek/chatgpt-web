@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { get } from 'svelte/store'
-    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { apiKeyStorage, getApiBase, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -18,14 +18,19 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
-    import { getModelDetail, getTokens } from './Models.svelte'
+import { getModelDetail, getTokens } from './Models.svelte'
 
-const defaultModel:Model = 'gpt-3.5-turbo'
-const defaultModelPetals:Model = 'stabilityai/StableBeluga2'
-
+// We are adding default model names explicitly here to avoid
+// circular dependencies. Alternative would be a big refactor,
+// which we want to avoid for now.
 export const getDefaultModel = (): Model => {
-  if (!get(apiKeyStorage)) return defaultModelPetals
-  return defaultModel
+  if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
+
+  if (!getApiBase().includes('openai.com')) {
+        return 'openchat-3.5-0106.Q5_K_M.gguf'
+  }
+
+  return 'gpt-3.5-turbo'
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
@@ -136,7 +141,8 @@ export const globalDefaults: GlobalSettings = {
   chatSort: 'created',
   openAICompletionEndpoint: '',
   enablePetals: false,
-  pedalsEndpoint: ''
+  pedalsEndpoint: '',
+  openAiEndpoint: 'https://api.openai.com'
 }
 
 const excludeFromProfile = {
@@ -720,6 +726,11 @@ const globalSettingsList:GlobalSetting[] = [
       {
         key: 'pedalsEndpoint',
         name: 'Petals API Endpoint',
+        type: 'text'
+      },
+      {
+        key: 'openAiEndpoint',
+        name: 'OpenAI API Endpoint',
         type: 'text'
       }
 ]
