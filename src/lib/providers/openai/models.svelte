@@ -101,7 +101,8 @@ export const fallbackModelDetail = {
   ...chatModelBase,
   prompt: 0, // $0.00 per 1000 tokens prompt
   completion: 0, // $0.00 per 1000 tokens completion
-  max: 1024000 // 1M max token buffer
+  max: 1024000, // 1M max token buffer
+  name: 'openchat-3.5-0106.Q5_K_M.gguf'
 }
 
 export const chatModels : Record<string, ModelDetail> = {

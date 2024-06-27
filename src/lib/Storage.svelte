@@ -14,7 +14,7 @@
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
   const apiKeyFromEnv = import.meta.env.VITE_OPENAI_API_KEY || ''
-  const apiBaseUriFromEnv = import.meta.env.VITE_API_BASE || ''
+  const apiBaseUriFromEnv = import.meta.env.VITE_API_BASE || 'https://api.openai.com/v1'
   export const apiKeyStorage = persisted('apiKey', apiKeyFromEnv as string)
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
@@ -39,7 +39,7 @@
   }
 
   export const getApiBase = (): string => {
-    const endpoint = get(globalStorage).openAiEndpoint || apiBaseUriFromEnv || 'https://api.openai.com'
+    const endpoint = get(globalStorage).openAiEndpoint || apiBaseUriFromEnv
     return cleanApiBase(endpoint)
   }
 
