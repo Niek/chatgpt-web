@@ -33,7 +33,7 @@
     "dompurify": "^3.0.6",
     "eslint-config-standard-with-typescript": "^35.0.0",
     "eslint-plugin-svelte3": "^4.0.0",
-    "flourite": "^1.2.4",
+    "flourite": "^1.3.0",
     "gpt-tokenizer": "^2.1.2",
     "llama-tokenizer-js": "^1.1.3",
     "postcss": "^8.4.32",
