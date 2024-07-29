@@ -5,12 +5,8 @@
   import { mergeProfileFields } from './Profiles.svelte'
   import { getChatSettingObjectByKey } from './Settings.svelte'
   import { valueOf } from './Util.svelte'
-  import { chatModels as openAiModels, imageModels as openAiImageModels } from './providers/openai/models.svelte'
+  import { chatModels as openAiModels, imageModels as openAiImageModels, fetchRemoteModels, fallbackModelDetail } from './providers/openai/models.svelte'
   import { chatModels as petalsModels } from './providers/petals/models.svelte'
-
-const unknownDetail = {
-    ...Object.values(openAiModels)[0]
-} as ModelDetail
 
 export const supportedChatModels : Record<string, ModelDetail> = {
     ...openAiModels,
@@ -39,7 +35,11 @@ export const getModelDetail = (model: Model): ModelDetail => {
   // Ensure model is a string for typesafety
     if (typeof model !== 'string') {
       console.warn('Invalid type for model:', model)
-      return unknownDetail
+      return {
+        ...fallbackModelDetail,
+        id: model,
+        modelQuery: model
+      }
     }
 
     // Attempt to fetch the model details directly from lookupList or cache
@@ -56,7 +56,11 @@ export const getModelDetail = (model: Model): ModelDetail => {
       result = lookupList[bestMatchKey]
     } else {
       console.warn('Unable to find model detail for:', model)
-      result = unknownDetail // Assign a default detail for undefined models
+      result = {
+        ...fallbackModelDetail,
+        id: model,
+        modelQuery: model
+      }
     }
 
     // Cache it so we don't need to do that again
@@ -159,7 +163,8 @@ export const hasActiveModels = (): boolean => {
 }
 
 export async function getChatModelOptions (): Promise<SelectOption[]> {
-    const models = Object.keys(supportedChatModels)
+    const remoteModels = await fetchRemoteModels()
+    const models = Object.keys({ ...supportedChatModels, ...remoteModels })
     const result:SelectOption[] = []
     for (let i = 0, l = models.length; i < l; i++) {
       const model = models[i]

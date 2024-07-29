@@ -5,7 +5,7 @@
     import { getApiBase, globalStorage } from '../../Storage.svelte'
     import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
     import { chatRequest, imageRequest } from './request.svelte'
-    import { checkModel } from './util.svelte'
+    import { checkModel, getSupportedModels } from './util.svelte'
     import { encode } from 'gpt-tokenizer'
     import { get } from 'svelte/store'
 
@@ -101,12 +101,10 @@ export const fallbackModelDetail = {
   ...chatModelBase,
   prompt: 0, // $0.00 per 1000 tokens prompt
   completion: 0, // $0.00 per 1000 tokens completion
-  max: 1024000, // 1M max token buffer
-  name: 'openchat-3.5-0106.Q5_K_M.gguf'
+  max: 1024000 // 1M max token buffer
 }
 
 export const chatModels : Record<string, ModelDetail> = {
-  'openchat-3.5-0106.Q5_K_M.gguf': { ...fallbackModelDetail },
   'gpt-3.5-turbo': { ...gpt3516k },
   'gpt-3.5-turbo-0301': { ...gpt35 },
   'gpt-3.5-turbo-0613': { ...gpt35 },
@@ -124,6 +122,19 @@ export const chatModels : Record<string, ModelDetail> = {
   'gpt-4-32k': { ...gpt432k },
   'gpt-4-32k-0314': { ...gpt432k },
   'gpt-4-32k-0613': { ...gpt432k }
+}
+
+export const fetchRemoteModels = async () => {
+  const supportedModels = await getSupportedModels()
+
+  Object.keys(supportedModels).forEach((key) => {
+        supportedModels[key] = {
+          ...chatModelBase,
+          ...supportedModels[key]
+        }
+  })
+
+  return supportedModels
 }
 
 const imageModelBase = {

@@ -20,7 +20,7 @@ export const set = (opt: Record<string, any>) => {
   apiKeyStorage.set(opt.apiKey || '')
 }
 
-const getSupportedModels = async (): Promise<Record<string, boolean>> => {
+export const getSupportedModels = async (): Promise<Record<string, boolean>> => {
   if (availableModels) return availableModels
   const openAiKey = get(apiKeyStorage)
   if (!openAiKey) return {}
@@ -40,6 +40,7 @@ const getSupportedModels = async (): Promise<Record<string, boolean>> => {
         }, {})
         return availableModels
   } catch (e) {
+        console.error(e)
         availableModels = {}
         clearTimeout(_resetSupportedModelsTimer)
         _resetSupportedModelsTimer = setTimeout(() => { availableModels = undefined }, 1000)

@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { get } from 'svelte/store'
-    import { apiKeyStorage, getApiBase, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -25,10 +25,6 @@ import { getModelDetail, getTokens } from './Models.svelte'
 // which we want to avoid for now.
 export const getDefaultModel = (): Model => {
   if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
-
-  if (!getApiBase().includes('openai.com')) {
-        return 'openchat-3.5-0106.Q5_K_M.gguf'
-  }
 
   return 'gpt-3.5-turbo'
 }
