@@ -12,7 +12,7 @@ export const chatRequest = async (
   chatResponse: ChatCompletionResponse,
   opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
     // OpenAI Request
-      const model = chatRequest.getModel()
+      const model = await chatRequest.getModel()
       const signal = chatRequest.controller.signal
       const abortListener = (e:Event) => {
         chatRequest.updating = false

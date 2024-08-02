@@ -37,7 +37,7 @@ export const chatRequest = async (
       // Petals
       const chat = chatRequest.getChat()
       const chatSettings = chat.settings
-      const model = chatRequest.getModel()
+      const model = await chatRequest.getModel()
       const modelDetail = getModelDetail(model)
       const signal = chatRequest.controller.signal
       const providerData = chatRequest.providerData.petals || {}

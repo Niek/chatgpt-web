@@ -43,7 +43,7 @@
   let showSettingsModal = 0
   let showProfileMenu:boolean = false
   let profileFileInput
-  let defaultProfile = getDefaultProfileKey()
+  let defaultProfile
   let isDefault = false
 
   const settingsList = getChatSettingList()
@@ -63,6 +63,8 @@
   onMount(async () => {
     originalProfile = chatSettings && chatSettings.profile
     originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
+
+    defaultProfile = await getDefaultProfileKey()
   })
 
   afterUpdate(() => {
@@ -112,17 +114,17 @@
     return profileUri
   }
 
-  const cloneProfile = () => {
+  const cloneProfile = async () => {
     showProfileMenu = false
     const clone = JSON.parse(JSON.stringify(chat.settings))
     const name = chat.settings.profileName
-    clone.profileName = newNameForProfile(name || '')
+    clone.profileName = await newNameForProfile(name || '')
     clone.profile = null
     try {
-      saveCustomProfile(clone)
+      await saveCustomProfile(clone)
       chat.settings.profile = clone.profile
       chat.settings.profileName = clone.profileName
-      applyProfile(chatId, clone.profile)
+      await applyProfile(chatId, clone.profile)
       refreshSettings()
     } catch (e) {
       errorNotice('Error cloning profile:', e)
@@ -140,14 +142,14 @@
     })
   }
 
-  const deleteProfile = () => {
+  const deleteProfile = async () => {
     showProfileMenu = false
     try {
-      deleteCustomProfile(chatId, chat.settings.profile)
+      await deleteCustomProfile(chatId, chat.settings.profile)
       chat.settings.profile = globalStore.defaultProfile || ''
       saveChatStore()
       setGlobalSettingValueByKey('lastProfile', chat.settings.profile)
-      applyProfile(chatId, chat.settings.profile)
+      await applyProfile(chatId, chat.settings.profile)
       refreshSettings()
     } catch (e) {
       console.error(e)
@@ -161,18 +163,18 @@
     refreshSettings()
   }
 
-  const importProfileFromFile = (e) => {
+  const importProfileFromFile = async (e) => {
     const image = e.target.files[0]
     e.target.value = null
     const reader = new FileReader()
     reader.readAsText(image)
-    reader.onload = e => {
+    reader.onload = async (e) => {
       const json = (e.target || {}).result as string
       try {
         const profile = JSON.parse(json)
-        profile.profileName = newNameForProfile(profile.profileName || '')
+        profile.profileName = await newNameForProfile(profile.profileName || '')
         profile.profile = null
-        saveCustomProfile(profile)
+        await saveCustomProfile(profile)
         refreshSettings()
       } catch (e) {
         errorNotice('Unable to import profile:', e)
@@ -180,23 +182,23 @@
     }
   }
 
-  const updateProfileSelectOptions = () => {
+  const updateProfileSelectOptions = async () => {
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
-    profileSelect.options = getProfileSelect()
-    chatDefaults.profile = getDefaultProfileKey()
+    profileSelect.options = await getProfileSelect()
+    chatDefaults.profile = await getDefaultProfileKey()
     chatDefaults.max_tokens = getModelMaxTokens(chatSettings.model)
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
-    defaultProfile = getDefaultProfileKey()
+    defaultProfile = await getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
   }
   
   const showSettings = async () => {
-    setDirty()
+    await setDirty()
     // Show settings modal
     showSettingsModal++
 
     // Get profile options
-    updateProfileSelectOptions()
+    await updateProfileSelectOptions()
 
     // Refresh settings modal
     showSettingsModal++
@@ -215,20 +217,20 @@
     setTimeout(() => sizeTextElements(profileChanged))
   }
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
     showProfileMenu = false
     try {
-      saveCustomProfile(chat.settings)
+      await saveCustomProfile(chat.settings)
       refreshSettings()
     } catch (e) {
       errorNotice('Error saving profile:', e)
     }
   }
 
-  const startNewChat = () => {
+  const startNewChat = async () => {
     const differentProfile = originalSettings.profile !== chatSettings.profile
     // start new
-    const newChatId = addChat(chatSettings)
+    const newChatId = await addChat(chatSettings)
     // restore original
     if (differentProfile) {
       chat.settings = originalSettings
@@ -247,13 +249,13 @@
       : (x === y || ((x === undefined || x === null || x === false) && (y === undefined || y === null || y === false)))
   }
 
-  const setDirty = (e:CustomEvent|undefined = undefined) => {
+  const setDirty = async (e:CustomEvent|undefined = undefined) => {
     if (e) {
       const setting = e.detail as ChatSetting
       const key = setting.key
       if (key === 'profile') return
     }
-    const profile = getProfile(chatSettings.profile)
+    const profile = await getProfile(chatSettings.profile)
     chatSettings.isDirty = !deepEqual(profile, chatSettings)
   }
 
@@ -343,4 +345,4 @@
   </div>
 </div>
 
-<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={async (e) => await importProfileFromFile(e)} bind:this={profileFileInput} >

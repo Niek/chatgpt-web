@@ -4,17 +4,20 @@
   import { replace } from 'svelte-spa-router'
   import { getProfile, restartProfile } from './Profiles.svelte'
   import { getChatDefaults, hasChatSetting } from './Settings.svelte'
+  import { onMount } from 'svelte'
 
   // Create the new chat instance then redirect to it
 
-  const urlParams: URLSearchParams = new URLSearchParams($querystring)
-  const chatId = urlParams.has('p') ? addChat(getProfile(urlParams.get('p') || '')) : addChat()
-  Object.keys(getChatDefaults()).forEach(k => {
-    if (urlParams.has(k) && hasChatSetting(k as any)) {
-      setChatSettingValueByKey(chatId, k as any, urlParams.get(k))
-    }
-  })
+  onMount(async () => {
+    const urlParams: URLSearchParams = new URLSearchParams($querystring)
+    const chatId = urlParams.has('p') ? await addChat(await getProfile(urlParams.get('p') || '')) : await addChat()
+    Object.keys(getChatDefaults()).forEach(k => {
+      if (urlParams.has(k) && hasChatSetting(k as any)) {
+        setChatSettingValueByKey(chatId, k as any, urlParams.get(k))
+      }
+    })
   
-  restartProfile(chatId)
-  replace(`/chat/${chatId}`)
+    await restartProfile(chatId)
+    replace(`/chat/${chatId}`)
+  })
 </script>

@@ -18,15 +18,17 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
-import { getModelDetail, getTokens } from './Models.svelte'
+import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
 
 // We are adding default model names explicitly here to avoid
 // circular dependencies. Alternative would be a big refactor,
 // which we want to avoid for now.
-export const getDefaultModel = (): Model => {
+export const getDefaultModel = async (): Promise<Model> => {
   if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
 
-  return 'gpt-3.5-turbo'
+  const models = await getChatModelOptions()
+
+  return models[0].text
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
