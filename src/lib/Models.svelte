@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  import { apiKeyStorage, globalStorage } from './Storage.svelte'
+  import { apiKeyStorage, getApiBase, globalStorage } from './Storage.svelte'
   import { get } from 'svelte/store'
   import type { ModelDetail, Model, SelectOption, Chat } from './Types.svelte'
   import { mergeProfileFields } from './Profiles.svelte'
@@ -162,21 +162,42 @@ export const hasActiveModels = (): boolean => {
     return !!get(apiKeyStorage) || !!globalSettings.enablePetals
 }
 
+const sortModelsAlphabetically = (a: SelectOption, b: SelectOption): number => {
+    const aText = a.text.toLowerCase()
+    const bText = b.text.toLowerCase()
+
+    if (aText < bText) return -1
+    if (aText > bText) return 1
+    return 0
+}
+
 export async function getChatModelOptions (): Promise<SelectOption[]> {
-    const remoteModels = await fetchRemoteModels()
+    const isOpenAi = getApiBase().includes('openai.com')
+
+    // We are checking if the OpenAI endpoint is used, so we only fetch
+    // additional models for non-OpenAI endpoints
+    const remoteModels = isOpenAi ? {} : await fetchRemoteModels()
+
     const models = Object.keys({ ...supportedChatModels, ...remoteModels })
-    const result:SelectOption[] = []
+    const modelOptionsActive:SelectOption[] = []
+    const modelOptionsInactive:SelectOption[] = []
+  
     for (let i = 0, l = models.length; i < l; i++) {
       const model = models[i]
       const modelDetail = getModelDetail(model)
       await modelDetail.check(modelDetail)
-      result.push({
+      const pushTarget = modelDetail.enabled ? modelOptionsActive : modelOptionsInactive
+      pushTarget.push({
         value: model,
         text: modelDetail.label || model,
         disabled: !modelDetail.enabled
       })
     }
-    return result
+
+    modelOptionsActive.sort(sortModelsAlphabetically)
+    modelOptionsInactive.sort(sortModelsAlphabetically)
+
+    return [...modelOptionsActive, ...modelOptionsInactive]
 }
 
 export async function getImageModelOptions (): Promise<SelectOption[]> {
