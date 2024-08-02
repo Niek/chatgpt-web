@@ -162,6 +162,7 @@ export type GlobalSettings = {
     openAICompletionEndpoint: string;
     enablePetals: boolean;
     pedalsEndpoint: string;
+    openAiEndpoint: string;
   };
 
   type SettingNumber = {
