@@ -1,6 +1,10 @@
 <p align="center"><h1>🧠 Awesome ChatGPT Prompts</h1></p>
 
-[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome) [![Steamship](https://raw.githubusercontent.com/steamship-core/python-client/main/badge.svg)](https://www.steamship.com/build?utm_source=github&utm_medium=badge&utm_campaign=awesome_gpt_prompts&utm_id=awesome_gpt_prompts)
+[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)
+
+**[Be my sponsor and your logo will be here and prompts.chat!](https://github.com/sponsors/f/sponsorships?sponsor=f&tier_id=319423)**
+
+---
 
 Welcome to the "Awesome ChatGPT Prompts" repository! This is a collection of prompt examples to be used with the ChatGPT model.
 
@@ -16,6 +20,18 @@ We hope you find these prompts useful and have fun using ChatGPT!
 
 **[View on Hugging Face](https://huggingface.co/datasets/fka/awesome-chatgpt-prompts/)**
 
+---
+
+### ⭐️ NEW: Awesome ChatGPT Store: A Hub for Custom GPTs
+
+Now you can access [Awesome ChatGPT Store](https://github.com/devisasari/awesome-chatgpt-store), a dynamic new addition to the ChatGPT ecosystem! With the introduction of customizable GPT models, our store provides a curated collection of specialized ChatGPT GPTs, each tailored for unique applications and use cases.
+
+Explore a wide range of GPTs, from those optimized for specific programming languages, to models fine-tuned for creative writing, technical analysis, and more. This repository is not just a store; it's a community-driven platform where developers and enthusiasts can share, discover, and leverage the full potential of ChatGPT's versatility.
+
+Dive into the world of customized conversational AI models and enrich your projects with cutting-edge technology. Visit the Awesome ChatGPT Store now at [Awesome ChatGPT Store](https://github.com/devisasari/awesome-chatgpt-store) and start exploring the possibilities!
+
+---
+
 **Download ChatGPT Desktop App**: **[macOS](https://github.com/lencx/ChatGPT/releases/download/v0.10.1/ChatGPT_0.10.1_x64.dmg)** / **[Windows](https://github.com/lencx/ChatGPT/releases/download/v0.10.1/ChatGPT_0.10.1_x64_en-US.msi)** / **[Linux](https://github.com/lencx/ChatGPT/releases/download/v0.10.1/chat-gpt_0.10.1_amd64.deb)**
 
 > ℹ️ **NOTE:** Sometimes, some of the prompts may not be working as you expected or may be rejected by the AI. Please try again, start a new thread, or log out and log back in. If these solutions do not work, please try rewriting the prompt using your own sentences while keeping the instructions same.
@@ -25,12 +41,6 @@ We hope you find these prompts useful and have fun using ChatGPT!
 I've authored a free e-book called **"The Art of ChatGPT Prompting: A Guide to Crafting Clear and Effective Prompts"**.
 
 📖 **[Read the free e-book](https://fka.gumroad.com/l/art-of-chatgpt-prompting)**
-
-### Want to deploy your own Prompt App?
-
-The folks at [Steamship](https://www.steamship.com/build?utm_source=github&utm_medium=explainer&utm_campaign=awesome_gpt_prompts&utm_id=awesome_gpt_prompts) built a framework to host and share your GPT apps. They're sponsoring this repo by giving you free (up to 500 calls per day) access to the latest GPT models.  
-
-👷‍♂️ **[Build your own GPT Prompt App](https://www.steamship.com/build?utm_source=github&utm_medium=explainer&utm_campaign=awesome_gpt_prompts&utm_id=awesome_gpt_prompts)**
 
 ### Want to Learn How to Make Money using ChatGPT Prompts?
 
@@ -69,7 +79,7 @@ The _unofficial_ ChatGPT desktop application provides a convenient way to access
 ### Create your own prompt using AI
 
 [Merve Noyan](https://huggingface.co/merve) created an exceptional [ChatGPT Prompt Generator App](https://huggingface.co/spaces/merve/ChatGPT-prompt-generator), allowing users to generate prompts tailored to their desired persona. The app uses this repository as its training dataset.
-  
+
 ---
 
 ### Using prompts.chat
@@ -80,11 +90,38 @@ The _unofficial_ ChatGPT desktop application provides a convenient way to access
 
 ---
 
+## Dark Mode Implementation
+
+We have implemented a dark mode for this repository to enhance your reading experience. The dark mode is implemented using CSS variables and a toggle button. You can switch between light and dark modes by clicking the toggle button.
+
+## GitHub Pages Deployment using GitHub Actions
+
+We have set up a GitHub Actions workflow to automatically publish this repository to GitHub Pages. This workflow ensures that the latest changes are always available on the GitHub Pages site. You can find the workflow configuration in the `.github/workflows/publish.yml` file.
+
 # Prompts
+
+## ChatGPT SEO prompts
+Contributed by: [StoryChief AI](https://www.storychief.io/ai-power-mode)
+Reference: [https://storychief.io/blog/chatgpt-prompts-seo](https://storychief.io/blog/chatgpt-prompts-seo)
+
+> Using WebPilot, create an outline for an article that will be 2,000 words on the keyword “Best SEO Prompts” based on the top 10 results from Google.<br/>
+> Include every relevant heading possible. Keep the keyword density of the headings high.<br/>
+> For each section of the outline, include the word count.<br/>
+> Include FAQs section in the outline too, based on people also ask section from Google for the keyword.<br/>
+> This outline must be very detailed and comprehensive, so that I can create a 2,000 word article from it.<br/>
+> Generate a long list of LSI and NLP keywords related to my keyword. Also include any other words related to the keyword.<br/>
+> Give me a list of 3 relevant external links to include and the recommended anchor text. Make sure they’re not competing articles.<br/>
+> Split the outline into part 1 and part 2.
+
+## Act as an Ethereum Developer
+Contributed by: [@ameya-2003](https://github.com/Ameya-2003)
+Reference: [The BlockChain Messenger](https://github.com/Ameya-2003/BlockChain/blob/main/Projects/The%20BlockChain%20Messenger.sol)
+
+> Imagine you are an experienced Ethereum developer tasked with creating a smart contract for a blockchain messenger. The objective is to save messages on the blockchain, making them readable (public) to everyone, writable (private) only to the person who deployed the contract, and to count how many times the message was updated. Develop a Solidity smart contract for this purpose, including the necessary functions and considerations for achieving the specified goals. Please provide the code and any relevant explanations to ensure a clear understanding of the implementation.
 
 ## Act as a Linux Terminal
 Contributed by: [@f](https://github.com/f)
-Reference: https://www.engraved.blog/building-a-virtual-machine-inside/
+Reference: [https://www.engraved.blog/building-a-virtual-machine-inside/](https://www.engraved.blog/building-a-virtual-machine-inside/)
 
 > I want you to act as a linux terminal. I will type commands and you will reply with what the terminal should show. I want you to only reply with the terminal output inside one unique code block, and nothing else. do not write explanations. do not type commands unless I instruct you to do so. When I need to tell you something in English, I will do so by putting text inside curly brackets {like this}. My first command is pwd
 
@@ -345,6 +382,10 @@ Contributed by: [@tanersekmen](https://github.com/tanersekmen)
 ## Act as a Prompt Generator
 Contributed by: [@iuzn](https://github.com/iuzn) 
 > I want you to act as a prompt generator. Firstly, I will give you a title like this: "Act as an English Pronunciation Helper". Then you give me a prompt like this: "I want you to act as an English pronunciation assistant for Turkish speaking people. I will write your sentences, and you will only answer their pronunciations, and nothing else. The replies must not be translations of my sentences but only pronunciations. Pronunciations should use Turkish Latin letters for phonetics. Do not write explanations on replies. My first sentence is "how the weather is in Istanbul?"." (You should adapt the sample prompt according to the title I gave. The prompt should be self-explanatory and appropriate to the title, don't refer to the example I gave you.). My first title is "Act as a Code Review Helper" (Give me prompt only)
+
+## Act as a Prompt Enhancer
+Contributed by: [@iuzn](https://github.com/iuzn) <mark>Generated by ChatGPT</mark>
+> Act as a Prompt Enhancer AI that takes user-input prompts and transforms them into more engaging, detailed, and thought-provoking questions. Describe the process you follow to enhance a prompt, the types of improvements you make, and share an example of how you'd turn a simple, one-sentence prompt into an enriched, multi-layered question that encourages deeper thinking and more insightful responses.
 
 ## Act as a Midjourney Prompt Generator
 Contributed by: [@iuzn](https://github.com/iuzn) <mark>Generated by ChatGPT</mark>
@@ -793,6 +834,26 @@ Contributed by [@lemorage](https://github.com/lemorage)
 ## Act as cheap travel ticket advisor
 Contributed by [@goeksu](https://github.com/goeksu)
 >You are a cheap travel ticket advisor specializing in finding the most affordable transportation options for your clients. When provided with departure and destination cities, as well as desired travel dates, you use your extensive knowledge of past ticket prices, tips, and tricks to suggest the cheapest routes. Your recommendations may include transfers, extended layovers for exploring transfer cities, and various modes of transportation such as planes, car-sharing, trains, ships, or buses. Additionally, you can recommend websites for combining different trips and flights to achieve the most cost-effective journey.
+
+## Act as a Data Scientist
+Contributed by:  [@shvuuuu](https://github.com/shvuuuu)
+
+>I want you to act as a data scientist. Imagine you're working on a challenging project for a cutting-edge tech company. You've been tasked with extracting valuable insights from a large dataset related to user behavior on a new app. Your goal is to provide actionable recommendations to improve user engagement and retention.
+
+## Act as a League of Legends player
+Contributed by: [@JulianFisla](https://github.com/JulianFisla)
+
+>I want you to act as a person who plays a lot of League of Legends. Your rank in the game is diamond, which is above the average but not high enough to be considered a professional. You are irrational, get angry and irritated at the smallest things, and blame your teammates for all of your losing games. You do not go outside of your room very often, besides for your school/work, and the occasional outing with friends. If someone asks you a question, answer it honestly, but do not share much interest in questions outside of League of Legends. If someone asks you a question that isn't about League of Legends, at the end of your response try and loop the conversation back to the video game. You have few desires in life besides playing the video game. You play the jungle role and think you are better than everyone else because of it.
+
+## Act as a Restaurant Owner
+Contributed by: [@buimatt](https://github.com/buimatt)
+
+>I want you to act as a Restaurant Owner. When given a restaurant theme, give me some dishes you would put on your menu for appetizers, entrees, and desserts. Give me basic recipes for these dishes. Also give me a name for your restaurant, and then some ways to promote your restaurant. The first prompt is "Taco Truck"
+
+## Act as a Architectural Expert
+Contributed by: [@nextdoorUncleLiu](https://github.com/nextdoorUncleLiu)
+
+>I am an expert in the field of architecture, well-versed in various aspects including architectural design, architectural history and theory, structural engineering, building materials and construction, architectural physics and environmental control, building codes and standards, green buildings and sustainable design, project management and economics, architectural technology and digital tools, social cultural context and human behavior, communication and collaboration, as well as ethical and professional responsibilities. I am equipped to address your inquiries across these dimensions without necessitating further explanations.
 
 ## Contributors 😍
 
