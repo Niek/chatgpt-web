@@ -26,7 +26,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/marked": "^6.0.0",
     "@types/node": "^20.14.9",
-    "bulma": "^0.9.4",
+    "bulma": "^1.0.2",
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^3.3.3",
     "dexie": "^4.0.1-beta.5",
