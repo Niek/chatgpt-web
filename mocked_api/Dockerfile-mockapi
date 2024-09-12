@@ -1,7 +1,7 @@
 FROM python:3-alpine
 WORKDIR /work
 
-RUN pip install "fastapi<1.0" "uvicorn<0.22" "lorem-text<=2.1.x"
+RUN pip install "fastapi<1.0" "uvicorn<0.22" "lorem-text<=2.1"
 COPY mocked_api/mock_api.py .
 COPY mocked_api/models_response.json .
 

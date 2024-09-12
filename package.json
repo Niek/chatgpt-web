@@ -49,8 +49,8 @@
     "svelte-spa-router": "^4.0.1",
     "svelte-typeahead": "^4.4.1",
     "svelte-use-click-outside": "^1.0.0",
-    "tslib": "^2.6.3",
-    "typescript": "^5.0.4",
+    "tslib": "^2.7.0",
+    "typescript": "<5.5",
     "uuid": "^9.0.1",
     "vite": "^4.5.1"
   }
