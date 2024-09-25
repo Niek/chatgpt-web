@@ -40,6 +40,7 @@
   let showChatMenu = false
   let chatFileInput
   let profileFileInput
+  let fileInput
 
   const importChatFromFile = (e) => {
     close()
@@ -157,6 +158,21 @@
     reader.readAsText(image)
   }
 
+  const handleFileInputChange = (event: Event) => {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const content = e.target?.result as string
+        const fileMessage = { role: 'user', content, uuid: uuidv4() }
+        addMessage(chatId, fileMessage)
+        submitForm()
+      }
+      reader.readAsText(file)
+    }
+  }
+
 </script>
 
 <div class="dropdown {style}" class:is-active={showChatMenu} use:clickOutside={() => { showChatMenu = false }}>
@@ -207,6 +223,9 @@
       <a href={'#'} class="dropdown-item" class:is-disabled={!hasActiveModels()} on:click|preventDefault={() => { if (chatId) close(); profileFileInput.click() }}>
         <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
       </a>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); fileInput.click() }}>
+        <span class="menu-icon"><Fa icon={faUpload}/></span> Upload File
+      </a>
       <hr class="dropdown-divider">
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); delChat() }}>
         <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Chat
@@ -232,3 +251,4 @@
 
 <input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
 <input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<input style="display:none" type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" on:change={handleFileInputChange} bind:this={fileInput} >

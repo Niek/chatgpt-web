@@ -581,5 +581,15 @@
     modelMapStore[requestedModel] = responseModel
     latestModelMap.set(modelMapStore)
   }
+
+  export const handleFileUpload = async (chatId: number, file: File): Promise<void> => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const content = e.target?.result as string
+      const fileMessage: Message = { role: 'user', content, uuid: uuidv4() }
+      addMessage(chatId, fileMessage)
+    }
+    reader.readAsText(file)
+  }
   
 </script>

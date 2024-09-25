@@ -51,6 +51,8 @@
   let recording = false
   let lastSubmitRecorded = false
 
+  let fileInput: HTMLInputElement
+
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat?.settings
   let showSettingsModal
@@ -215,6 +217,21 @@
     }
     clearTimeout(waitingForCancel); waitingForCancel = 0
     chatRequest.controller.abort()
+  }
+
+  const handleFileInputChange = (event: Event) => {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const content = e.target?.result as string
+        const fileMessage: Message = { role: 'user', content, uuid: uuidv4() }
+        addMessage(chatId, fileMessage)
+        submitForm()
+      }
+      reader.readAsText(file)
+    }
   }
 
   const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
@@ -425,6 +442,10 @@
     </p>
     <p class="control queue">
       <button title="Queue message, don't send yet" class:is-disabled={chatRequest.updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
+    </p>
+    <p class="control file-upload">
+      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" on:change={handleFileInputChange} bind:this={fileInput} style="display: none;" />
+      <button title="Upload File" class="button" type="button" on:click={() => fileInput.click()}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
     </p>
     {#if chatRequest.updating}
     <p class="control send">
