@@ -6,17 +6,18 @@
   import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
   import { set as setOpenAI } from './providers/openai/util.svelte'
   import { hasActiveModels } from './Models.svelte'
+  import { get } from 'svelte/store'
 
   $: apiKey = $apiKeyStorage
   const openAiEndpoint = $globalStorage.openAiEndpoint || ''
   let showPetalsSettings = $globalStorage.enablePetals
   let pedalsEndpoint = $globalStorage.pedalsEndpoint
   let hasModels = hasActiveModels()
+  let apiError: string = ''
 
   onMount(() => {
     if (!$started) {
       $started = true
-      // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
       if (hasActiveModels() && getChat($lastChatId)) {
         const chatId = $lastChatId
         $lastChatId = 0
@@ -39,32 +40,42 @@
     hasModels = hasActiveModels()
   }
 
+  async function testApiEndpoint (baseUri: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${baseUri}/v1/models`, {
+        headers: { Authorization: `Bearer ${get(apiKeyStorage)}` }
+      })
+      if (!response.ok) {
+        apiError = `There was an error connecting to this endpoint: ${response.statusText}`
+        return false
+      }
+      apiError = ''
+      return true
+    } catch (error) {
+      console.error('Failed to connect:', error)
+      apiError = `There was an error connecting to this endpoint: ${error.message}`
+      return false
+    }
+  }
 </script>
 
 <section class="section">
   <article class="message">
     <div class="message-body">
-    <p class="mb-4">
-      <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
-      is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for
-      <a href="https://platform.openai.com/account/api-keys" target="_blank" rel="noreferrer">an OpenAI API key</a>
-      first. OpenAI bills per token (usage-based), which means it is a lot cheaper than
-      <a href="https://openai.com/blog/chatgpt-plus" target="_blank" rel="noreferrer">ChatGPT Plus</a>, unless you use
-      more than 10 million tokens per month. All messages are stored in your browser's local storage, so everything is
-      <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
-    </p>
-    <p>
-      As an alternative to OpenAI, you can enter your own OpenAI-compatabile API endpoint, or use Petals swarm as a free API option for open chat models like Llama 2. 
-    </p>
+      <p class="mb-4">
+        <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
+        is a simple one-page web interface to the OpenAI ChatGPT API...
+      </p>
+      <p>As an alternative to OpenAI, you can enter your own OpenAI-compatible API endpoint, or use Petals swarm...</p>
     </div>
   </article>
+
   <article class="message" class:is-danger={!hasModels} class:is-warning={!apiKey} class:is-info={apiKey}>
     <div class="message-body">
       Set your OpenAI API key below:
-
       <form
         class="field has-addons has-addons-right"
-        on:submit|preventDefault={(event) => {
+        on:submit|preventDefault={async (event) => {
           let val = ''
           if (event.target && event.target[0].value) {
             val = (event.target[0].value).trim()
@@ -80,38 +91,36 @@
             autocomplete="off"
             class="input"
             class:is-danger={!hasModels}
-            class:is-warning={!apiKey} class:is-info={apiKey}
+            class:is-warning={!apiKey}
+            class:is-info={apiKey}
             value={apiKey}
           />
         </p>
         <p class="control">
           <button class="button is-info" type="submit">Save</button>
         </p>
-
-
       </form>
 
       {#if !apiKey}
         <p class:is-danger={!hasModels} class:is-warning={!apiKey}>
-          Please enter your <a target="_blank" href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use Open AI's ChatGPT API.
-          At least one API must be enabled to use ChatGPT-web.
+          Please enter your <a target="_blank" href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use OpenAI's ChatGPT API. At least one API must be enabled to use ChatGPT-web.
         </p>
       {/if}
     </div>
   </article>
 
-  <article class="message" class:is-danger={!hasModels} class:is-warning={!openAiEndpoint} class:is-info={openAiEndpoint}>
+  <article class="message" class:is-danger={!hasModels || apiError} class:is-warning={!openAiEndpoint} class:is-info={openAiEndpoint && !apiError}>
     <div class="message-body">
       Set the API BASE URI for alternative OpenAI-compatible endpoints:
       <form
         class="field has-addons has-addons-right"
-        on:submit|preventDefault={(event) => {
+        on:submit|preventDefault={async (event) => {
           let val = ''
           if (event.target && event.target[0].value) {
             val = (event.target[0].value).trim()
+          }
+          if (await testApiEndpoint(val)) {
             setGlobalSettingValueByKey('openAiEndpoint', val)
-          } else {
-            setGlobalSettingValueByKey('openAiEndpoint', '')
           }
         }}
       >
@@ -120,6 +129,7 @@
             aria-label="API BASE URI"
             type="text"
             class="input"
+            class:is-danger={apiError}
             placeholder="https://api.openai.com"
             value={openAiEndpoint}
           />
@@ -128,20 +138,22 @@
           <button class="button is-info" type="submit">Save</button>
         </p>
       </form>
+      {#if apiError}
+        <p class:is-danger={apiError}>{apiError}</p>
+      {/if}
     </div>
   </article>
-  
-  
+
   <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
     <div class="message-body">
       <label class="label" for="enablePetals">
         <input 
-        type="checkbox"
-        class="checkbox" 
-        id="enablePetals"
-        checked={!!$globalStorage.enablePetals} 
-        on:click={setPetalsEnabled}
-      >
+          type="checkbox"
+          class="checkbox" 
+          id="enablePetals"
+          checked={!!$globalStorage.enablePetals} 
+          on:click={setPetalsEnabled}
+        >
         Use Petals API and Models (Llama 2)
       </label>
       {#if showPetalsSettings}
@@ -171,30 +183,11 @@
           <p class="control">
             <button class="button is-info" type="submit">Save</button>
           </p>
-
-          
         </form>
-        
-        {#if !pedalsEndpoint}
-          <p class="help is-warning">
-            Please only use the default public API for testing. It's best to <a target="_blank" href="https://github.com/petals-infra/chat.petals.dev">configure a private endpoint</a> and enter it above for connection to the Petals swarm.
-          </p>
-        {/if}
-        <p class="my-4">
-          <a target="_blank" href="https://petals.dev/">Petals</a> lets you run large language models at home by connecting to a public swarm, BitTorrent-style, without hefty GPU requirements.
-        </p>
-        <p class="mb-4">
-          You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
-        </p>
-        <p class="mb-4">
-          If you're receiving errors while using Petals, <a target="_blank" href="https://health.petals.dev/">check swarm health</a> and consider <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">adding your GPU to the swarm</a> to help.
-        </p>
-        <p class="help is-warning">
-          Because Petals uses a public swarm, <b>do not send sensitive information</b> when using Petals.
-        </p>
       {/if}
     </div>
   </article>
+
   {#if apiKey}
     <article class="message is-info">
       <div class="message-body">
