@@ -143,6 +143,7 @@ To use ChatGPT-web as a desktop application:
       <td align="center" valign="top" width="14.28%"><a href="https://r-wg.it/"><img src="https://avatars.githubusercontent.com/u/22281217?v=4?s=100" width="100px;" alt="romain.wg"/><br /><sub><b>romain.wg</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=romainwg" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://morgan.kr"><img src="https://avatars.githubusercontent.com/u/53516171?v=4?s=100" width="100px;" alt="Morgan"/><br /><sub><b>Morgan</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=morgan9e" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://codeberg.org/udon"><img src="https://avatars.githubusercontent.com/u/143291288?v=4?s=100" width="100px;" alt="Udon"/><br /><sub><b>Udon</b></sub></a><br /><a href="#design-UdonCodes" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.magicpages.co"><img src="https://avatars.githubusercontent.com/u/25703384?v=4?s=100" width="100px;" alt="Jannis Fedoruk-Betschki"/><br /><sub><b>Jannis Fedoruk-Betschki</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=betschki" title="Code">💻</a> <a href="#ideas-betschki" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
