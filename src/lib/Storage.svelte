@@ -14,6 +14,7 @@
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
   const apiKeyFromEnv = import.meta.env.VITE_OPENAI_API_KEY || ''
+  const apiBaseUriFromEnv = import.meta.env.VITE_API_BASE || 'https://api.openai.com/v1'
   export const apiKeyStorage = persisted('apiKey', apiKeyFromEnv as string)
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
@@ -31,19 +32,30 @@
     return get(apiKeyStorage)
   }
 
+  // Avoid user input errors. Trailing slashes or "/v1" break
+  // the API.  So we clean it up here.
+  const cleanApiBase = (endpoint: string): string => {
+    return endpoint.replace(/\/v1$/, '').replace(/\/$/, '')
+  }
+
+  export const getApiBase = (): string => {
+    const endpoint = get(globalStorage).openAiEndpoint || apiBaseUriFromEnv
+    return cleanApiBase(endpoint)
+  }
+
   export const newChatID = (): number => {
     const chats = get(chatsStorage)
     const chatId = chats.reduce((maxId, chat) => Math.max(maxId, chat.id), 0) + 1
     return chatId
   }
 
-  export const addChat = (profile:ChatSettings|undefined = undefined): number => {
+  export const addChat = async (profile:ChatSettings|undefined = undefined): Promise<number> => {
     const chats = get(chatsStorage)
 
     // Find the max chatId
     const chatId = newChatID()
 
-    profile = JSON.parse(JSON.stringify(profile || getProfile(''))) as ChatSettings
+    profile = JSON.parse(JSON.stringify(profile || await getProfile(''))) as ChatSettings
     const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
 
     // Add a new chat
@@ -61,7 +73,7 @@
     })
     chatsStorage.set(chats)
     // Apply defaults and prepare it to start
-    restartProfile(chatId)
+    await restartProfile(chatId)
     return chatId
   }
 
@@ -152,10 +164,10 @@
   }
   
   // Reset all setting to current profile defaults
-  export const resetChatSettings = (chatId, resetAll:boolean = false) => {
+  export const resetChatSettings = async (chatId, resetAll:boolean = false) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const profile = getProfile(chat.settings.profile)
+    const profile = await getProfile(chat.settings.profile)
     const exclude = getExcludeFromProfile()
     if (resetAll) {
       // Reset to base defaults first, then apply profile
@@ -483,7 +495,7 @@
     return store.profiles || {}
   }
 
-  export const deleteCustomProfile = (chatId:number, profileId:string) => {
+  export const deleteCustomProfile = async (chatId:number, profileId:string) => {
     if (isStaticProfile(profileId)) {
       throw new Error('Sorry, you can\'t delete a static profile.')
     }
@@ -495,10 +507,10 @@
     }
     delete store.profiles[profileId]
     globalStorage.set(store)
-    getProfiles(true) // force update profile cache
+    await getProfiles(true) // force update profile cache
   }
 
-  export const saveCustomProfile = (profile:ChatSettings) => {
+  export const saveCustomProfile = async (profile:ChatSettings) => {
     const store = get(globalStorage)
     let profiles = store.profiles
     if (!profiles) {
@@ -521,7 +533,7 @@
     if (isStaticProfile(profile.profile)) {
       // throw new Error('Sorry, you can\'t modify a static profile. You can clone it though!')
       // Save static profile as new custom
-      profile.profileName = newNameForProfile(profile.profileName)
+      profile.profileName = await newNameForProfile(profile.profileName)
       profile.profile = uuidv4()
     }
     const clone = JSON.parse(JSON.stringify(profile)) // Always store a copy
@@ -537,7 +549,7 @@
     globalStorage.set(store)
     profile.isDirty = false
     saveChatStore()
-    getProfiles(true) // force update profile cache
+    await getProfiles(true) // force update profile cache
   }
 
   export const getChatSortOption = (): ChatSortOption => {

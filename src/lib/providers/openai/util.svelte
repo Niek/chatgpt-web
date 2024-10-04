@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
-    import { apiKeyStorage } from '../../Storage.svelte'
+    import { apiKeyStorage, getApiBase } from '../../Storage.svelte'
     import { get } from 'svelte/store'
     import type { ModelDetail } from '../../Types.svelte'
-    import { getApiBase, getEndpointModels } from '../../ApiUtil.svelte'
+    import { getEndpointModels } from '../../ApiUtil.svelte'
 
 type ResponseModels = {
   object?: string;
@@ -20,7 +20,7 @@ export const set = (opt: Record<string, any>) => {
   apiKeyStorage.set(opt.apiKey || '')
 }
 
-const getSupportedModels = async (): Promise<Record<string, boolean>> => {
+export const getSupportedModels = async (): Promise<Record<string, boolean>> => {
   if (availableModels) return availableModels
   const openAiKey = get(apiKeyStorage)
   if (!openAiKey) return {}
@@ -40,6 +40,7 @@ const getSupportedModels = async (): Promise<Record<string, boolean>> => {
         }, {})
         return availableModels
   } catch (e) {
+        console.error(e)
         availableModels = {}
         clearTimeout(_resetSupportedModelsTimer)
         _resetSupportedModelsTimer = setTimeout(() => { availableModels = undefined }, 1000)

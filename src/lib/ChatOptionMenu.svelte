@@ -99,9 +99,9 @@
     showChatMenu = false
   }
 
-  const restartChatSession = () => {
+  const restartChatSession = async () => {
     close()
-    restartProfile(chatId)
+    await restartProfile(chatId)
     $checkStateChange++ // signal chat page to start profile
   }
 
@@ -125,17 +125,17 @@
     })
   }
 
-  const importProfileFromFile = (e) => {
+  const importProfileFromFile = async (e) => {
     const image = e.target.files[0]
     e.target.value = null
     const reader = new FileReader()
-    reader.onload = e => {
+    reader.onload = async (e) => {
       const json = (e.target || {}).result as string
       try {
         const profile = JSON.parse(json) as ChatSettings
-        profile.profileName = newNameForProfile(profile.profileName || '')
+        profile.profileName = await newNameForProfile(profile.profileName || '')
         profile.profile = null as any
-        saveCustomProfile(profile)
+        await saveCustomProfile(profile)
         openModal(PromptConfirm, {
           title: 'Profile Restored',
           class: 'is-info',
@@ -174,17 +174,17 @@
         <span class="menu-icon"><Fa icon={faGear}/></span> Chat Profile Settings
       </a>
       <hr class="dropdown-divider">
-      <a href={'#'} class:is-disabled={!hasActiveModels()} on:click|preventDefault={() => { hasActiveModels() && close(); hasActiveModels() && startNewChatWithWarning(chatId) }} class="dropdown-item">
+      <a href={'#'} class:is-disabled={!hasActiveModels()} on:click|preventDefault={async () => { hasActiveModels() && close(); hasActiveModels() && await startNewChatWithWarning(chatId) }} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlus}/></span> New Chat from Default
       </a>
-      <a href={'#'} class:is-disabled={!chatId} on:click|preventDefault={() => { chatId && close(); chatId && startNewChatFromChatId(chatId) }} class="dropdown-item">
+      <a href={'#'} class:is-disabled={!chatId} on:click|preventDefault={async () => { chatId && close(); chatId && await startNewChatFromChatId(chatId) }} class="dropdown-item">
         <span class="menu-icon"><Fa icon={faSquarePlusOutline}/></span> New Chat from Current
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); copyChat(chatId) }}>
         <span class="menu-icon"><Fa icon={faClone}/></span> Clone Chat
       </a>
       <hr class="dropdown-divider">
-      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) restartChatSession() }}>
+      <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={async () => { if (chatId) await restartChatSession() }}>
         <span class="menu-icon"><Fa icon={faRotateRight}/></span> Restart Chat Session
       </a>
       <a href={'#'} class="dropdown-item" class:is-disabled={!chatId} on:click|preventDefault={() => { if (chatId) close(); clearMessages(chatId) }}>
@@ -231,4 +231,4 @@
 </div>
 
 <input style="display:none" type="file" accept=".json" on:change={(e) => importChatFromFile(e)} bind:this={chatFileInput} >
-<input style="display:none" type="file" accept=".json" on:change={(e) => importProfileFromFile(e)} bind:this={profileFileInput} >
+<input style="display:none" type="file" accept=".json" on:change={async (e) => await importProfileFromFile(e)} bind:this={profileFileInput} >

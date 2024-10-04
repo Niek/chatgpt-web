@@ -6,17 +6,18 @@
   import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
   import { set as setOpenAI } from './providers/openai/util.svelte'
   import { hasActiveModels } from './Models.svelte'
+  import { get } from 'svelte/store'
 
-$: apiKey = $apiKeyStorage
+  $: apiKey = $apiKeyStorage
+  const openAiEndpoint = $globalStorage.openAiEndpoint || ''
+  let showPetalsSettings = $globalStorage.enablePetals
+  let pedalsEndpoint = $globalStorage.pedalsEndpoint
+  let hasModels = hasActiveModels()
+  let apiError: string = ''
 
-let showPetalsSettings = $globalStorage.enablePetals
-let pedalsEndpoint = $globalStorage.pedalsEndpoint
-let hasModels = hasActiveModels()
-
-onMount(() => {
+  onMount(() => {
     if (!$started) {
       $started = true
-      // console.log('started', apiKey, $lastChatId, getChat($lastChatId))
       if (hasActiveModels() && getChat($lastChatId)) {
         const chatId = $lastChatId
         $lastChatId = 0
@@ -24,28 +25,45 @@ onMount(() => {
       }
     }
     $lastChatId = 0
-})
+  })
 
-afterUpdate(() => {
+  afterUpdate(() => {
     hasModels = hasActiveModels()
     pedalsEndpoint = $globalStorage.pedalsEndpoint
     $checkStateChange++
-})
+  })
 
-const setPetalsEnabled = (event: Event) => {
+  const setPetalsEnabled = (event: Event) => {
     const el = (event.target as HTMLInputElement)
     setGlobalSettingValueByKey('enablePetals', !!el.checked)
     showPetalsSettings = $globalStorage.enablePetals
     hasModels = hasActiveModels()
-}
+  }
 
+  async function testApiEndpoint (baseUri: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${baseUri}/v1/models`, {
+        headers: { Authorization: `Bearer ${get(apiKeyStorage)}` }
+      })
+      if (!response.ok) {
+        apiError = `There was an error connecting to this endpoint: ${response.statusText}`
+        return false
+      }
+      apiError = ''
+      return true
+    } catch (error) {
+      console.error('Failed to connect:', error)
+      apiError = `There was an error connecting to this endpoint: ${error.message}`
+      return false
+    }
+  }
 </script>
 
 <section class="section">
   <article class="message">
     <div class="message-body">
-    <p class="mb-4">
-      <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
+      <p class="mb-4">
+        <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
       is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for
       <a href="https://platform.openai.com/account/api-keys" target="_blank" rel="noreferrer">an OpenAI API key</a>
       first. OpenAI bills per token (usage-based), which means it is a lot cheaper than
@@ -54,7 +72,7 @@ const setPetalsEnabled = (event: Event) => {
       <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
     </p>
     <p>
-      As an alternative to OpenAI, you can also use Petals swarm as a free API option for open chat models like Llama 2. 
+      As an alternative to OpenAI, you can enter your own OpenAI-compatabile API endpoint, or use Petals swarm as a free API option for open chat models like Llama 2. 
     </p>
     </div>
   </article>
@@ -64,7 +82,7 @@ const setPetalsEnabled = (event: Event) => {
 
       <form
         class="field has-addons has-addons-right"
-        on:submit|preventDefault={(event) => {
+        on:submit|preventDefault={async (event) => {
           let val = ''
           if (event.target && event.target[0].value) {
             val = (event.target[0].value).trim()
@@ -80,7 +98,8 @@ const setPetalsEnabled = (event: Event) => {
             autocomplete="off"
             class="input"
             class:is-danger={!hasModels}
-            class:is-warning={!apiKey} class:is-info={apiKey}
+            class:is-warning={!apiKey}
+            class:is-info={apiKey}
             value={apiKey}
           />
         </p>
@@ -100,17 +119,51 @@ const setPetalsEnabled = (event: Event) => {
     </div>
   </article>
 
-  
+  <article class="message" class:is-danger={!hasModels || apiError} class:is-warning={!openAiEndpoint} class:is-info={openAiEndpoint && !apiError}>
+    <div class="message-body">
+      Set the API BASE URI for alternative OpenAI-compatible endpoints:
+      <form
+        class="field has-addons has-addons-right"
+        on:submit|preventDefault={async (event) => {
+          let val = ''
+          if (event.target && event.target[0].value) {
+            val = (event.target[0].value).trim()
+          }
+          if (await testApiEndpoint(val)) {
+            setGlobalSettingValueByKey('openAiEndpoint', val)
+          }
+        }}
+      >
+        <p class="control is-expanded">
+          <input
+            aria-label="API BASE URI"
+            type="text"
+            class="input"
+            class:is-danger={apiError}
+            placeholder="https://api.openai.com"
+            value={openAiEndpoint}
+          />
+        </p>
+        <p class="control">
+          <button class="button is-info" type="submit">Save</button>
+        </p>
+      </form>
+      {#if apiError}
+        <p class:is-danger={apiError}>{apiError}</p>
+      {/if}
+    </div>
+  </article>
+
   <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
     <div class="message-body">
       <label class="label" for="enablePetals">
         <input 
-        type="checkbox"
-        class="checkbox" 
-        id="enablePetals"
-        checked={!!$globalStorage.enablePetals} 
-        on:click={setPetalsEnabled}
-      >
+          type="checkbox"
+          class="checkbox" 
+          id="enablePetals"
+          checked={!!$globalStorage.enablePetals} 
+          on:click={setPetalsEnabled}
+        >
         Use Petals API and Models (Llama 2)
       </label>
       {#if showPetalsSettings}

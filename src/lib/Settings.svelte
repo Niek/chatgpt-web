@@ -18,14 +18,17 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
-    import { getModelDetail, getTokens } from './Models.svelte'
+import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
 
-const defaultModel:Model = 'gpt-3.5-turbo'
-const defaultModelPetals:Model = 'stabilityai/StableBeluga2'
+// We are adding default model names explicitly here to avoid
+// circular dependencies. Alternative would be a big refactor,
+// which we want to avoid for now.
+export const getDefaultModel = async (): Promise<Model> => {
+  if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
 
-export const getDefaultModel = (): Model => {
-  if (!get(apiKeyStorage)) return defaultModelPetals
-  return defaultModel
+  const models = await getChatModelOptions()
+
+  return models[0].text
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
@@ -136,7 +139,8 @@ export const globalDefaults: GlobalSettings = {
   chatSort: 'created',
   openAICompletionEndpoint: '',
   enablePetals: false,
-  pedalsEndpoint: ''
+  pedalsEndpoint: '',
+  openAiEndpoint: 'https://api.openai.com'
 }
 
 const excludeFromProfile = {
@@ -720,6 +724,11 @@ const globalSettingsList:GlobalSetting[] = [
       {
         key: 'pedalsEndpoint',
         name: 'Petals API Endpoint',
+        type: 'text'
+      },
+      {
+        key: 'openAiEndpoint',
+        name: 'OpenAI API Endpoint',
         type: 'text'
       }
 ]

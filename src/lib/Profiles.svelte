@@ -15,7 +15,9 @@ export const isStaticProfile = (key:string):boolean => {
     return !!profiles[key]
 }
 
-export const getProfiles = (forceUpdate:boolean = false):Record<string, ChatSettings> => {
+export const getProfiles = async (forceUpdate:boolean = false):Promise<Record<string, ChatSettings>> => {
+    const defaultModel = await getDefaultModel()
+
     const pc = get(profileCache)
     if (!forceUpdate && Object.keys(pc).length) {
       return pc
@@ -24,7 +26,7 @@ export const getProfiles = (forceUpdate:boolean = false):Record<string, ChatSett
     ).reduce((a, [k, v]) => {
       v = JSON.parse(JSON.stringify(v))
       a[k] = v
-      v.model = v.model || getDefaultModel()
+      v.model = v.model || defaultModel
       return a
     }, {} as Record<string, ChatSettings>)
     Object.entries(getCustomProfiles()).forEach(([k, v]) => {
@@ -42,22 +44,23 @@ export const getProfiles = (forceUpdate:boolean = false):Record<string, ChatSett
 }
 
 // Return profiles list.
-export const getProfileSelect = ():SelectOption[] => {
-    return Object.entries(getProfiles()).reduce((a, [k, v]) => {
+export const getProfileSelect = async ():Promise<SelectOption[]> => {
+    const allProfiles = await getProfiles()
+    return Object.entries(allProfiles).reduce((a, [k, v]) => {
       a.push({ value: k, text: v.profileName } as SelectOption)
       return a
     }, [] as SelectOption[])
 }
 
-export const getDefaultProfileKey = ():string => {
-    const allProfiles = getProfiles()
+export const getDefaultProfileKey = async ():Promise<string> => {
+    const allProfiles = await getProfiles()
     return (allProfiles[getGlobalSettings().defaultProfile || ''] ||
           profiles[defaultProfile] ||
           profiles[Object.keys(profiles)[0]]).profile
 }
 
-export const getProfile = (key:string, forReset:boolean = false):ChatSettings => {
-    const allProfiles = getProfiles()
+export const getProfile = async (key:string, forReset:boolean = false):Promise<ChatSettings> => {
+    const allProfiles = await getProfiles()
     let profile = allProfiles[key] ||
     allProfiles[getGlobalSettings().defaultProfile || ''] ||
     profiles[defaultProfile] ||
@@ -108,9 +111,9 @@ export const setSystemPrompt = (chatId: number) => {
 }
 
 // Restart currently loaded profile
-export const restartProfile = (chatId:number, noApply:boolean = false) => {
+export const restartProfile = async (chatId:number, noApply:boolean = false) => {
     const settings = getChatSettings(chatId)
-    if (!settings.profile && !noApply) return applyProfile(chatId, '', true)
+    if (!settings.profile && !noApply) return await applyProfile(chatId, '', true)
     // Clear current messages
     clearMessages(chatId)
     // Add the system prompt
@@ -129,16 +132,16 @@ export const restartProfile = (chatId:number, noApply:boolean = false) => {
     setGlobalSettingValueByKey('lastProfile', settings.profile)
 }
 
-export const newNameForProfile = (name:string) => {
-    const profiles = getProfileSelect()
+export const newNameForProfile = async (name:string) => {
+    const profiles = await getProfileSelect()
     return newName(name, profiles.reduce((a, p) => { a[p.text] = p; return a }, {}))
 }
 
 // Apply currently selected profile
-export const applyProfile = (chatId:number, key:string = '', resetChat:boolean = false) => {
-    resetChatSettings(chatId, resetChat) // Fully reset
+export const applyProfile = async (chatId:number, key:string = '', resetChat:boolean = false) => {
+    await resetChatSettings(chatId, resetChat) // Fully reset
     if (!resetChat) return
-    return restartProfile(chatId, true)
+    return await restartProfile(chatId, true)
 }
 
 const summaryPrompts = {

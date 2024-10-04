@@ -82,7 +82,7 @@
           ></div>
         {:else}
         <div class="level-item">
-          <button on:click={() => { $pinMainMenu = false; startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!hasModels}
+          <button on:click={async () => { $pinMainMenu = false; await startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!hasModels}
             ><span class="greyscale mr-1"><Fa icon={faSquarePlus} /></span> New chat</button>
           </div>
         {/if}
