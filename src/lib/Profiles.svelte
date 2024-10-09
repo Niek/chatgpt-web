@@ -236,7 +236,7 @@ The user has walked in on [[CHARACTER_NAME]]. They are on the bridge of the Hear
       profileName: 'Jen - An uninhibited virtual friend [LLaMA]',
       temperature: 0.8,
       top_p: 0.5,
-      max_tokens: 4096,
+      max_completion_tokens: 4096,
       profileDescription: "*** NOT for OpenAI / ChatGPT models ***\n\nA profile attempting a coherent, unrestricted, playful and helpful chat with Stable Beluga 2 and other LLaMA instruct (non-chat) models running on Petals. The goal is to have an assistant that can talk to you about any topic and answer any question without lecturing you and continuously reminding it can't do things because it's only an AI language model. If you have a better a profile, I'm sure @Niek wouldn't mind a pull request or issue opened.\n\nNote that chat with Llama 2 models under Petals can fall apart quickly, devolving into repetitive responses and catch-phrases. The repetitionPentalty settings helps with that, but then also can keep it from repeating layout patterns you're prompting for, so it can be a delicate balance.\n\nThis profile uses:\n- A system prompt designed for character simulation\n- Modified delimiters, etc., to try to keep chat cohearent\n- A summary prompt",
       continuousChat: 'summary',
       summaryThreshold: 0.8,

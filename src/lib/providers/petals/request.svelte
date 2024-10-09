@@ -165,7 +165,7 @@ export const chatRequest = async (
         !chatSettings.holdSocket && ws.close()
       })
 
-      let maxLen = Math.min(opts.maxTokens || chatSettings.max_tokens || maxTokens, maxTokens)
+      let maxLen = Math.min(opts.maxTokens || chatSettings.max_completion_tokens || maxTokens, maxTokens)
 
       let midDel = ''
       for (let i = 0, l = delimiter.length; i < l; i++) {

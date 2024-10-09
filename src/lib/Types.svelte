@@ -52,7 +52,7 @@ export type Request = {
     n?: number;
     stream?: boolean;
     stop?: string | null;
-    max_tokens?: number;
+    max_completion_tokens?: number;
     presence_penalty?: number;
     frequency_penalty?: number;
     logit_bias?: Record<string, number> | null;
