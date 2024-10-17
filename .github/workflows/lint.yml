@@ -3,7 +3,7 @@ name: Linting
 # Run on PRs only
 on:
   pull_request:
-    types: [opened, reopened]
+    branches: [main]
 
 jobs:
   lint:
@@ -19,3 +19,6 @@ jobs:
 
       - name: Lint
         run: npm ci && npx eslint .
+      
+      - name: Build
+        run: npm run build
