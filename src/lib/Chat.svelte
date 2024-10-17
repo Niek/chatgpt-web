@@ -304,7 +304,7 @@
       chat,
       autoAddMessages: false,
       streaming: false,
-      summaryRequest: true,
+      summaryRequest: true
     })
 
     try {
