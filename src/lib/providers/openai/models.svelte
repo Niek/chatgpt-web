@@ -87,6 +87,18 @@ const gpt4omini = {
       completion: 0.00000060, // $0.00060 per 1000 tokens completion
       max: 131072 // 128k max token buffer
 }
+const o1preview = {
+      ...chatModelBase,
+      prompt: 0.000015, // $0.015 per 1000 tokens prompt
+      completion: 0.00006, // $0.06 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
+const o1mini = {
+      ...chatModelBase,
+      prompt: 0.000003, // $0.003 per 1000 tokens prompt
+      completion: 0.000012, // $0.012 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
 const gpt432k = {
       ...chatModelBase,
       prompt: 0.00006, // $0.06 per 1000 tokens prompt
@@ -129,7 +141,9 @@ export const chatModels : Record<string, ModelDetail> = {
   'gpt-4-0125-preview': { ...gpt4128kpreview },
   'gpt-4-32k': { ...gpt432k },
   'gpt-4-32k-0314': { ...gpt432k },
-  'gpt-4-32k-0613': { ...gpt432k }
+  'gpt-4-32k-0613': { ...gpt432k },
+  'o1-preview': { ...o1preview },
+  'o1-mini': { ...o1mini }
 }
 
 export const fetchRemoteModels = async () => {

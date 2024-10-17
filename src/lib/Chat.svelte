@@ -304,8 +304,7 @@
       chat,
       autoAddMessages: false,
       streaming: false,
-      summaryRequest: true,
-      maxTokens: 30
+      summaryRequest: true
     })
 
     try {

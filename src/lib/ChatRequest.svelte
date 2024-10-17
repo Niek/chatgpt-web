@@ -191,7 +191,7 @@ export class ChatRequest {
             if (typeof setting.apiTransform === 'function') {
               value = setting.apiTransform(chatId, setting, value)
             }
-            if (key === 'max_tokens') {
+            if (key === 'max_completion_tokens') {
               if (opts.maxTokens) value = opts.maxTokens // only as large as requested
               if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
               if (value) value = Math.floor(value)
