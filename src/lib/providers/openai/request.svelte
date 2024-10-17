@@ -12,7 +12,7 @@ export const chatRequest = async (
   chatResponse: ChatCompletionResponse,
   opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
     // OpenAI Request
-      const model = chatRequest.getModel()
+      const model = await chatRequest.getModel()
       const signal = chatRequest.controller.signal
       const abortListener = (e:Event) => {
         chatRequest.updating = false
@@ -66,7 +66,7 @@ export const chatRequest = async (
             throw err
           },
           async onopen (response) {
-            if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+            if (response.ok && response.headers.get('content-type').startsWith(EventStreamContentType)) {
             // everything's good
             } else {
             // client-side errors are usually non-retriable:

@@ -3,7 +3,7 @@ name: Linting
 # Run on PRs only
 on:
   pull_request:
-    types: [opened, reopened]
+    branches: [main]
 
 jobs:
   lint:
@@ -15,7 +15,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Lint
         run: npm ci && npx eslint .
+      
+      - name: Build
+        run: npm run build

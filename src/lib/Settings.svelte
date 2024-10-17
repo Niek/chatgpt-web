@@ -18,14 +18,17 @@ import {
       type ChatSortOption
 
 } from './Types.svelte'
-    import { getModelDetail, getTokens } from './Models.svelte'
+import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
 
-const defaultModel:Model = 'gpt-3.5-turbo'
-const defaultModelPetals:Model = 'stabilityai/StableBeluga2'
+// We are adding default model names explicitly here to avoid
+// circular dependencies. Alternative would be a big refactor,
+// which we want to avoid for now.
+export const getDefaultModel = async (): Promise<Model> => {
+  if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
 
-export const getDefaultModel = (): Model => {
-  if (!get(apiKeyStorage)) return defaultModelPetals
-  return defaultModel
+  const models = await getChatModelOptions()
+
+  return models[0].text
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
@@ -78,7 +81,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_tokens: 512,
+  max_completion_tokens: 512,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -136,7 +139,8 @@ export const globalDefaults: GlobalSettings = {
   chatSort: 'created',
   openAICompletionEndpoint: '',
   enablePetals: false,
-  pedalsEndpoint: ''
+  pedalsEndpoint: '',
+  openAiEndpoint: 'https://api.openai.com'
 }
 
 const excludeFromProfile = {
@@ -492,11 +496,11 @@ const chatSettingsList: ChatSetting[] = [
         hide: hideModelSetting
       },
       {
-        key: 'max_tokens',
+        key: 'max_completion_tokens',
         name: 'Max Tokens',
         title: 'The maximum number of tokens to generate in the completion.\n' +
               '\n' +
-              'The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
+              'The token count of your prompt plus max_completion_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
         min: 1,
         max: 32768,
         step: 1,
@@ -720,6 +724,11 @@ const globalSettingsList:GlobalSetting[] = [
       {
         key: 'pedalsEndpoint',
         name: 'Petals API Endpoint',
+        type: 'text'
+      },
+      {
+        key: 'openAiEndpoint',
+        name: 'OpenAI API Endpoint',
         type: 'text'
       }
 ]

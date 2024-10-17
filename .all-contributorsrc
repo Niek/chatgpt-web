@@ -210,6 +210,51 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "MaksimMisin",
+      "name": "Maksim Misin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6176998?v=4",
+      "profile": "https://github.com/MaksimMisin",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "romainwg",
+      "name": "romain.wg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22281217?v=4",
+      "profile": "https://r-wg.it/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "morgan9e",
+      "name": "Morgan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53516171?v=4",
+      "profile": "https://morgan.kr",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "UdonCodes",
+      "name": "Udon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143291288?v=4",
+      "profile": "https://codeberg.org/udon",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "Ryan526",
+      "name": "Ryan526",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11861916?v=4",
+      "profile": "https://github.com/Ryan526",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "files": [

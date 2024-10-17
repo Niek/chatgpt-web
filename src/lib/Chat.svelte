@@ -56,12 +56,12 @@
   let showSettingsModal
 
   let scDelay
-  const onStateChange = (...args:any) => {
+  const onStateChange = async (...args:any) => {
     if (!chat) return
     clearTimeout(scDelay)
-    setTimeout(() => {
+    setTimeout(async () => {
       if (chat.startSession) {
-        restartProfile(chatId)
+        await restartProfile(chatId)
         if (chat.startSession) {
           chat.startSession = false
           saveChatStore()
@@ -112,7 +112,7 @@
     setCurrentChat(chatId)
 
     chatRequest = new ChatRequest()
-    chatRequest.setChat(chat)
+    await chatRequest.setChat(chat)
 
     chat.lastAccess = Date.now()
     saveChatStore()
@@ -148,7 +148,7 @@
       console.log('Speech recognition not supported')
     }
     if (chat.startSession) {
-      restartProfile(chatId)
+      await restartProfile(chatId)
       if (chat.startSession) {
         chat.startSession = false
         saveChatStore()
@@ -304,8 +304,7 @@
       chat,
       autoAddMessages: false,
       streaming: false,
-      summaryRequest: true,
-      maxTokens: 30
+      summaryRequest: true
     })
 
     try {
@@ -401,7 +400,7 @@
     <p class="control is-expanded">
       <textarea
         class="input is-info is-focused chat-input auto-size"
-        placeholder="Type your message here..."
+        placeholder="[{chat.settings.model}] Type your message here..."
         rows="1"
         on:keydown={e => {
           // Only send if Enter is pressed, not Shift+Enter

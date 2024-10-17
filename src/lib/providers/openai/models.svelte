@@ -1,11 +1,11 @@
 <script context="module" lang="ts">
-    import { getApiBase, getEndpointCompletions, getEndpointGenerations } from '../../ApiUtil.svelte'
+    import { getEndpointCompletions, getEndpointGenerations } from '../../ApiUtil.svelte'
     import { countTokens } from '../../Models.svelte'
     import { countMessageTokens } from '../../Stats.svelte'
-    import { globalStorage } from '../../Storage.svelte'
+    import { getApiBase, globalStorage } from '../../Storage.svelte'
     import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
     import { chatRequest, imageRequest } from './request.svelte'
-    import { checkModel } from './util.svelte'
+    import { checkModel, getSupportedModels } from './util.svelte'
     import { encode } from 'gpt-tokenizer'
     import { get } from 'svelte/store'
 
@@ -75,6 +75,30 @@ const gpt4 = {
       completion: 0.00006, // $0.06 per 1000 tokens completion
       max: 8192 // 8k max token buffer
 }
+const gpt4o = {
+      ...chatModelBase,
+      prompt: 0.000005, // $0.005 per 1000 tokens prompt
+      completion: 0.000015, // $0.015 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
+const gpt4omini = {
+      ...chatModelBase,
+      prompt: 0.00000015, // $0.00015 per 1000 tokens prompt
+      completion: 0.00000060, // $0.00060 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
+const o1preview = {
+      ...chatModelBase,
+      prompt: 0.000015, // $0.015 per 1000 tokens prompt
+      completion: 0.00006, // $0.06 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
+const o1mini = {
+      ...chatModelBase,
+      prompt: 0.000003, // $0.003 per 1000 tokens prompt
+      completion: 0.000012, // $0.012 per 1000 tokens completion
+      max: 131072 // 128k max token buffer
+}
 const gpt432k = {
       ...chatModelBase,
       prompt: 0.00006, // $0.06 per 1000 tokens prompt
@@ -88,6 +112,16 @@ const gpt4128kpreview = {
       max: 131072 // 128k max token buffer
 }
 
+// Fallback model details for unknown models. Since we do not
+// know the pricing or context limits, we will assume a free
+// model with high limits.
+export const fallbackModelDetail = {
+  ...chatModelBase,
+  prompt: 0, // $0.00 per 1000 tokens prompt
+  completion: 0, // $0.00 per 1000 tokens completion
+  max: 1024000 // 1M max token buffer
+}
+
 export const chatModels : Record<string, ModelDetail> = {
   'gpt-3.5-turbo': { ...gpt3516k },
   'gpt-3.5-turbo-0301': { ...gpt35 },
@@ -96,12 +130,33 @@ export const chatModels : Record<string, ModelDetail> = {
   'gpt-3.5-turbo-16k': { ...gpt3516k },
   'gpt-3.5-turbo-16k-0613': { ...gpt3516k },
   'gpt-4': { ...gpt4 },
+  'gpt-4o': { ...gpt4o },
+  'gpt-4o-mini': { ...gpt4omini },
+  'gpt-4o-mini-2024-07-18': { ...gpt4omini },
+  'gpt-4-turbo-preview': { ...gpt4128kpreview },
+  'gpt-4-turbo-2024-04-09': { ...gpt4128kpreview },
   'gpt-4-0314': { ...gpt4 },
   'gpt-4-0613': { ...gpt4 },
   'gpt-4-1106-preview': { ...gpt4128kpreview },
+  'gpt-4-0125-preview': { ...gpt4128kpreview },
   'gpt-4-32k': { ...gpt432k },
   'gpt-4-32k-0314': { ...gpt432k },
-  'gpt-4-32k-0613': { ...gpt432k }
+  'gpt-4-32k-0613': { ...gpt432k },
+  'o1-preview': { ...o1preview },
+  'o1-mini': { ...o1mini }
+}
+
+export const fetchRemoteModels = async () => {
+  const supportedModels = await getSupportedModels()
+
+  Object.keys(supportedModels).forEach((key) => {
+        supportedModels[key] = {
+          ...chatModelBase,
+          ...supportedModels[key]
+        }
+  })
+
+  return supportedModels
 }
 
 const imageModelBase = {

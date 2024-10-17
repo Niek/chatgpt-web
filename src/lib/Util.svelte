@@ -122,15 +122,15 @@
     })
   }
 
-  export const startNewChatFromChatId = (chatId: number) => {
-    const newChatId = addChat(getChat(chatId).settings)
+  export const startNewChatFromChatId = async (chatId: number) => {
+    const newChatId = await addChat(getChat(chatId).settings)
     // go to new chat
     replace(`/chat/${newChatId}`)
   }
 
-  export const startNewChatWithWarning = (activeChatId: number|undefined, profile?: ChatSettings|undefined) => {
-    const newChat = () => {
-      const chatId = addChat(profile)
+  export const startNewChatWithWarning = async (activeChatId: number|undefined, profile?: ChatSettings|undefined) => {
+    const newChat = async () => {
+      const chatId = await addChat(profile)
       replace(`/chat/${chatId}`)
     }
     // if (activeChatId && getChat(activeChatId).settings.isDirty) {
@@ -146,7 +146,7 @@
     // } else {
     //   newChat()
     // }
-    newChat()
+    await newChat()
   }
 
   export const valueOf = (chatId: number, value: any) => {
