@@ -21,7 +21,7 @@
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rollup/plugin-dsv": "^3.0.4",
     "@sveltejs/vite-plugin-svelte": "^2.5.2",
-    "@tauri-apps/cli": "^2.0.4",
+    "@tauri-apps/cli": "^2.1.0",
     "@tsconfig/svelte": "^5.0.0",
     "@types/dompurify": "^3.0.5",
     "@types/marked": "^6.0.0",
