@@ -37,7 +37,7 @@
     "gpt-tokenizer": "^2.5.1",
     "llama-tokenizer-js": "^1.2.2",
     "postcss": "^8.4.48",
-    "sass": "^1.79.4",
+    "sass": "^1.81.0",
     "stacking-order": "^2.0.0",
     "svelte": "^3.59.2",
     "svelte-check": "^3.6.2",
