@@ -29,7 +29,7 @@
     "bulma": "^0.9.4",
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^3.3.3",
-    "dexie": "^4.0.9",
+    "dexie": "^4.0.10",
     "dompurify": "^3.2.1",
     "eslint-config-standard-with-typescript": "^35.0.0",
     "eslint-plugin-svelte3": "^4.0.0",
