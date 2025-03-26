@@ -20,7 +20,7 @@
     "@fullhuman/postcss-purgecss": "^6.0.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rollup/plugin-dsv": "^3.0.4",
-    "@sveltejs/vite-plugin-svelte": "^2.5.2",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tauri-apps/cli": "^2.1.0",
     "@tsconfig/svelte": "^5.0.0",
     "@types/dompurify": "^3.2.0",
@@ -52,6 +52,6 @@
     "tslib": "^2.8.1",
     "typescript": "<5.5",
     "uuid": "^11.0.3",
-    "vite": "^4.5.9"
+    "vite": "^6.2.3"
   }
 }
