@@ -39,7 +39,7 @@
     "postcss": "^8.5.1",
     "sass": "^1.81.0",
     "stacking-order": "^2.0.0",
-    "svelte": "^3.59.2",
+    "svelte": "^5.25.7",
     "svelte-check": "^3.6.2",
     "svelte-fa": "^3.0.3",
     "svelte-highlight": "^7.6.1",
