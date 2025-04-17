@@ -1,16 +1,16 @@
 <script context="module" lang="ts">
   import {
     getEndpointCompletions,
-    getEndpointGenerations,
-  } from '../../ApiUtil.svelte';
-  import { countTokens } from '../../Models.svelte';
-  import { countMessageTokens } from '../../Stats.svelte';
-  import { getApiBase, globalStorage } from '../../Storage.svelte';
-  import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte';
-  import { chatRequest, imageRequest } from './request.svelte';
-  import { checkModel, getSupportedModels } from './util.svelte';
-  import { encode } from 'gpt-tokenizer';
-  import { get } from 'svelte/store';
+    getEndpointGenerations
+  } from '../../ApiUtil.svelte'
+  import { countTokens } from '../../Models.svelte'
+  import { countMessageTokens } from '../../Stats.svelte'
+  import { getApiBase, globalStorage } from '../../Storage.svelte'
+  import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
+  import { chatRequest, imageRequest } from './request.svelte'
+  import { checkModel, getSupportedModels } from './util.svelte'
+  import { encode } from 'gpt-tokenizer'
+  import { get } from 'svelte/store'
 
   const hiddenSettings = {
     startSequence: true,
@@ -24,9 +24,9 @@
     systemMessageStart: true,
     systemMessageEnd: true,
     repetitionPenalty: true,
-    holdSocket: true,
+    holdSocket: true
     // leadPrompt: true
-  } as any;
+  } as any
 
   const chatModelBase = {
     type: 'chat',
@@ -37,13 +37,13 @@
       if (
         existingContent &&
         !newContent.match(
-          /^('(t|ll|ve|m|d|re)[^a-z]|\s|[.,;:(_-{}*^%$#@!?+=~`[\]])/i,
+          /^('(t|ll|ve|m|d|re)[^a-z]|\s|[.,;:(_-{}*^%$#@!?+=~`[\]])/i
         )
       ) {
         // add a trailing space if our new content isn't a contraction
-        existingContent += ' ';
+        existingContent += ' '
       }
-      return existingContent;
+      return existingContent
     },
     request: chatRequest,
     check: checkModel,
@@ -59,25 +59,25 @@
           message.role +
           ' ##:\r\n\r\n' +
           message.content +
-          '\r\n\r\n\r\n',
-      );
+          '\r\n\r\n\r\n'
+      )
     },
     countPromptTokens: (
       prompts: Message[],
       model: Model,
-      chat: Chat,
+      chat: Chat
     ): number => {
       // Not sure how OpenAI formats it, but this seems to get close to the right counts.
       // Would be nice to know. This works for gpt-3.5.  gpt-4 could be different.
       // Complete stab in the dark here -- update if you know where all the extra tokens really come from.
       return (
         prompts.reduce((a, m) => {
-          a += countMessageTokens(m, model, chat);
-          return a;
+          a += countMessageTokens(m, model, chat)
+          return a
         }, 0) + 3
-      ); // Always seems to be message counts + 3
-    },
-  } as ModelDetail;
+      ) // Always seems to be message counts + 3
+    }
+  } as ModelDetail
 
   // Reference: https://openai.com/pricing#language-models
 
@@ -86,52 +86,52 @@
     prompt: 0.000002, // $2.00 per 1M input tokens
     cachedPrompt: 0.0000005, // $0.50 per 1M cached input tokens
     completion: 0.000008, // $8.00 per 1M output tokens
-    max: 1047576,
-  };
+    max: 1047576
+  }
   const gpt41mini = {
     ...chatModelBase,
     prompt: 0.0000004, // $0.40 per 1M input tokens
     cachedPrompt: 0.0000001, // $0.10 per 1M cached input tokens
     completion: 0.0000016, // $1.60 per 1M output tokens
-    max: 1047576,
-  };
+    max: 1047576
+  }
   const gpt41nano = {
     ...chatModelBase,
     prompt: 0.0000001, // $0.10 per 1M input tokens
     cachedPrompt: 0.000000025, // $0.025 per 1M cached input tokens
     completion: 0.0000004, // $0.40 per 1M output tokens
-    max: 1047576,
-  };
+    max: 1047576
+  }
   const gpt4o = {
     ...chatModelBase,
     prompt: 0.0000025, // $2.50 per 1M input tokens
     cachedPrompt: 0.00000125, // $1.25 per 1M cached input tokens
     completion: 0.00001, // $10.00 per 1M output tokens
-    max: 128000,
-  };
+    max: 128000
+  }
   const o3 = {
     ...chatModelBase,
     prompt: 0.00001, // $10.00 per 1M input tokens
     cachedPrompt: 0.0000025, // $2.50 per 1M cached input tokenshttps://colab.research.google.com/drive/1BJsD1TYQwBMOaUg9h84Qy2UoxnowKoBR#scrollTo=6-cl0Yjnp0-_
     completion: 0.00004, // $40.00 per 1M output tokens
     max: 200000,
-    temperature: 1,
-  };
+    temperature: 1
+  }
   const o4mini = {
     ...chatModelBase,
     prompt: 0.0000011, // $1.10 per 1M input tokens
     cachedPrompt: 0.000000275, // $0.275 per 1M cached input tokens
     completion: 0.0000044, // $4.40 per 1M output tokens
     max: 200000,
-    temperature: 1,
-  };
+    temperature: 1
+  }
   const chatgpt4olatest = {
     ...chatModelBase,
     prompt: 0.000005, // $5.00 per 1M input tokens
     completion: 0.000015, // $15.00 per 1M output tokens
     flex: false,
-    max: 128000,
-  };
+    max: 128000
+  }
 
   // Fallback model details for unknown models. Since we do not
   // know the pricing or context limits, we will assume a free
@@ -140,8 +140,8 @@
     ...chatModelBase,
     prompt: 0, // $0.00 per 1000 tokens prompt
     completion: 0, // $0.00 per 1000 tokens completion
-    max: 1024000, // 1M max token buffer
-  };
+    max: 1024000 // 1M max token buffer
+  }
 
   export const chatModels: Record<string, ModelDetail> = {
     'gpt-4.1': { ...gpt41 },
@@ -150,21 +150,21 @@
     'gpt-4o': { ...gpt4o },
     o3: { ...o3 },
     'o4-mini': { ...o4mini },
-    'chatgpt-4o-latest': { ...chatgpt4olatest },
-  };
+    'chatgpt-4o-latest': { ...chatgpt4olatest }
+  }
 
   export const fetchRemoteModels = async () => {
-    const supportedModels = await getSupportedModels();
+    const supportedModels = await getSupportedModels()
 
     Object.keys(supportedModels).forEach((key) => {
       supportedModels[key] = {
         ...chatModelBase,
-        ...supportedModels[key],
-      };
-    });
+        ...supportedModels[key]
+      }
+    })
 
-    return supportedModels;
-  };
+    return supportedModels
+  }
 
   const imageModelBase = {
     type: 'image',
@@ -174,31 +174,31 @@
     check: checkModel,
     getTokens: (value) => [0],
     getEndpoint: (model) => getApiBase() + getEndpointGenerations(),
-    hideSetting: (chatId, setting) => false,
-  } as ModelDetail;
+    hideSetting: (chatId, setting) => false
+  } as ModelDetail
 
   export const imageModels: Record<string, ModelDetail> = {
     'dall-e-1024x1024': {
       ...imageModelBase,
       completion: 0.02, // $0.020 per image
       opt: {
-        size: '1024x1024',
-      },
+        size: '1024x1024'
+      }
     },
     'dall-e-512x512': {
       ...imageModelBase,
       completion: 0.018, // $0.018 per image
       opt: {
-        size: '512x512',
-      },
+        size: '512x512'
+      }
     },
     'dall-e-256x256': {
       ...imageModelBase,
       type: 'image',
       completion: 0.016, // $0.016 per image
       opt: {
-        size: '256x256',
-      },
+        size: '256x256'
+      }
     },
     'dall-e-3-1024x1024': {
       ...imageModelBase,
@@ -206,8 +206,8 @@
       completion: 0.04, // $0.040 per image
       opt: {
         model: 'dall-e-3',
-        size: '1024x1024',
-      },
+        size: '1024x1024'
+      }
     },
     'dall-e-3-1024x1792-Portrait': {
       ...imageModelBase,
@@ -215,8 +215,8 @@
       completion: 0.08, // $0.080 per image
       opt: {
         model: 'dall-e-3',
-        size: '1024x1792',
-      },
+        size: '1024x1792'
+      }
     },
     'dall-e-3-1792x1024-Landscape': {
       ...imageModelBase,
@@ -224,8 +224,8 @@
       completion: 0.08, // $0.080 per image
       opt: {
         model: 'dall-e-3',
-        size: '1792x1024',
-      },
+        size: '1792x1024'
+      }
     },
     'dall-e-3-1024x1024-HD': {
       ...imageModelBase,
@@ -234,8 +234,8 @@
       opt: {
         model: 'dall-e-3',
         size: '1024x1024',
-        quality: 'hd',
-      },
+        quality: 'hd'
+      }
     },
     'dall-e-3-1024x1792-Portrait-HD': {
       ...imageModelBase,
@@ -244,8 +244,8 @@
       opt: {
         model: 'dall-e-3',
         size: '1024x1792',
-        quality: 'hd',
-      },
+        quality: 'hd'
+      }
     },
     'dall-e-3-1792x1024-Landscape-HD': {
       ...imageModelBase,
@@ -254,8 +254,8 @@
       opt: {
         model: 'dall-e-3',
         size: '1792x1024',
-        quality: 'hd',
-      },
-    },
-  };
+        quality: 'hd'
+      }
+    }
+  }
 </script>
