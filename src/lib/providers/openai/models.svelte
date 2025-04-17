@@ -60,50 +60,52 @@ countPromptTokens: (prompts:Message[], model:Model, chat: Chat):number => {
 
 const gpt41 = {
 ...chatModelBase,
-prompt: 0.002, // $2.00 per 1M input tokens
-cachedPrompt: 0.0005, // $0.50 per 1M cached input tokens
-completion: 0.008, // $8.00 per 1M output tokens
+prompt: 0.000002, // $2.00 per 1M input tokens
+cachedPrompt: 0.0000005, // $0.50 per 1M cached input tokens
+completion: 0.000008, // $8.00 per 1M output tokens
 max: 1047576
 }
 const gpt41mini = {
 ...chatModelBase,
-prompt: 0.0004, // $0.40 per 1M input tokens
-cachedPrompt: 0.0001, // $0.10 per 1M cached input tokens
-completion: 0.0016, // $1.60 per 1M output tokens
+prompt: 0.0000004, // $0.40 per 1M input tokens
+cachedPrompt: 0.0000001, // $0.10 per 1M cached input tokens
+completion: 0.0000016, // $1.60 per 1M output tokens
 max: 1047576
 }
 const gpt41nano = {
 ...chatModelBase,
-prompt: 0.0001, // $0.10 per 1M input tokens
-cachedPrompt: 0.000025, // $0.025 per 1M cached input tokens
-completion: 0.0004, // $0.40 per 1M output tokens
+prompt: 0.0000001, // $0.10 per 1M input tokens
+cachedPrompt: 0.000000025, // $0.025 per 1M cached input tokens
+completion: 0.0000004, // $0.40 per 1M output tokens
 max: 1047576
 }
 const gpt4o = {
 ...chatModelBase,
-prompt: 0.0025, // $2.50 per 1M input tokens
-cachedPrompt: 0.00125, // $1.25 per 1M cached input tokens
-completion: 0.01, // $10.00 per 1M output tokens
+prompt: 0.0000025, // $2.50 per 1M input tokens
+cachedPrompt: 0.00000125, // $1.25 per 1M cached input tokens
+completion: 0.00001, // $10.00 per 1M output tokens
 max: 128000
 }
 const o3 = {
 ...chatModelBase,
-prompt: 0.01, // $10.00 per 1M input tokens
-cachedPrompt: 0.0025, // $2.50 per 1M cached input tokenshttps://colab.research.google.com/drive/1BJsD1TYQwBMOaUg9h84Qy2UoxnowKoBR#scrollTo=6-cl0Yjnp0-_
-completion: 0.04, // $40.00 per 1M output tokens
-max: 200000
+prompt: 0.00001, // $10.00 per 1M input tokens
+cachedPrompt: 0.0000025, // $2.50 per 1M cached input tokenshttps://colab.research.google.com/drive/1BJsD1TYQwBMOaUg9h84Qy2UoxnowKoBR#scrollTo=6-cl0Yjnp0-_
+completion: 0.00004, // $40.00 per 1M output tokens
+max: 200000,
+temperature: 1
 }
 const o4mini = {
 ...chatModelBase,
-prompt: 0.0011, // $1.10 per 1M input tokens
-cachedPrompt: 0.000275, // $0.275 per 1M cached input tokens
-completion: 0.0044, // $4.40 per 1M output tokens
-max: 200000
+prompt: 0.0000011, // $1.10 per 1M input tokens
+cachedPrompt: 0.000000275, // $0.275 per 1M cached input tokens
+completion: 0.0000044, // $4.40 per 1M output tokens
+max: 200000,
+temperature: 1
 }
 const chatgpt4olatest = {
 ...chatModelBase,
-prompt: 0.005, // $5.00 per 1M input tokens
-completion: 0.015, // $15.00 per 1M output tokens
+prompt: 0.000005, // $5.00 per 1M input tokens
+completion: 0.000015, // $15.00 per 1M output tokens
 flex: false,
 max: 128000
 }
