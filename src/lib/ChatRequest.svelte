@@ -81,6 +81,11 @@ export class ChatRequest {
 
         const lastMessage = messages[messages.length - 1]
         const chatResponse = new ChatCompletionResponse(opts)
+        // Ensure UI always resets when response is finished
+        chatResponse.onFinish(() => {
+          _this.updating = false
+          _this.updatingMessage = ''
+        })
         _this.controller = new AbortController()
 
         // Check if the last user message exceeds the model's max token limit
@@ -232,6 +237,7 @@ export class ChatRequest {
           }, {}),
           stream: opts.streaming
         }
+        // console.log(request) // DEBUGGING
 
         // Make the chat completion request
         try {
@@ -345,10 +351,10 @@ export class ChatRequest {
 
         // See if we have enough to apply any of the reduction modes
         const fullPromptSize = countPromptTokens(filtered, model, chat) + countPadding
-        console.log('Check Continuous Chat', fullPromptSize, threshold)
+        // console.log('Check Continuous Chat', fullPromptSize, threshold) // DEBUGGING
         if (fullPromptSize < threshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
-        console.log('Running Continuous Chat Reduction', fullPromptSize, threshold)
+        // console.log('Running Continuous Chat Reduction', fullPromptSize, threshold) // DEBUGGING
 
         // Isolate the pool of messages we're going to reduce
         const pinTop = chatSettings.pinTop

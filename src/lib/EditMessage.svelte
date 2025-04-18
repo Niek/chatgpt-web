@@ -258,6 +258,11 @@
           renderers={{ code: Code, html: Code }}
         />
         {/key}
+        {#if message.finish_reason === 'length'}
+        <div class="cutoff-warning has-text-warning mt-2">
+          <b>[Response cut off: output exceeded Max Response Tokens]</b>
+        </div>
+        {/if}
         {#if imageUrl}
           <img src={imageUrl} alt="">
         {/if}

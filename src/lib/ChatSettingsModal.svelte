@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, newNameForProfile, setSystemPrompt } from './Profiles.svelte'
+  import { applyProfile, getDefaultProfileKey, getProfile, getProfileSelect, newNameForProfile, setSystemPrompt, isStaticProfile } from './Profiles.svelte'
   import { getChatDefaults, getChatSettingList, getChatSettingObjectByKey, getExcludeFromProfile, hasChatSetting } from './Settings.svelte'
   import {
     saveChatStore,
@@ -28,14 +28,13 @@
     // faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
-  import { onMount, afterUpdate } from 'svelte'
+  import { onMount, afterUpdate, setContext } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
-  import { getModelMaxTokens } from './Stats.svelte'
+  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
+  import { faClipboard } from '@fortawesome/free-regular-svg-icons'
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
-  import { faClipboard } from '@fortawesome/free-regular-svg-icons'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -60,11 +59,39 @@
   let lastProfile:string
   let originalSettings:ChatSettings
 
+  let showAdvancedSettings = false
+
+  $: visibleSettings = showAdvancedSettings
+    ? settingsList
+    : settingsList.filter(s => !s.hidden)
+
+  let modalBody: HTMLElement
+
+  let showStaticProfileSaveModal = false
+  let pendingSave = false
+  let staticProfileNewName = ''
+
+  const promptDeleteProfile = () => {
+    openModal(PromptConfirm, {
+      title: 'Delete Profile',
+      message: 'Are you sure you want to delete this profile?',
+      class: 'is-warning',
+      onConfirm: () => {
+        deleteProfile()
+      }
+    })
+  }
+
+  // Provide promptDeleteProfile to children via context (must be outside onMount)
+  setContext('promptDeleteProfile', promptDeleteProfile)
+
   onMount(async () => {
     originalProfile = chatSettings && chatSettings.profile
     originalSettings = chatSettings && JSON.parse(JSON.stringify(chatSettings))
-
     defaultProfile = await getDefaultProfileKey()
+    // Ensure model options are loaded on mount
+    modelSetting.options = await getChatModelOptions()
+    imageModelSetting.options = await getImageModelOptions()
   })
 
   afterUpdate(() => {
@@ -126,20 +153,15 @@
       chat.settings.profileName = clone.profileName
       await applyProfile(chatId, clone.profile)
       refreshSettings()
+      // Scroll to top of modal body after cloning
+      setTimeout(() => {
+        if (modalBody) {
+          modalBody.scrollTop = 0
+        }
+      }, 0)
     } catch (e) {
       errorNotice('Error cloning profile:', e)
     }
-  }
-
-  const promptDeleteProfile = () => {
-    openModal(PromptConfirm, {
-      title: 'Delete Profile',
-      message: 'Are you sure you want to delete this profile?',
-      class: 'is-warning',
-      onConfirm: () => {
-        deleteProfile()
-      }
-    })
   }
 
   const deleteProfile = async () => {
@@ -186,7 +208,7 @@
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = await getProfileSelect()
     chatDefaults.profile = await getDefaultProfileKey()
-    chatDefaults.max_completion_tokens = getModelMaxTokens(chatSettings.model)
+    // The line I deleted here fetched the max response tokens from the models, but the models have only a max context size parameter
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
     defaultProfile = await getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
@@ -219,12 +241,39 @@
 
   const saveProfile = async () => {
     showProfileMenu = false
+    const isStatic = isStaticProfile(chat.settings.profile)
+    if (isStatic && !chatSettings.isDirty) {
+      closeSettings()
+      return
+    }
+    if (isStatic && chatSettings.isDirty && !pendingSave) {
+      // Generate a new name for the profile and show the modal
+      staticProfileNewName = await newNameForProfile(chat.settings.profileName || '')
+      showStaticProfileSaveModal = true
+      return
+    }
     try {
+      // If static, set the profileName to the user input
+      if (isStatic && pendingSave) {
+        chat.settings.profileName = staticProfileNewName
+      }
       await saveCustomProfile(chat.settings)
-      refreshSettings()
+      chat.settings = await getProfile(chat.settings.profile)
+      closeSettings()
     } catch (e) {
       errorNotice('Error saving profile:', e)
     }
+  }
+
+  const confirmStaticProfileSave = async () => {
+    showStaticProfileSaveModal = false
+    pendingSave = true
+    await saveProfile()
+    pendingSave = false
+  }
+
+  const cancelStaticProfileSave = () => {
+    showStaticProfileSaveModal = false
   }
 
   const startNewChat = async () => {
@@ -269,17 +318,20 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="modal chat-settings" class:is-active={showSettingsModal} on:modal-esc={closeSettings}>
-  <div class="modal-background" on:click={closeSettings} />
+  <div class="modal-background" on:click={closeSettings} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeSettings() }} />
   <div class="modal-card wide" on:click={() => { showProfileMenu = false }}>
     <header class="modal-card-head">
       <p class="modal-card-title">Chat Settings</p>
       <button class="delete" aria-label="close" on:click={closeSettings}></button>
     </header>
-    <section class="modal-card-body">
-      {#each settingsList as setting}
-      <!-- {#key showSettingsModal} -->
+    <section class="modal-card-body" bind:this={modalBody}>
+      {#each visibleSettings as setting}
         <ChatSettingField rkey={showSettingsModal} on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
-      <!-- {/key} -->
+        {#if setting.key === 'temperature'}
+          <button class="button is-small is-info mt-3 mb-4" on:click={() => { showAdvancedSettings = !showAdvancedSettings }}>
+            {showAdvancedSettings ? 'Hide advanced settings' : 'Show advanced settings'}
+          </button>
+        {/if}
       {/each}
     </section>
 
@@ -287,9 +339,12 @@
       <div class="level is-mobile">
         <div class="level-left">
           <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
-          <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
+          <button class="button" title="Save changes to this profile." on:click={saveProfile}>Save</button>    
           <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
-          <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat <span class="is-hidden-mobile">&nbsp;from Current</span></button>
+          <button class="button" title="Clone this profile." on:click={cloneProfile}>
+            <span class="icon"><Fa icon={faClone}/></span>
+            <span>Clone Profile</span>
+          </button>
         </div>
         <div class="level-right">
           <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
@@ -310,7 +365,7 @@
                   <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
                 </a>
                 <hr class="dropdown-divider">
-                <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
+                <a href={'#'} class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
                   <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
                 </a>
                 <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
@@ -346,3 +401,23 @@
 </div>
 
 <input style="display:none" type="file" accept=".json" on:change={async (e) => await importProfileFromFile(e)} bind:this={profileFileInput} >
+
+{#if showStaticProfileSaveModal}
+  <div class="modal is-active">
+    <div class="modal-background" on:click={cancelStaticProfileSave} on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') cancelStaticProfileSave() }} tabindex="0" role="button" aria-label="Close modal" />
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Save as New Profile</p>
+        <button class="delete" aria-label="close" on:click={cancelStaticProfileSave}></button>
+      </header>
+      <section class="modal-card-body">
+        <p>You are modifying a preset profile. Your changes will be saved as a new custom profile. Please enter a name for the new profile:</p>
+        <input class="input mt-3" type="text" bind:value={staticProfileNewName} autocomplete="off" style="width:100%" />
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button is-success" on:click={confirmStaticProfileSave}>Yes, Save as New Profile</button>
+        <button class="button" on:click={cancelStaticProfileSave}>Cancel</button>
+      </footer>
+    </div>
+  </div>
+{/if}

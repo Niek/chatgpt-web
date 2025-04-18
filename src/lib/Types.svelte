@@ -239,6 +239,7 @@ export type ChatSetting = {
     header?: string | ValueFn;
     headerClass?: string | ValueFn;
     placeholder?: string | ValueFn;
+    footer?: string | ValueFn;
     hide?: (chatId:number, setting:ChatSetting) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
     fieldControls?: FieldControl[];

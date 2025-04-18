@@ -134,7 +134,7 @@ export const restartProfile = async (chatId:number, noApply:boolean = false) => 
 
 export const newNameForProfile = async (name:string) => {
     const profiles = await getProfileSelect()
-    return newName(name, profiles.reduce((a, p) => { a[p.text] = p; return a }, {}))
+    return newName(name, profiles.reduce((a, p) => { a[p.text] = p; return a }, {}), { profileCopy: true })
 }
 
 // Apply currently selected profile
@@ -184,7 +184,7 @@ const profiles:Record<string, ChatSettings> = {
     default: {
       ...chatDefaults,
       characterName: 'ChatGPT',
-      profileName: 'ChatGPT - The AI language model',
+      profileName: 'ChatGPT',
       profileDescription: 'The AI language model that always reminds you that it\'s an AI language model.',
       useSystemPrompt: false,
       continuousChat: 'fifo', // '' is off

@@ -291,21 +291,28 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary.",
+      content: 'Summarize the user intent in the above messages in less than 6 keywords.',
       uuid: uuidv4()
     }
 
-    const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
+    const suggestMessages = $currentChatMessages
+      .filter(msg => msg.role === 'user') // use only user messages to generate title for big picture topic
+      .slice(0, 10) // limit to first 10 user messages
     suggestMessages.push(suggestMessage)
 
     chatRequest.updating = true
     chatRequest.updatingMessage = 'Getting suggestion for chat name...'
-    const response = await chatRequest.sendRequest(suggestMessages, {
-      chat,
-      autoAddMessages: false,
-      streaming: false,
-      summaryRequest: true
-    })
+    // Use gpt-4.1-nano for the name suggestion, override model only for this request
+    const response = await chatRequest.sendRequest(
+      suggestMessages,
+      {
+        chat,
+        autoAddMessages: false,
+        streaming: false,
+        summaryRequest: true
+      },
+      { ...chat.settings, model: 'gpt-4.1-nano', temperature: 1 }
+    )
 
     try {
       await response.promiseToFinish()
@@ -400,7 +407,7 @@
     <p class="control is-expanded">
       <textarea
         class="input is-info is-focused chat-input auto-size"
-        placeholder="[{chat.settings.model}] Type your message here..."
+        placeholder={`[${chat.settings.model}] [temp=${chat.settings.temperature}]${chat.settings.model && chat.settings.model.startsWith('o') ? ` [effort=${chat.settings.reasoning_effort}]` : ''}      Type your message here...`}
         rows="1"
         on:keydown={e => {
           // Only send if Enter is pressed, not Shift+Enter
@@ -453,3 +460,5 @@
 </Footer>
 </div>
 {/if}
+<style>
+</style>
