@@ -205,15 +205,7 @@
     }
   }
 
-  let waitingForCancel:any = 0
-
   const cancelRequest = () => {
-    if (!waitingForCancel) {
-      // wait a second for another click to avoid accidental cancel
-      waitingForCancel = setTimeout(() => { waitingForCancel = 0 }, 1000)
-      return
-    }
-    clearTimeout(waitingForCancel); waitingForCancel = 0
     chatRequest.controller.abort()
   }
 
@@ -448,11 +440,7 @@
     {#if chatRequest.updating}
     <p class="control send">
       <button title="Cancel Response" class="button is-danger" type="button" on:click={cancelRequest}><span class="icon">
-        {#if waitingForCancel}
-        <Fa icon={faCircleCheck} />
-        {:else}
         <Fa icon={faCommentSlash} />
-        {/if}
       </span></button>
     </p>
     {:else}
