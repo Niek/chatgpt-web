@@ -226,10 +226,12 @@
     if (!skipInput) {
       chat.sessionStarted = true
       saveChatStore()
+      let addedUserMessage = false
       if (input.value !== '') {
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
+        addedUserMessage = true
       } else if (!fillMessage && $currentChatMessages.length &&
         $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant') {
         fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
@@ -241,6 +243,17 @@
   
       // Resize back to single line height
       input.style.height = 'auto'
+
+      // Trigger suggestName if this is the first user message in the chat
+      // (count user messages after adding)
+      if (addedUserMessage) {
+        // Count user messages
+        const userMessages = $currentChatMessages.filter(m => m.role === 'user')
+        if (userMessages.length === 1) {
+          // Call suggestName, but don't await (fire and forget)
+          suggestName()
+        }
+      }
     }
     focusInput()
 
@@ -291,7 +304,7 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: 'Summarize the user intent in the above messages in less than 6 keywords.',
+      content: 'Summarize the user intent in the above messages in less than 6 keywords. Only reply with keywords, not with a sentence.',
       uuid: uuidv4()
     }
 
