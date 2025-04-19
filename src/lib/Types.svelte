@@ -57,6 +57,9 @@ export type Request = {
     frequency_penalty?: number;
     logit_bias?: Record<string, number> | null;
     user?: string;
+    store?: boolean;
+    service_tier?: string;
+    reasoning_effort?: string;
   };
 
 export type ChatSettings = {

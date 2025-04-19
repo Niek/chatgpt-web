@@ -304,9 +304,7 @@
       .filter(msg => msg.role === 'user') // use only user messages to generate title for big picture topic
       .slice(0, 10) // limit to first 10 user messages
     suggestMessages.push(suggestMessage)
-
-    chatRequest.updating = true
-    chatRequest.updatingMessage = 'Getting suggestion for chat name...'
+  
     // Use gpt-4.1-nano for the name suggestion, override model only for this request
     const response = await chatRequest.sendRequest(
       suggestMessages,
@@ -316,7 +314,8 @@
         streaming: false,
         summaryRequest: true
       },
-      { ...chat.settings, model: 'gpt-4.1-nano', temperature: 1 }
+      { model: 'gpt-4.1-nano', store: false, stream: false },
+      true // noMergeSettings: only use the explicit settings provided
     )
 
     try {

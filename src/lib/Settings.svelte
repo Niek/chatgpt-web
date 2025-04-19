@@ -86,7 +86,9 @@ const gptDefaults = {
   frequency_penalty: 0,
   logit_bias: null,
   user: undefined,
-  store: false
+  store: false,
+      service_tier: 'flex',
+  reasoning_effort: 'medium'
 }
 
 // Core set of defaults
@@ -127,9 +129,6 @@ const defaults:ChatSettings = {
   leadPrompt: '',
   repetitionPenalty: 1.1,
   holdSocket: true,
-  store: false,
-  service_tier: 'flex',
-  reasoning_effort: 'medium',
   isDirty: false
 }
 
@@ -747,7 +746,9 @@ const chatSettingsList: ChatSetting[] = [
         name: 'Store Messages and Responses externally in OpenAI dashboard',
         title: 'Whether or not to archive the messages and responses on the OpenAI servers.',
         type: 'boolean',
-        hidden: true
+        hidden: true,
+        forceApi: true,
+        apiTransform: (chatId, setting, value) => value // Always send 'store' with every request
       },
       {
         key: 'service_tier',
