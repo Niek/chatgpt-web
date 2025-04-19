@@ -413,7 +413,7 @@
     <p class="control is-expanded">
       <textarea
         class="input is-info is-focused chat-input auto-size"
-        placeholder={`[${chat.settings.model}] [temp=${chat.settings.temperature}]${chat.settings.model && chat.settings.model.startsWith('o') ? ` [effort=${chat.settings.reasoning_effort}]` : ''}      Type your message here...`}
+        placeholder={`[${chat.settings.model}]${chat.settings.model && chat.settings.model.startsWith('o') ? ` [effort=${chat.settings.reasoning_effort}]` : ` [temp=${chat.settings.temperature}]`}      Type your message here...`}
         rows="1"
         on:keydown={e => {
           // Only send if Enter is pressed, not Shift+Enter
