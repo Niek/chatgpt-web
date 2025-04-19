@@ -29,8 +29,8 @@
     faPenToSquare,
     faMicrophone,
     faLightbulb,
-    faCommentSlash,
-    faCircleCheck
+    faCommentSlash
+
   } from '@fortawesome/free-solid-svg-icons/index'
   import { v4 as uuidv4 } from 'uuid'
   import { getPrice } from './Stats.svelte'
@@ -394,8 +394,8 @@
 
 <Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if (chatRequest.updating === true || $currentChatId === 0)
-    && (!($currentChatMessages.length > 0 && $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant' && $currentChatMessages[$currentChatMessages.length - 1].streaming))}
+{#if (chatRequest.updating === true || $currentChatId === 0) &&
+    (!($currentChatMessages.length > 0 && $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant' && $currentChatMessages[$currentChatMessages.length - 1].streaming))}
   <article class="message is-success assistant-message">
     <div class="message-body content">
       <span class="is-loading"></span>
