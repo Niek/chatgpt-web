@@ -394,10 +394,11 @@
 
 <Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if chatRequest.updating === true || $currentChatId === 0}
+{#if (chatRequest.updating === true || $currentChatId === 0)
+    && (!($currentChatMessages.length > 0 && $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant' && $currentChatMessages[$currentChatMessages.length - 1].streaming))}
   <article class="message is-success assistant-message">
     <div class="message-body content">
-      <span class="is-loading" ></span>
+      <span class="is-loading"></span>
       <span>{chatRequest.updatingMessage}</span>
     </div>
   </article>
