@@ -564,8 +564,19 @@
     checkStateChange.set(get(checkStateChange) + 1)
   }
 
-  export const newName = (name:string, nameMap:Record<string, any>):string => {
+  export const newName = (name:string, nameMap:Record<string, any>, options?: { profileCopy?: boolean }):string => {
     if (!nameMap[name]) return name
+    if (options && options.profileCopy) {
+      // Remove any existing ' - Copy #' suffix
+      const baseName = name.replace(/( - Copy( \d+)*)$/, '')
+      let i = 1
+      let cname = `${baseName} - Copy`
+      while (nameMap[cname] || nameMap[`${baseName} - Copy ${i}`]) {
+        i++
+        cname = `${baseName} - Copy ${i}`
+      }
+      return i === 1 ? `${baseName} - Copy` : `${baseName} - Copy ${i}`
+    }
     const nm = name.match(/^(.*[^0-9]+)([- ])*([0-9]+)$/)
     let i:number = 1
     let s = ' '

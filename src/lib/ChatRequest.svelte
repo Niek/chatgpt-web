@@ -1,3 +1,12 @@
+/*
+  ChatRequest.svelte
+  ------------------
+  This module defines the ChatRequest class, which manages the logic for sending chat completion requests to various language model APIs within the chat application.
+  It handles message filtering, prompt construction, token counting, error handling, and advanced features such as continuous chat (with FIFO or summary-based reduction),
+  hidden prompt injection, and image prompt detection. The class is responsible for orchestrating the flow of chat messages, preparing API requests according to chat
+  settings, and processing responses, including streaming and summarization. It integrates with other modules for storage, UI updates, and model-specific details.
+*/
+
 <script context="module" lang="ts">
     import { ChatCompletionResponse } from './ChatCompletionResponse.svelte'
     import { cleanContent, mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
@@ -72,7 +81,23 @@ export class ChatRequest {
 
         const lastMessage = messages[messages.length - 1]
         const chatResponse = new ChatCompletionResponse(opts)
+        // Ensure UI always resets when response is finished
+        chatResponse.onFinish(() => {
+          _this.updating = false
+          _this.updatingMessage = ''
+        })
         _this.controller = new AbortController()
+
+        // Check if the last user message exceeds the model's max token limit
+        if (lastMessage?.role === 'user') {
+          const userMessageTokens = countMessageTokens(lastMessage, this.chat.settings.model, this.chat)
+          if (userMessageTokens > getModelMaxTokens(this.chat.settings.model)) {
+            chatResponse.updateFromError(`Your message is too long for the selected model (max ${getModelMaxTokens(this.chat.settings.model)} tokens, got ${userMessageTokens}). Please shorten your message.`)
+            this.updating = false
+            this.updatingMessage = ''
+            return chatResponse
+          }
+        }
 
         if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
           const im = lastMessage.content.match(imagePromptDetect)
@@ -212,6 +237,7 @@ export class ChatRequest {
           }, {}),
           stream: opts.streaming
         }
+        // console.log(request) // DEBUGGING
 
         // Make the chat completion request
         try {
@@ -325,10 +351,10 @@ export class ChatRequest {
 
         // See if we have enough to apply any of the reduction modes
         const fullPromptSize = countPromptTokens(filtered, model, chat) + countPadding
-        console.log('Check Continuous Chat', fullPromptSize, threshold)
+        // console.log('Check Continuous Chat', fullPromptSize, threshold) // DEBUGGING
         if (fullPromptSize < threshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
-        console.log('Running Continuous Chat Reduction', fullPromptSize, threshold)
+        // console.log('Running Continuous Chat Reduction', fullPromptSize, threshold) // DEBUGGING
 
         // Isolate the pool of messages we're going to reduce
         const pinTop = chatSettings.pinTop
