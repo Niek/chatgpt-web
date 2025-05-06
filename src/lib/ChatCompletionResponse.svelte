@@ -214,6 +214,7 @@ export class ChatCompletionResponse {
 
   finish = (reason: string = ''): void => {
     if (this.finished) return
+    // console.log('ChatCompletionResponse finished:', JSON.stringify(this.messages), 'Reason:', reason); // DEBUGGING
     this.messages.forEach(m => {
       m.streaming = false
       if (reason) m.finish_reason = reason

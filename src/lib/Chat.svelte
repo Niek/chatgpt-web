@@ -29,8 +29,8 @@
     faPenToSquare,
     faMicrophone,
     faLightbulb,
-    faCommentSlash,
-    faCircleCheck
+    faCommentSlash
+
   } from '@fortawesome/free-solid-svg-icons/index'
   import { v4 as uuidv4 } from 'uuid'
   import { getPrice } from './Stats.svelte'
@@ -205,15 +205,7 @@
     }
   }
 
-  let waitingForCancel:any = 0
-
   const cancelRequest = () => {
-    if (!waitingForCancel) {
-      // wait a second for another click to avoid accidental cancel
-      waitingForCancel = setTimeout(() => { waitingForCancel = 0 }, 1000)
-      return
-    }
-    clearTimeout(waitingForCancel); waitingForCancel = 0
     chatRequest.controller.abort()
   }
 
@@ -226,10 +218,12 @@
     if (!skipInput) {
       chat.sessionStarted = true
       saveChatStore()
+      let addedUserMessage = false
       if (input.value !== '') {
         // Compose the input message
         const inputMessage: Message = { role: 'user', content: input.value, uuid: uuidv4() }
         addMessage(chatId, inputMessage)
+        addedUserMessage = true
       } else if (!fillMessage && $currentChatMessages.length &&
         $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant') {
         fillMessage = $currentChatMessages[$currentChatMessages.length - 1]
@@ -241,6 +235,17 @@
   
       // Resize back to single line height
       input.style.height = 'auto'
+
+      // Trigger suggestName if this is the first user message in the chat
+      // (count user messages after adding)
+      if (addedUserMessage) {
+        // Count user messages
+        const userMessages = $currentChatMessages.filter(m => m.role === 'user')
+        if (userMessages.length === 1) {
+          // Call suggestName, but don't await (fire and forget)
+          suggestName()
+        }
+      }
     }
     focusInput()
 
@@ -291,21 +296,27 @@
   const suggestName = async (): Promise<void> => {
     const suggestMessage: Message = {
       role: 'user',
-      content: "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary.",
+      content: 'Summarize the user intent in the above messages in less than 6 keywords. Only reply with keywords, not with a sentence.',
       uuid: uuidv4()
     }
 
-    const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
+    const suggestMessages = $currentChatMessages
+      .filter(msg => msg.role === 'user') // use only user messages to generate title for big picture topic
+      .slice(0, 10) // limit to first 10 user messages
     suggestMessages.push(suggestMessage)
-
-    chatRequest.updating = true
-    chatRequest.updatingMessage = 'Getting suggestion for chat name...'
-    const response = await chatRequest.sendRequest(suggestMessages, {
-      chat,
-      autoAddMessages: false,
-      streaming: false,
-      summaryRequest: true
-    })
+  
+    // Use gpt-4.1-nano for the name suggestion, override model only for this request
+    const response = await chatRequest.sendRequest(
+      suggestMessages,
+      {
+        chat,
+        autoAddMessages: false,
+        streaming: false,
+        summaryRequest: true
+      },
+      { model: 'gpt-4.1-nano', store: false, stream: false },
+      true // noMergeSettings: only use the explicit settings provided
+    )
 
     try {
       await response.promiseToFinish()
@@ -382,10 +393,11 @@
 
 <Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if chatRequest.updating === true || $currentChatId === 0}
+{#if (chatRequest.updating === true || $currentChatId === 0) &&
+    (!($currentChatMessages.length > 0 && $currentChatMessages[$currentChatMessages.length - 1].role === 'assistant' && $currentChatMessages[$currentChatMessages.length - 1].streaming))}
   <article class="message is-success assistant-message">
     <div class="message-body content">
-      <span class="is-loading" ></span>
+      <span class="is-loading"></span>
       <span>{chatRequest.updatingMessage}</span>
     </div>
   </article>
@@ -400,7 +412,7 @@
     <p class="control is-expanded">
       <textarea
         class="input is-info is-focused chat-input auto-size"
-        placeholder="[{chat.settings.model}] Type your message here..."
+        placeholder={`[${chat.settings.model}]${chat.settings.model && chat.settings.model.startsWith('o') ? ` [effort=${chat.settings.reasoning_effort}]` : ` [temp=${chat.settings.temperature}]`}      Type your message here...`}
         rows="1"
         on:keydown={e => {
           // Only send if Enter is pressed, not Shift+Enter
@@ -428,11 +440,7 @@
     {#if chatRequest.updating}
     <p class="control send">
       <button title="Cancel Response" class="button is-danger" type="button" on:click={cancelRequest}><span class="icon">
-        {#if waitingForCancel}
-        <Fa icon={faCircleCheck} />
-        {:else}
         <Fa icon={faCommentSlash} />
-        {/if}
       </span></button>
     </p>
     {:else}
@@ -453,3 +461,5 @@
 </Footer>
 </div>
 {/if}
+<style>
+</style>

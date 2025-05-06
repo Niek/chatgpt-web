@@ -1,3 +1,12 @@
+/*
+  Models.svelte
+  ------------------
+  This module manages the supported chat and image models for the application, providing utilities to retrieve model details, endpoints, and configuration options.
+  It aggregates models from various providers (such as OpenAI and Petals), normalizes their details, and exposes functions to fetch model-specific settings,
+  tokenization, and prompt formatting. It also provides methods to generate model selection options for UI components, check model availability, and handle dynamic
+  or remote model fetching. The file acts as a central hub for all model-related logic and metadata used throughout the app.
+*/
+
 <script context="module" lang="ts">
   import { apiKeyStorage, getApiBase, globalStorage } from './Storage.svelte'
   import { get } from 'svelte/store'
