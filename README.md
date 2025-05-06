@@ -144,6 +144,7 @@ To use ChatGPT-web as a desktop application:
       <td align="center" valign="top" width="14.28%"><a href="https://morgan.kr"><img src="https://avatars.githubusercontent.com/u/53516171?v=4?s=100" width="100px;" alt="Morgan"/><br /><sub><b>Morgan</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=morgan9e" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://codeberg.org/udon"><img src="https://avatars.githubusercontent.com/u/143291288?v=4?s=100" width="100px;" alt="Udon"/><br /><sub><b>Udon</b></sub></a><br /><a href="#design-UdonCodes" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ryan526"><img src="https://avatars.githubusercontent.com/u/11861916?v=4?s=100" width="100px;" alt="Ryan526"/><br /><sub><b>Ryan526</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Ryan526" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Clemens123"><img src="https://avatars.githubusercontent.com/u/23274908?v=4?s=100" width="100px;" alt="Clemens123"/><br /><sub><b>Clemens123</b></sub></a><br /><a href="https://github.com/Niek/chatgpt-web/commits?author=Clemens123" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
