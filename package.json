@@ -44,7 +44,7 @@
     "svelte-fa": "^3.0.3",
     "svelte-highlight": "^7.8.3",
     "svelte-local-storage-store": "^0.6.4",
-    "svelte-markdown": "^0.2.3",
+    "svelte-markdown": "^0.4.1",
     "svelte-modals": "^1.2.1",
     "svelte-spa-router": "^4.0.1",
     "svelte-typeahead": "^4.4.2",
