@@ -57,6 +57,9 @@ export type Request = {
     frequency_penalty?: number;
     logit_bias?: Record<string, number> | null;
     user?: string;
+    store?: boolean;
+    service_tier?: string;
+    reasoning_effort?: string;
   };
 
 export type ChatSettings = {
@@ -239,6 +242,7 @@ export type ChatSetting = {
     header?: string | ValueFn;
     headerClass?: string | ValueFn;
     placeholder?: string | ValueFn;
+    footer?: string | ValueFn;
     hide?: (chatId:number, setting:ChatSetting) => boolean;
     apiTransform?: (chatId:number, setting:ChatSetting, value:any) => any;
     fieldControls?: FieldControl[];

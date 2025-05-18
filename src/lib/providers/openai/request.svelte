@@ -37,15 +37,14 @@ export const chatRequest = async (
              * We'll get the response a token at a time, as soon as they are ready
             */
         chatResponse.onFinish(() => {
-          // chatRequest.updating = false
-          // chatRequest.updatingMessage = ''
+          chatRequest.updating = false
+          chatRequest.updatingMessage = ''
         })
         fetchEventSource(getEndpoint(model), {
           ...fetchOptions,
           openWhenHidden: true,
           onmessage (ev) {
-          // Remove updating indicator
-            chatRequest.updating = 1 // hide indicator, but still signal we're updating
+            // Only clear updatingMessage (don't touch updating here!)
             chatRequest.updatingMessage = ''
             // console.log('ev.data', ev.data)
             if (!chatResponse.hasFinished()) {

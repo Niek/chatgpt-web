@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { get } from 'svelte/store'
-    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey, setChatSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -74,18 +74,21 @@ const hideModelSetting = (chatId, setting) => {
 }
 
 const gptDefaults = {
-  model: '',
+  model: 'chatgpt-4o-latest',
   messages: [],
   temperature: 1,
   top_p: 1,
   n: 1,
   stream: true,
   stop: null,
-  max_completion_tokens: 512,
+  max_completion_tokens: null,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
-  user: undefined
+  user: undefined,
+  store: false,
+      service_tier: 'flex',
+  reasoning_effort: 'medium'
 }
 
 // Core set of defaults
@@ -96,7 +99,7 @@ const defaults:ChatSettings = {
   profileName: '',
   profileDescription: '',
   continuousChat: 'fifo',
-  summaryThreshold: 3000,
+  summaryThreshold: 10000,
   summarySize: 1000,
   summaryExtend: 0,
   summaryTemperature: 0.1,
@@ -126,8 +129,6 @@ const defaults:ChatSettings = {
   leadPrompt: '',
   repetitionPenalty: 1.1,
   holdSocket: true,
-  // useResponseAlteration: false,
-  // responseAlterations: [],
   isDirty: false
 }
 
@@ -140,7 +141,16 @@ export const globalDefaults: GlobalSettings = {
   openAICompletionEndpoint: '',
   enablePetals: false,
   pedalsEndpoint: '',
-  openAiEndpoint: 'https://api.openai.com'
+  openAiEndpoint: 'https://api.openai.com',
+  apiTransform: (chatId, setting, val:Record<string, number>) => {
+        if (!val) return null
+        const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
+          const tokens:number[] = getTokens(getChatSettings(chatId).model, k)
+          tokens.forEach(t => { a[t] = v })
+          return a
+        }, {} as Record<number, number>)
+        return tokenized
+  }
 }
 
 const excludeFromProfile = {
@@ -194,20 +204,6 @@ const profileSetting: ChatSetting & SettingSelect = {
 // Settings that will not be part of the API request
 const systemPromptSettings: ChatSetting[] = [
       {
-        key: 'profileName',
-        name: 'Profile Name',
-        title: 'How this profile is displayed in the select list.',
-        type: 'text'
-        // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
-      },
-      {
-        key: 'profileDescription',
-        name: 'Description',
-        title: 'How this profile is displayed in the select list.',
-        type: 'textarea'
-        // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
-      },
-      {
         key: 'useSystemPrompt',
         name: 'Use Character / System Prompt',
         title: 'Send a "System" prompt as the first prompt.',
@@ -230,12 +226,13 @@ const systemPromptSettings: ChatSetting[] = [
         type: 'textarea',
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       },
-      {
-        key: 'sendSystemPromptLast',
-        name: 'Send System Prompt Last (Can help in gpt 3.5 in some edge cases)',
-        title: 'ChatGPT 3.5 can often forget the System Prompt. Sending the system prompt at the end instead of the start of the messages can help.',
-        type: 'boolean'
-      },
+  // Useless now, needs to be cleaned up
+  //      {
+  //        key: 'sendSystemPromptLast',
+  //        name: 'Send System Prompt Last (Can help in gpt 3.5 in some edge cases)',
+  //        title: 'ChatGPT 3.5 can often forget the System Prompt. Sending the system prompt at the end instead of the start of the messages can help.',
+  //        type: 'boolean'
+  //      },
       {
         key: 'hiddenPromptPrefix',
         name: 'Hidden Prompts Prefix',
@@ -369,16 +366,17 @@ const summarySettings: ChatSetting[] = [
         placeholder: 'Enter a prompt that will be used to summarize past prompts here.',
         type: 'textarea',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
-      },
-      {
-        key: 'imageGenerationModel',
-        name: 'Image Generation Model',
-        header: 'Image Generation',
-        headerClass: 'is-info',
-        title: 'Prompt an image with: show me an image of ...',
-        type: 'select',
-        options: []
       }
+// TODO: Image generation is currently not working
+//      {
+//        key: 'imageGenerationModel',
+//        name: 'Image Generation Model',
+//        header: 'Image Generation',
+//        headerClass: 'is-info',
+//        title: 'Prompt an image with: show me an image of ...',
+//        type: 'select',
+//        options: []
+//      }
 ]
 
 // const responseAlterationSettings: ChatSetting[] = [
@@ -440,22 +438,33 @@ const modelSetting: ChatSetting & SettingSelect = {
       options: [],
       type: 'select',
       forceApi: true, // Need to make sure we send this
-      afterChange: (chatId, setting) => true // refresh settings
+      afterChange: (chatId, setting) => true, // refresh settings
+      footer: (chatId) => {
+        const model = getModelDetail(getChatSettings(chatId).model)
+        if (model.prompt && model.completion) {
+          return `<span class="has-text-grey">$${(model.prompt * 1000000).toFixed(2)} / $${(model.completion * 1000000).toFixed(2)} per 1M In/Out-Tokens</span>`
+        }
+        return ''
+      }
 }
 
 const chatSettingsList: ChatSetting[] = [
       profileSetting,
+      {
+        key: 'profileName',
+        name: 'Profile Name',
+        title: 'How this profile is displayed in the select list.',
+        type: 'text'
+      },
+      {
+        key: 'profileDescription',
+        name: 'Profile Description',
+        title: 'How this profile is displayed in the select list.',
+        type: 'textarea'
+      },
       ...systemPromptSettings,
-      ...summarySettings,
       // ...responseAlterationSettings,
       modelSetting,
-      {
-        key: 'stream',
-        name: 'Stream Response',
-        title: 'Stream responses as they are generated.',
-        type: 'boolean',
-        hide: hideModelSetting
-      },
       {
         key: 'holdSocket',
         name: 'Continue WebSocket',
@@ -465,47 +474,76 @@ const chatSettingsList: ChatSetting[] = [
       },
       {
         key: 'temperature',
-        name: 'Sampling Temperature',
+        name: 'Temperature',
         title: 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n' +
               '\n' +
               'We generally recommend altering this or top_p but not both.',
         min: 0,
         max: 2,
         step: 0.1,
-        type: 'number'
+        type: 'number',
+        fieldControls: [
+          {
+            getAction: (chatId, setting, value) => {
+              const model = getChatSettings(chatId).model
+              if (model.startsWith('o')) {
+                // Set value to 1 if not already
+                if (value !== 1) {
+                  // Import setChatSettingValueByKey at the top if not already
+                  setChatSettingValueByKey(chatId, 'temperature', 1)
+                }
+                return {
+                  title: 'o-Models do not support changing this',
+                  disabled: true
+                }
+              }
+              return { title: '', disabled: false }
+            }
+          }
+        ]
       },
       {
         key: 'top_p',
-        name: 'Nucleus Sampling (Top-p)',
+        name: 'Top-p',
         title: 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n' +
               '\n' +
               'We generally recommend altering this or temperature but not both',
         min: 0,
         max: 1,
         step: 0.1,
-        type: 'number'
-      },
-      {
-        key: 'n',
-        name: 'Number of Messages',
-        title: 'CAREFUL WITH THIS ONE: How many chat completion choices to generate for each input message. This can eat tokens.',
-        min: 1,
-        max: 10,
-        step: 1,
         type: 'number',
-        hide: hideModelSetting
+        fieldControls: [
+          {
+            getAction: (chatId, setting, value) => {
+              const model = getChatSettings(chatId).model
+              if (model.startsWith('o')) {
+                // Set value to 1 if not already
+                if (value !== 1) {
+                  // Import setChatSettingValueByKey at the top if not already
+                  setChatSettingValueByKey(chatId, 'top_p', 1)
+                }
+                return {
+                  title: 'o-Models do not support changing this',
+                  disabled: true
+                }
+              }
+              return { title: '', disabled: false }
+            }
+          }
+        ],
+        hidden: true
       },
       {
         key: 'max_completion_tokens',
-        name: 'Max Tokens',
-        title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_completion_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
+        name: 'Max Response Tokens',
+        title: 'The maximum number of tokens to generate in the model response.\n' +
+              'The upper limit depends on the model (GPT-4o: 16384, GPT-4.1: 32768).\n',
         min: 1,
         max: 32768,
         step: 1,
         type: 'number',
-        forceApi: true // Since default here is different than gpt default, will make sure we always send it
+        forceApi: true, // Need to make sure we send this
+        hidden: true
       },
       {
         key: 'presence_penalty',
@@ -515,7 +553,8 @@ const chatSettingsList: ChatSetting[] = [
         max: 2,
         step: 0.2,
         type: 'number',
-        hide: hideModelSetting
+        hide: hideModelSetting,
+        hidden: true
       },
       {
         key: 'frequency_penalty',
@@ -525,7 +564,8 @@ const chatSettingsList: ChatSetting[] = [
         max: 2,
         step: 0.2,
         type: 'number',
-        hide: hideModelSetting
+        hide: hideModelSetting,
+        hidden: true
       },
       {
         key: 'repetitionPenalty',
@@ -557,7 +597,17 @@ const chatSettingsList: ChatSetting[] = [
           const val = getModelDetail(getChatSettings(chatId).model).stop
           return (val && val.join(',')) || ''
         },
-        hide: hideModelSetting
+        hide: hideModelSetting,
+        apiTransform: (chatId, setting, value) => {
+          const model = getChatSettings(chatId).model
+          // Stop sequences are not supported with o-models
+          if (model.startsWith('o')) {
+            return null
+          }
+          // Original logic might parse comma-separated string? Assume value is already array or null.
+          // Need to ensure it's passed correctly if not null. The default reduce logic handles this.
+          return value
+        }
       },
       {
         key: 'aggressiveStop',
@@ -652,23 +702,17 @@ const chatSettingsList: ChatSetting[] = [
           const val = getModelDetail(getChatSettings(chatId).model).leadPrompt
           return val || ''
         },
-        hide: hideModelSetting
+        hide: hideModelSetting,
+        hidden: true
       },
       {
-        // logit bias editor not implemented yet
         key: 'logit_bias',
         name: 'Logit Bias',
         title: 'Allows you to adjust bias of tokens used in completion.',
         header: 'Logit Bias. See <a target="_blank" href="https://help.openai.com/en/articles/5247780-using-logit-bias-to-define-token-probability">this article</a> for more details.',
         type: 'other',
         hide: () => true,
-        // transform to word->weight pairs to token(s)->weight.
-        //  -- care should be taken to have each word key in the each record formatted in a way where they
-        //     only take one token each else you'll end up with results you probably don't want.
-        //     Generally, leading space plus common lower case word will more often result in a single token
-        //     See: https://platform.openai.com/tokenizer
         apiTransform: (chatId, setting, val:Record<string, number>) => {
-          // console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
           const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
             const tokens:number[] = getTokens(getChatSettings(chatId).model, k)
@@ -678,14 +722,87 @@ const chatSettingsList: ChatSetting[] = [
           return tokenized
         }
       },
-      // Enable?
+      {
+        key: 'stream',
+        name: 'Stream Response',
+        title: 'Stream responses as they are generated.',
+        type: 'boolean',
+        hide: hideModelSetting,
+        hidden: true
+      },
+      {
+        key: 'n',
+        name: 'Number of Responses',
+        title: 'CAREFUL WITH THIS ONE: How many chat completion choices to generate for each input message. This can eat tokens.',
+        min: 1,
+        max: 10,
+        step: 1,
+        type: 'number',
+        hide: hideModelSetting,
+        hidden: true
+      },
+      {
+        key: 'store',
+        name: 'Store Messages and Responses externally in OpenAI dashboard',
+        title: 'Whether or not to archive the messages and responses on the OpenAI servers.',
+        type: 'boolean',
+        hidden: true,
+        forceApi: true,
+        apiTransform: (chatId, setting, value) => value // Always send 'store' with every request
+      },
+      {
+        key: 'service_tier',
+        name: 'Service Tier (Flex=1/2 price)',
+        title: 'Specifies the latency tier to use for processing the request. "Flex" is half price.',
+        type: 'select',
+        options: [
+          { value: 'auto', text: 'Auto' },
+          { value: 'default', text: 'Default' },
+          { value: 'flex', text: 'Flex' }
+        ],
+        hide: (chatId) => {
+          const model = getChatSettings(chatId).model
+          return !(model.startsWith('o'))
+        },
+        apiTransform: (chatId, setting, value) => {
+          const model = getChatSettings(chatId).model
+          if (model.startsWith('o')) {
+            // If user explicitly selected auto or default, use that.
+            // Otherwise (value is 'flex' or null/default 'auto'), use 'flex'.
+            return (value === 'auto' || value === 'default') ? value : 'flex'
+          }
+          return null // Don't send for other models
+        }
+      },
+      {
+        key: 'reasoning_effort',
+        name: 'Reasoning Effort',
+        title: 'Constrains effort on reasoning for o-series models. Reducing effort can result in faster responses and fewer reasoning tokens.',
+        type: 'select',
+        options: [
+          { value: 'low', text: 'Low' },
+          { value: 'medium', text: 'Medium' },
+          { value: 'high', text: 'High' }
+        ],
+        hide: (chatId) => {
+          const model = getChatSettings(chatId).model
+          return !(model.startsWith('o'))
+        },
+        apiTransform: (chatId, setting, value) => {
+          const model = getChatSettings(chatId).model
+          // Only send if o-model and value is not the default 'medium'
+          // Or always send if model matches? API default is medium. Let's always send if model matches.
+          return (model.startsWith('o')) ? value : null
+        }
+      },
       {
         key: 'user',
         name: 'User?',
         title: 'Name of user?',
         type: 'text',
         hide: () => true
-      }
+      },
+      ...summarySettings
 ]
 
 const chatSettingLookup:Record<string, ChatSetting> = chatSettingsList.reduce((a, v) => {

@@ -270,7 +270,7 @@ export const chatRequest = async (
       chatResponse.setPromptTokenCount(countTokens(model, providerData.knownBuffer))
       ws.onmessage = event => {
         // Remove updating indicator
-        chatRequest.updating = chatRequest.updating && 1 // hide indicator, but still signal we're updating
+        chatRequest.updating = !!chatRequest.updating // always use boolean
         chatRequest.updatingMessage = ''
         const response = JSON.parse(event.data)
         if (!response.ok) {

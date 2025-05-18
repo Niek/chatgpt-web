@@ -68,7 +68,7 @@ export class ChatRequest {
        * @param opts
        * @param overrides
        */
-      async sendRequest (messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> {
+      async sendRequest (messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings, noMergeSettings: boolean = false): Promise<ChatCompletionResponse> {
         // TODO:  Continue to break this method down to smaller chunks
         const _this = this
         const chat = getChat(_this.chat.id)
@@ -81,6 +81,11 @@ export class ChatRequest {
 
         const lastMessage = messages[messages.length - 1]
         const chatResponse = new ChatCompletionResponse(opts)
+        // Ensure UI always resets when response is finished
+        chatResponse.onFinish(() => {
+          _this.updating = false
+          _this.updatingMessage = ''
+        })
         _this.controller = new AbortController()
 
         // Check if the last user message exceeds the model's max token limit
@@ -200,38 +205,51 @@ export class ChatRequest {
         const maxAllowed = maxTokens - (promptTokenCount + 1)
 
         // Build the API request body
-        const request: Request = {
-          model: chatSettings.model,
-          messages: messagePayload,
-          // Provide the settings by mapping the settingsMap to key/value pairs
-          ...getRequestSettingList().reduce((acc, setting) => {
-            const key = setting.key
-            let value = getChatSettingValueNullDefault(chatId, setting)
-            if (key in overrides) value = overrides[key]
-            if (typeof setting.apiTransform === 'function') {
-              value = setting.apiTransform(chatId, setting, value)
-            }
-            if (key === 'max_completion_tokens') {
-              if (opts.maxTokens) value = opts.maxTokens // only as large as requested
-              if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
-              if (value) value = Math.floor(value)
-            }
-            if (key === 'n') {
-              if (opts.streaming || opts.summaryRequest) {
-                /*
-                Streaming goes insane with more than one completion.
-                Doesn't seem like there's any way to separate the jumbled mess of deltas for the
-                different completions.
-                Summary should only have one completion
-                */
-                value = 1
+        let request: Request
+        if (noMergeSettings) {
+          // Only use the overrides, plus model/messages/stream
+          request = {
+            model: overrides.model,
+            messages: messagePayload,
+            ...overrides,
+            stream: opts.streaming
+          }
+        } else {
+          request = {
+            model: chatSettings.model,
+            messages: messagePayload,
+            // Provide the settings by mapping the settingsMap to key/value pairs
+            ...getRequestSettingList().reduce((acc, setting) => {
+              const key = setting.key
+              let value = getChatSettingValueNullDefault(chatId, setting)
+              if (key in overrides) value = overrides[key]
+              if (typeof setting.apiTransform === 'function') {
+                value = setting.apiTransform(chatId, setting, value)
               }
-            }
-            if (value !== null) acc[key] = value
-            return acc
-          }, {}),
-          stream: opts.streaming
+              if (key === 'max_completion_tokens') {
+                if (opts.maxTokens) value = opts.maxTokens // only as large as requested
+                if (value > maxAllowed || value < 1) value = null // if over max model, do not define max
+                if (value) value = Math.floor(value)
+              }
+              if (key === 'n') {
+                if (opts.streaming || opts.summaryRequest) {
+                  /*
+                  Streaming goes insane with more than one completion.
+                  Doesn't seem like there's any way to separate the jumbled mess of deltas for the
+                  different completions.
+                  Summary should only have one completion
+                  */
+                  value = 1
+                }
+              }
+              if (value !== null && value !== undefined) acc[key] = value
+              return acc
+            }, {}),
+            stream: opts.streaming
+          }
         }
+        // DEBUG: Print the fully assembled request object to check the 'store' parameter
+        console.log('DEBUG: Assembled OpenAI request:', JSON.stringify(request, null, 2))
 
         // Make the chat completion request
         try {
@@ -345,10 +363,10 @@ export class ChatRequest {
 
         // See if we have enough to apply any of the reduction modes
         const fullPromptSize = countPromptTokens(filtered, model, chat) + countPadding
-        console.log('Check Continuous Chat', fullPromptSize, threshold)
+        // console.log('Check Continuous Chat', fullPromptSize, threshold) // DEBUGGING
         if (fullPromptSize < threshold) return await continueRequest() // nothing to do yet
         const overMax = fullPromptSize > maxTokens * 0.95
-        console.log('Running Continuous Chat Reduction', fullPromptSize, threshold)
+        // console.log('Running Continuous Chat Reduction', fullPromptSize, threshold) // DEBUGGING
 
         // Isolate the pool of messages we're going to reduce
         const pinTop = chatSettings.pinTop
