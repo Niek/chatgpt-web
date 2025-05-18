@@ -1,0 +1,66 @@
+name: Create Release
+
+on:
+  # Allow manual trigger
+  workflow_dispatch:
+  # Allow trigger from other workflows
+  workflow_call:
+    secrets:
+      PAT:
+        required: true
+        description: 'Needed to trigger the build-release action'
+
+jobs:
+  create-tag:
+    name: Create Version Tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+          fetch-depth: 0 # Will fail to push without this.
+
+      - name: Pull Version Changes
+        run: git pull
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Identity
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Get version from package.json
+        run: echo "package_version=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse v${{ env.package_version}} >/dev/null 2>&1; then
+            echo "Tag v${{ env.package_version}} already exists"
+          fi
+
+      - name: Remove existing tag if exists
+        run: |
+          if git rev-parse v${{ env.package_version}} >/dev/null 2>&1; then
+            git push --delete origin v${{ env.package_version}}
+            git tag -d v${{ env.package_version}}
+          fi
+
+      - name: Create tag
+        run: |
+          git tag -a v${{ env.package_version}} -m "Version ${{ env.package_version}}"
+        # git push origin v${{ env.package_version}}
+
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT }} # Need this to trigger the build-release action
+          branch: v${{ env.package_version}}

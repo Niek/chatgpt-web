@@ -1,0 +1,46 @@
+name: Update Changelog
+
+on:
+  # Allow manual trigger
+  workflow_dispatch:
+  # Allow trigger from other workflows
+  workflow_call:
+
+jobs:
+  bump-patch-version:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0 # Will fail to push without this.
+
+      - name: Configure Identity
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Deps
+        run: npm ci
+      
+      - name: Update Changelog
+        run: npm run changelog
+
+      - name: Commit Files
+        run: |
+          git commit -a -m "Update Changelog"
+
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.head_ref }}
