@@ -45,13 +45,12 @@
     '*': Home
   }
 
-  const onLocationChange = (...args:any) => {
+  const onLocationChange = (...args: any) => {
     // close all modals on route change
     dispatchModalEsc()
   }
 
   $: onLocationChange($location)
-
 </script>
 
 <Navbar />

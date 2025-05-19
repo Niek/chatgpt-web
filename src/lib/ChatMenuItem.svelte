@@ -8,15 +8,15 @@
   import { onMount } from 'svelte'
   import { hasActiveModels } from './Models.svelte'
 
-  export let chat:Chat
-  export let activeChatId:number|undefined
-  export let prevChat:Chat|undefined
-  export let nextChat:Chat|undefined
+  export let chat: Chat
+  export let activeChatId: number | undefined
+  export let prevChat: Chat | undefined
+  export let nextChat: Chat | undefined
 
-  let editing:boolean = false
-  let original:string
+  let editing: boolean = false
+  let original: string
 
-  let waitingForConfirm:any = 0
+  let waitingForConfirm: any = 0
 
   onMount(async () => {
     if (!chat.name) {
@@ -24,7 +24,7 @@
     }
   })
 
-  const keydown = (event:KeyboardEvent) => {
+  const keydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.stopPropagation()
       event.preventDefault()
@@ -77,25 +77,25 @@
       el && el.focus()
     }, 0)
   }
-
 </script>
 
 <li>
   {#if editing}
     <div id="chat-menu-item-{chat.id}" class="chat-name-editor" on:keydown={keydown} contenteditable bind:innerText={chat.name} on:blur={update} />
   {:else}
-  <a 
-    href={`#/chat/${chat.id}`}
-    class="chat-menu-item"
-    class:is-waiting={waitingForConfirm} class:is-disabled={!hasActiveModels()} class:is-active={activeChatId === chat.id}
-    on:click={() => { $pinMainMenu = false }} >
-    {#if waitingForConfirm}
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>
-    {:else}
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold edit-button" href={'$'} on:click|preventDefault={() => edit()}><Fa icon={faPencil} /></a>
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faTrash} /></a>
-    {/if}
-    <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
-  </a>
+    <a 
+      href={`#/chat/${chat.id}`}
+      class="chat-menu-item"
+      class:is-waiting={waitingForConfirm} class:is-disabled={!hasActiveModels()} class:is-active={activeChatId === chat.id}
+      on:click={() => { $pinMainMenu = false }} 
+    >
+      {#if waitingForConfirm}
+        <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>
+      {:else}
+        <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold edit-button" href={'$'} on:click|preventDefault={() => edit()}><Fa icon={faPencil} /></a>
+        <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faTrash} /></a>
+      {/if}
+      <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
+    </a>
   {/if}
 </li>

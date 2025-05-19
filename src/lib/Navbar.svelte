@@ -6,25 +6,24 @@
   import Fa from 'svelte-fa/src/fa.svelte'
   import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons/index'
 
-$: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
+  $: activeChatId = $params && $params.chatId ? parseInt($params.chatId) : undefined
 </script>
 
 <nav class="navbar is-fixed-top" aria-label="main navigation">
   <div class="navbar-brand">
     <div class="navbar-item">
-      
       {#if $pinMainMenu}
-      <button class="button" on:click|stopPropagation={() => { $pinMainMenu = false }}>
-        <span class="icon">
-          <Fa icon={faXmark} />
-        </span>
-      </button>
+        <button class="button" on:click|stopPropagation={() => { $pinMainMenu = false }}>
+          <span class="icon">
+            <Fa icon={faXmark} />
+          </span>
+        </button>
       {:else}
-      <button class="button" on:click|stopPropagation={() => { $pinMainMenu = true }}>
-        <span class="icon">
-          <Fa icon={faBars} />
-        </span>
-      </button>
+        <button class="button" on:click|stopPropagation={() => { $pinMainMenu = true }}>
+          <span class="icon">
+            <Fa icon={faBars} />
+          </span>
+        </button>
       {/if}
     </div>
     <a class="navbar-item" href={'#/'}>

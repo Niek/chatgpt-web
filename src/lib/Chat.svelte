@@ -56,7 +56,7 @@
   let showSettingsModal
 
   let scDelay
-  const onStateChange = async (...args:any) => {
+  const onStateChange = async (...args: any) => {
     if (!chat) return
     clearTimeout(scDelay)
     setTimeout(async () => {
@@ -89,7 +89,7 @@
   
   $: onStateChange($checkStateChange, $showSetChatSettings, $submitExitingPromptsNow, $continueMessage)
 
-  const afterChatLoad = (...args:any) => {
+  const afterChatLoad = (...args: any) => {
     scrollToBottom()
   }
 
@@ -191,7 +191,7 @@
     focusInput()
   }
 
-  const ttsStart = (text:string, recorded:boolean) => {
+  const ttsStart = (text: string, recorded: boolean) => {
     // Use TTS to read the response, if query was recorded
     if (recorded && 'SpeechSynthesisUtterance' in window) {
       const utterance = new SpeechSynthesisUtterance(text)
@@ -205,7 +205,7 @@
     }
   }
 
-  let waitingForCancel:any = 0
+  let waitingForCancel: any = 0
 
   const cancelRequest = () => {
     if (!waitingForCancel) {
@@ -217,7 +217,7 @@
     chatRequest.controller.abort()
   }
 
-  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message|undefined = undefined): Promise<void> => {
+  const submitForm = async (recorded: boolean = false, skipInput: boolean = false, fillMessage: Message | undefined = undefined): Promise<void> => {
     // Compose the system prompt message if there are no messages yet - disabled for now
     if (chatRequest.updating) return
 
@@ -354,102 +354,102 @@
       recognition?.start()
     }
   }
-
 </script>
+
 {#if chat}
-<ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
-<div class="chat-page" style="--running-totals: {Object.entries(chat.usage || {}).length}">
-<div class="chat-content">
-<nav class="level chat-header">
-  <div class="level-left">
-    <div class="level-item">
-      <p class="subtitle is-5">
-        <span>{chat.name || `Chat ${chat.id}`}</span>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
-        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
-        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
-      </p>
-    </div>
-  </div>
+  <ChatSettingsModal chatId={chatId} bind:show={showSettingsModal} />
+  <div class="chat-page" style="--running-totals: {Object.entries(chat.usage || {}).length}">
+  <div class="chat-content">
+    <nav class="level chat-header">
+      <div class="level-left">
+        <div class="level-item">
+          <p class="subtitle is-5">
+            <span>{chat.name || `Chat ${chat.id}`}</span>
+            <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
+            <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
+            <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
+            <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
+          </p>
+        </div>
+      </div>
 
-  <div class="level-right">
-    <div class="level-item">
-      <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
-    </div>
-  </div>
-</nav>
+      <div class="level-right">
+        <div class="level-item">
+          <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
+        </div>
+      </div>
+    </nav>
 
-<Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
+    <Messages messages={$currentChatMessages} chatId={chatId} chat={chat} />
 
-{#if chatRequest.updating === true || $currentChatId === 0}
-  <article class="message is-success assistant-message">
-    <div class="message-body content">
-      <span class="is-loading" ></span>
-      <span>{chatRequest.updatingMessage}</span>
-    </div>
-  </article>
-{/if}
-
-{#if $currentChatId !== 0 && ($currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system'))}
-  <Prompts bind:input />
-{/if}
-</div>
-<Footer class="prompt-input-container" strongMask={true}>
-  <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
-    <p class="control is-expanded">
-      <textarea
-        class="input is-info is-focused chat-input auto-size"
-        placeholder="[{chat.settings.model}] Type your message here..."
-        rows="1"
-        on:keydown={e => {
-          // Only send if Enter is pressed, not Shift+Enter
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.stopPropagation()
-            submitForm()
-            e.preventDefault()
-          }
-        }}
-        on:input={e => autoGrowInputOnEvent(e)}
-        bind:this={input}
-      />
-    </p>
-    <p class="control mic" class:is-hidden={!recognition}>
-      <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
-        ><span class="icon"><Fa icon={faMicrophone} /></span></button
-      >
-    </p>
-    <p class="control settings">
-      <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
-    </p>
-    <p class="control queue">
-      <button title="Queue message, don't send yet" class:is-disabled={chatRequest.updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
-    </p>
-    {#if chatRequest.updating}
-    <p class="control send">
-      <button title="Cancel Response" class="button is-danger" type="button" on:click={cancelRequest}><span class="icon">
-        {#if waitingForCancel}
-        <Fa icon={faCircleCheck} />
-        {:else}
-        <Fa icon={faCommentSlash} />
-        {/if}
-      </span></button>
-    </p>
-    {:else}
-    <p class="control send">
-      <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
-    </p>
+    {#if chatRequest.updating === true || $currentChatId === 0}
+      <article class="message is-success assistant-message">
+        <div class="message-body content">
+          <span class="is-loading" ></span>
+          <span>{chatRequest.updatingMessage}</span>
+        </div>
+      </article>
     {/if}
-  </form>
-  <!-- a target to scroll to -->
-  <div class="content has-text-centered running-total-container">
-    {#each Object.entries(chat.usage || {}) as [model, usage]}
-    <p class="is-size-7 running-totals">
-      <em>{getModelDetail(model || '').label || model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
-      tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
-    </p>
-    {/each}
+
+    {#if $currentChatId !== 0 && ($currentChatMessages.length === 0 || ($currentChatMessages.length === 1 && $currentChatMessages[0].role === 'system'))}
+      <Prompts bind:input />
+    {/if}
   </div>
-</Footer>
-</div>
+  <Footer class="prompt-input-container" strongMask={true}>
+    <form class="field has-addons has-addons-right is-align-items-flex-end" on:submit|preventDefault={() => submitForm()}>
+      <p class="control is-expanded">
+        <textarea
+          class="input is-info is-focused chat-input auto-size"
+          placeholder="[{chat.settings.model}] Type your message here..."
+          rows="1"
+          on:keydown={e => {
+            // Only send if Enter is pressed, not Shift+Enter
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.stopPropagation()
+              submitForm()
+              e.preventDefault()
+            }
+          }}
+          on:input={e => autoGrowInputOnEvent(e)}
+          bind:this={input}
+        />
+      </p>
+      <p class="control mic" class:is-hidden={!recognition}>
+        <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}>
+          <span class="icon"><Fa icon={faMicrophone} /></span>
+        </button>
+      </p>
+      <p class="control settings">
+        <button title="Chat/Profile Settings" class="button" on:click|preventDefault={showSettingsModal}><span class="icon"><Fa icon={faGear} /></span></button>
+      </p>
+      <p class="control queue">
+        <button title="Queue message, don't send yet" class:is-disabled={chatRequest.updating} class="button is-ghost" on:click|preventDefault={addNewMessage}><span class="icon"><Fa icon={faArrowUpFromBracket} /></span></button>
+      </p>
+      {#if chatRequest.updating}
+        <p class="control send">
+          <button title="Cancel Response" class="button is-danger" type="button" on:click={cancelRequest}><span class="icon">
+            {#if waitingForCancel}
+              <Fa icon={faCircleCheck} />
+            {:else}
+              <Fa icon={faCommentSlash} />
+            {/if}
+          </span></button>
+        </p>
+      {:else}
+      <p class="control send">
+        <button title="Send" class="button is-info" type="submit"><span class="icon"><Fa icon={faPaperPlane} /></span></button>
+      </p>
+      {/if}
+    </form>
+    <!-- a target to scroll to -->
+    <div class="content has-text-centered running-total-container">
+      {#each Object.entries(chat.usage || {}) as [model, usage]}
+        <p class="is-size-7 running-totals">
+          <em>{getModelDetail(model || '').label || model}</em> total <span class="has-text-weight-bold">{usage.total_tokens}</span>
+          tokens ~= <span class="has-text-weight-bold">${getPrice(usage, model).toFixed(6)}</span>
+        </p>
+      {/each}
+    </div>
+  </Footer>
+  </div>
 {/if}
