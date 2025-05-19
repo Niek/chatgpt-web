@@ -1,3 +1,8 @@
+﻿@charset "utf-8";
+
+@use "node_modules/bulma/sass" as bulma;
+@use "node_modules/bulma/sass/utilities/mixins" as bulmaMixins;
+
 html {
   /* Scrollbar */
   /* TODO: Update these to use bulma's scss variables, not css vars. */
@@ -170,8 +175,6 @@ select option.is-default {
 // $fullhd: 2000px;
 // $modal-content-width: 1000px;
 
-@import "/node_modules/bulma/bulma.sass";
-
 /* Pulsing effect - background goes to red color and back */
 .is-pulse {
   animation: pulse 1s infinite;
@@ -184,7 +187,7 @@ select option.is-default {
   }
 
   50% {
-    background-color: $danger;
+    background-color: bulma.$danger;
     /* Red */
   }
 
@@ -195,8 +198,6 @@ select option.is-default {
 }
 
 /* Support for dark mode */
-$modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove this once a new version of bulma-prefers-dark is released
-@import "/node_modules/bulma-prefers-dark/build/bulma-prefers-dark.sass";
 
 /* For the message notes on light mode */
 .message-note, .running-totals {
@@ -207,10 +208,6 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   /* For the message notes on dark mode */
   .message-note, .running-totals {
     opacity: 0.5;
-  }
-  .modal-card-body {
-    // remove this once https: //github.com/jloh/bulma-prefers-dark/pull/90 is merged and released
-   background-color: $background-dark;
   }
 }
 
@@ -238,6 +235,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
   .delete-button, .edit-button {
     opacity: .8;
+    width: auto;
   }
   
   .delete-button:hover, .edit-button {
@@ -248,7 +246,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 /* Loading chat messages */
 .is-loading {
   opacity: 0.5;
-  @include loader;
+  @include bulmaMixins.loader;
   width: 1.5rem;
   height: 1.5rem;
   border-width: 0.25em;
@@ -728,7 +726,7 @@ aside.menu.main-menu .menu-expanse {
 }
 
 .message-footer {
-  padding: $message-header-padding;
+  padding: bulma.$message-header-padding;
 }
 
 .modal .message-body {
