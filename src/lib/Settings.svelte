@@ -103,6 +103,7 @@ const defaults:ChatSettings = {
   pinTop: 0,
   pinBottom: 6,
   summaryPrompt: '',
+  titleGeneratorProfile: 'titleGenerator',
   useSystemPrompt: false,
   systemPrompt: '',
   hideSystemPrompt: false,
@@ -282,6 +283,18 @@ const systemPromptSettings: ChatSetting[] = [
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       }
 ]
+    
+const titleGeneratorSettings: ChatSetting[] = [
+      {
+        key: 'titleGeneratorProfile',
+        name: 'Title Generator Profile',
+        title: 'Select the profile to use for generating titles.',
+        header: 'Title',
+        headerClass: 'is-info',
+        type: 'select',
+        options: []
+      }
+]
 
 const summarySettings: ChatSetting[] = [
       {
@@ -370,6 +383,7 @@ const summarySettings: ChatSetting[] = [
         type: 'textarea',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       },
+      ...titleGeneratorSettings,
       {
         key: 'imageGenerationModel',
         name: 'Image Generation Model',
