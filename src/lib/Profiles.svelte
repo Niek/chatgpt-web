@@ -314,6 +314,26 @@ Initial scene:
       repetitionPenalty: 1.16,
       hideSystemPrompt: true,
       holdSocket: true
+    },
+  
+    titleGenerator: {
+      ...chatDefaults,
+      model: 'gpt-4.1-nano',
+      characterName: 'Title Generator',
+      profileName: 'Title Generator',
+      profileDescription: 'The ML profile intended to be used for generating titles.',
+      useSystemPrompt: true,
+      systemPrompt: `You are summary title generator. 
+Your job is to take the messages and choose an appropriate book title that is 6 words or less. 
+Abbreviations may be used where appropriate. 
+Title case should be used. 
+Do not indicate that this is a summary. 
+Do not use quotes.`,
+      continuousChat: 'fifo', // '' is off
+      autoStartSession: false,
+      summaryPrompt: '',
+      max_completion_tokens: 24,
+      holdSocket: false
     }
 }
 
