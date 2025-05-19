@@ -102,6 +102,13 @@
     completion: 0.0000004, // $0.40 per 1M output tokens
     max: 1047576
   }
+  const gpt45preview = {
+    ...chatModelBase,
+    prompt: 0.000075, // $75.00 per 1M input tokens
+    cachedPrompt: 0.0000375, // $37.50 per 1M cached input tokens
+    completion: 0.00015, // $150.00 per 1M output tokens
+    max: 128000 // 128K max token buffer
+  }
   const gpt4o = {
     ...chatModelBase,
     prompt: 0.0000025, // $2.50 per 1M input tokens
@@ -109,11 +116,41 @@
     completion: 0.00001, // $10.00 per 1M output tokens
     max: 128000
   }
+  const gpt4omini = {
+    ...chatModelBase,
+    prompt: 0.00000015, // $0.00015 per 1000 tokens prompt
+    cachedPrompt: 0.000000075, // $0.075 per 1M cached input tokens
+    completion: 0.00000060, // $0.00060 per 1000 tokens completion
+    max: 131072 // 128k max token buffer
+  }
+  const o1 = {
+    ...chatModelBase,
+    prompt: 0.000015, // $15.00 per 1M tokens prompt
+    cachedPrompt: 0.0000075, // $7.50 per 1M cached input tokens
+    completion: 0.00006, // $60.00 per 1M tokens completion
+    max: 131072, // 128k max token buffer
+    temperature: 1
+  }
+  const o1pro = {
+    ...chatModelBase,
+    prompt: 0.00015, // $150.00 per 1M tokens prompt
+    completion: 0.0006, // $600.00 per 1M tokens completion
+    max: 131072, // 128k max token buffer
+    temperature: 1
+  }
   const o3 = {
     ...chatModelBase,
     prompt: 0.00001, // $10.00 per 1M input tokens
     cachedPrompt: 0.0000025, // $2.50 per 1M cached input tokenshttps://colab.research.google.com/drive/1BJsD1TYQwBMOaUg9h84Qy2UoxnowKoBR#scrollTo=6-cl0Yjnp0-_
     completion: 0.00004, // $40.00 per 1M output tokens
+    max: 200000,
+    temperature: 1
+  }
+  const o3mini = {
+    ...chatModelBase,
+    prompt: 0.0000011, // $1.10 per 1M input tokens
+    cachedPrompt: 0.00000055, // $0.55 per 1M cached input tokens
+    completion: 0.0000044, // $4.40 per 1M output tokens
     max: 200000,
     temperature: 1
   }
@@ -147,8 +184,13 @@
     'gpt-4.1': { ...gpt41 },
     'gpt-4.1-mini': { ...gpt41mini },
     'gpt-4.1-nano': { ...gpt41nano },
+    'gpt-4.5-preview': { ...gpt45preview },
     'gpt-4o': { ...gpt4o },
+    'gpt-4o-mini': { ...gpt4omini },
+    o1: { ...o1 },
+    'o1-pro': { ...o1pro },
     o3: { ...o3 },
+    'o3-mini': { ...o3mini },
     'o4-mini': { ...o4mini },
     'chatgpt-4o-latest': { ...chatgpt4olatest }
   }
