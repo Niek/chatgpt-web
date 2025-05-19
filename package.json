@@ -25,7 +25,6 @@
     "@tsconfig/svelte": "^5.0.0",
     "@types/dompurify": "^3.2.0",
     "@types/marked": "^6.0.0",
-    "@types/node": "^22.15.18",
     "bulma": "^1.0.4",
     "copy-to-clipboard": "^3.3.3",
     "dexie": "^4.0.11",
