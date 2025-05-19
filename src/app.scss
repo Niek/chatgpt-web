@@ -235,6 +235,7 @@ select option.is-default {
   }
   .delete-button, .edit-button {
     opacity: .8;
+    width: auto;
   }
   
   .delete-button:hover, .edit-button {
