@@ -37,11 +37,11 @@
   import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
   import { faClipboard } from '@fortawesome/free-regular-svg-icons'
 
-  export let chatId:number
+  export let chatId: number
   export const show = () => { showSettings() }
   
   let showSettingsModal = 0
-  let showProfileMenu:boolean = false
+  let showProfileMenu: boolean = false
   let profileFileInput
   let defaultProfile
   let isDefault = false
@@ -56,9 +56,9 @@
   $: chatSettings = chat.settings
   $: globalStore = $globalStorage
 
-  let originalProfile:string
-  let lastProfile:string
-  let originalSettings:ChatSettings
+  let originalProfile: string
+  let lastProfile: string
+  let originalSettings: ChatSettings
 
   onMount(async () => {
     originalProfile = chatSettings && chatSettings.profile
@@ -240,7 +240,7 @@
     replace(`/chat/${newChatId}`)
   }
 
-  const deepEqual = (x:any, y:any) => {
+  const deepEqual = (x: any, y: any) => {
     const ok = Object.keys; const tx = typeof x; const ty = typeof y
     return x && y && tx === 'object' && tx === ty
       ? (
@@ -249,7 +249,7 @@
       : (x === y || ((x === undefined || x === null || x === false) && (y === undefined || y === null || y === false)))
   }
 
-  const setDirty = async (e:CustomEvent|undefined = undefined) => {
+  const setDirty = async (e: CustomEvent | undefined = undefined) => {
     if (e) {
       const setting = e.detail as ChatSetting
       const key = setting.key
@@ -278,7 +278,16 @@
     <section class="modal-card-body">
       {#each settingsList as setting}
       <!-- {#key showSettingsModal} -->
-        <ChatSettingField rkey={showSettingsModal} on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
+        <ChatSettingField 
+          rkey={showSettingsModal} 
+          on:refresh={refreshSettings} 
+          on:change={setDirty} 
+          chat={chat} 
+          chatDefaults={chatDefaults} 
+          chatSettings={chatSettings} 
+          setting={setting} 
+          originalProfile={originalProfile}
+        />
       <!-- {/key} -->
       {/each}
     </section>

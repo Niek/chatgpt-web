@@ -13,9 +13,9 @@
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
 
-  export let message:Message
-  export let chatId:number
-  export let chat:Chat
+  export let message: Message
+  export let chatId: number
+  export let chat: Chat
 
   $: chatSettings = chat.settings
 
@@ -32,7 +32,7 @@
     mangle: false // Do not mangle email addresses
   }
 
-  const getDisplayMessage = ():string => {
+  const getDisplayMessage = (): string => {
     const content = message.content
     if (isSystem && chatSettings.hideSystemPrompt) {
       const result = content.match(/::NOTE::[\s\S]+?::NOTE::/g)
@@ -43,9 +43,9 @@
 
   const dispatch = createEventDispatcher()
   let editing = false
-  let original:string
-  let defaultModel:Model
-  let imageUrl:string
+  let original: string
+  let defaultModel: Model
+  let imageUrl: string
   let refreshCounter = 0
   let displayMessage = message.content
 
@@ -98,7 +98,7 @@
     editing = false
   }
 
-  const keydown = (event:KeyboardEvent) => {
+  const keydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       if (!editing) return
       event.stopPropagation()
@@ -127,7 +127,7 @@
     lastTap = new Date().getTime()
   }
 
-  let waitingForDeleteConfirm:any = 0
+  let waitingForDeleteConfirm: any = 0
 
   const checkDelete = () => {
     clearTimeout(waitingForTruncateConfirm); waitingForTruncateConfirm = 0
@@ -169,7 +169,7 @@
     }
   }
 
-  let waitingForTruncateConfirm:any = 0
+  let waitingForTruncateConfirm: any = 0
 
   const checkTruncate = () => {
     clearTimeout(waitingForDeleteConfirm); waitingForDeleteConfirm = 0
@@ -193,7 +193,7 @@
     }
   }
 
-  const setSuppress = (value:boolean) => {
+  const setSuppress = (value: boolean) => {
     if (message.summarized) {
       // is in a summary, so we're summarized
       errorNotice('Sorry, you can\'t suppress a summarized message')
@@ -213,7 +213,6 @@
     a.click()
     document.body.removeChild(a)
   }
-
 </script>
 
 <article
@@ -246,22 +245,22 @@
         class="message-display" 
          
         on:touchend={editOnDoubleTap}
-          on:dblclick|preventDefault={() => edit()}
-        >
+        on:dblclick|preventDefault={() => edit()}
+      >
         {#if message.summary && !message.summary.length}
-        <p><b>Summarizing...</b></p>
+          <p><b>Summarizing...</b></p>
         {/if}
         {#key refreshCounter}
-        <SvelteMarkdown 
-          source={displayMessage} 
-          options={markdownOptions} 
-          renderers={{ code: Code, html: Code }}
-        />
+          <SvelteMarkdown 
+            source={displayMessage} 
+            options={markdownOptions} 
+            renderers={{ code: Code, html: Code }}
+          />
         {/key}
         {#if imageUrl}
           <img src={imageUrl} alt="">
         {/if}
-    </div>
+      </div>
     {/if}
     {#if isSystem}
       <p class="is-size-7 message-note">System Prompt</p>
@@ -276,56 +275,56 @@
   <div class="tool-drawer">
     <div class="button-pack">
       {#if message.finish_reason === 'length' || message.finish_reason === 'abort'}
-      <a
-        href={'#'}
-        title="Continue "
-        class="msg-incomplete button is-small"
-        on:click|preventDefault={() => {
-          continueIncomplete()
-        }}
-      >
-      <span class="icon"><Fa icon={faEllipsis} /></span>
-      </a>
+        <a
+          href={'#'}
+          title="Continue "
+          class="msg-incomplete button is-small"
+          on:click|preventDefault={() => {
+            continueIncomplete()
+          }}
+        >
+          <span class="icon"><Fa icon={faEllipsis} /></span>
+        </a>
       {/if}
       {#if message.summarized}
-      <a
-        href={'#'}
-        title="Jump to summary"
-        class="msg-summary button is-small"
-        on:click|preventDefault={() => {
-          scrollToMessage(message.summarized)
-        }}
-      >
-      <span class="icon"><Fa icon={faDiagramNext} /></span>
-      </a>
+        <a
+          href={'#'}
+          title="Jump to summary"
+          class="msg-summary button is-small"
+          on:click|preventDefault={() => {
+            scrollToMessage(message.summarized)
+          }}
+        >
+          <span class="icon"><Fa icon={faDiagramNext} /></span>
+        </a>
       {/if}
       {#if message.summary}
-      <a
-        href={'#'}
-        title="Jump to summarized"
-        class="msg-summarized button is-small"
-        on:click|preventDefault={() => {
-          scrollToMessage(message.summary)
-        }}
-      >
-      <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
-      </a>
+        <a
+          href={'#'}
+          title="Jump to summarized"
+          class="msg-summarized button is-small"
+          on:click|preventDefault={() => {
+            scrollToMessage(message.summary)
+          }}
+        >
+          <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
+        </a>
       {/if}
       {#if !message.summarized}
-      <a
-        href={'#'}
-        title="Delete this message"
-        class="msg-delete button is-small"
-        on:click|preventDefault={() => {
-          checkDelete()
-        }}
-      >
-      {#if waitingForDeleteConfirm}
-      <span class="icon"><Fa icon={faCircleCheck} /></span>
-      {:else}
-      <span class="icon"><Fa icon={faTrash} /></span>
-      {/if}
-      </a>
+        <a
+          href={'#'}
+          title="Delete this message"
+          class="msg-delete button is-small"
+          on:click|preventDefault={() => {
+            checkDelete()
+          }}
+        >
+          {#if waitingForDeleteConfirm}
+            <span class="icon"><Fa icon={faCircleCheck} /></span>
+          {:else}
+            <span class="icon"><Fa icon={faTrash} /></span>
+          {/if}
+        </a>
       {/if}
       {#if !isImage && !message.summarized && !isError}
         <a
@@ -336,11 +335,11 @@
             checkTruncate()
           }}
         >
-        {#if waitingForTruncateConfirm}
-        <span class="icon"><Fa icon={faCircleCheck} /></span>
-        {:else}
-        <span class="icon"><Fa icon={faPaperPlane} /></span>
-        {/if}
+          {#if waitingForTruncateConfirm}
+            <span class="icon"><Fa icon={faCircleCheck} /></span>
+          {:else}
+            <span class="icon"><Fa icon={faPaperPlane} /></span>
+          {/if}
         </a>
       {/if}
       {#if !isImage && !message.summarized && !isSystem && !isError}
@@ -352,11 +351,11 @@
             setSuppress(!message.suppress)
           }}
         >
-        {#if message.suppress}
-        <span class="icon"><Fa icon={faEye} /></span>
-        {:else}
-        <span class="icon"><Fa icon={faEyeSlash} /></span>
-        {/if}
+          {#if message.suppress}
+            <span class="icon"><Fa icon={faEye} /></span>
+          {:else}
+            <span class="icon"><Fa icon={faEyeSlash} /></span>
+          {/if}
         </a>
       {/if}
       {#if !isImage}
@@ -368,7 +367,7 @@
             navigator.clipboard.writeText(message.content)
           }}
         >
-        <span class="icon"><Fa icon={faClipboard} /></span>
+          <span class="icon"><Fa icon={faClipboard} /></span>
         </a>
       {/if}
       {#if imageUrl}
@@ -380,10 +379,9 @@
             downloadImage()
           }}
         >
-        <span class="icon"><Fa icon={faDownload} /></span>
+          <span class="icon"><Fa icon={faDownload} /></span>
         </a>
       {/if}
-      </div>
-
+    </div>
   </div>
 </article>

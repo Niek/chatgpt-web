@@ -49,7 +49,7 @@
     return chatId
   }
 
-  export const addChat = async (profile:ChatSettings|undefined = undefined): Promise<number> => {
+  export const addChat = async (profile: ChatSettings | undefined = undefined): Promise<number> => {
     const chats = get(chatsStorage)
 
     // Find the max chatId
@@ -111,7 +111,7 @@
   }
 
   // Make sure a chat's settings are set with current values or defaults
-  export const updateChatSettings = (chatId:number) => {
+  export const updateChatSettings = (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     if (!chat.settings) {
@@ -129,7 +129,7 @@
       typeof chat.usage === 'object' &&
       Object.values(chat.usage).find(v => 'prompt_tokens' in v)
     if (!hasUsage) {
-      const usageMap:Record<Model, Usage> = {}
+      const usageMap: Record<Model, Usage> = {}
       chat.usage = usageMap
     }
     if (chat.startSession === undefined) chat.startSession = false
@@ -138,7 +138,7 @@
   }
 
   // Make sure profile options are set with current values or defaults
-  export const updateProfile = (profile:ChatSettings, exclude:boolean):ChatSettings => {
+  export const updateProfile = (profile: ChatSettings, exclude: boolean): ChatSettings => {
     Object.entries(getChatDefaults()).forEach(([k, v]) => {
       const val = profile[k]
       profile[k] = (val === undefined || val === null ? v : profile[k])
@@ -164,7 +164,7 @@
   }
   
   // Reset all setting to current profile defaults
-  export const resetChatSettings = async (chatId, resetAll:boolean = false) => {
+  export const resetChatSettings = async (chatId, resetAll: boolean = false) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const profile = await getProfile(chat.settings.profile)
@@ -191,20 +191,20 @@
     chatsStorage.set(chats)
   }
 
-  export const getChat = (chatId: number):Chat => {
+  export const getChat = (chatId: number): Chat => {
     const chats = get(chatsStorage)
     return chats.find((chat) => chat.id === chatId) as Chat
   }
 
-  export const getChatSettings = (chatId: number):ChatSettings => {
+  export const getChatSettings = (chatId: number): ChatSettings => {
     const chats = get(chatsStorage)
     return (chats.find((chat) => chat.id === chatId) as Chat).settings
   }
 
-  export const updateRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+  export const updateRunningTotal = (chatId: number, usage: Usage, model: Model) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let total:Usage = chat.usage[model]
+    let total: Usage = chat.usage[model]
     if (!total) {
       total = {
         prompt_tokens: 0,
@@ -219,10 +219,10 @@
     chatsStorage.set(chats)
   }
 
-  export const subtractRunningTotal = (chatId: number, usage: Usage, model:Model) => {
+  export const subtractRunningTotal = (chatId: number, usage: Usage, model: Model) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    let total:Usage = chat.usage[model]
+    let total: Usage = chat.usage[model]
     if (!total) {
       total = {
         prompt_tokens: 0,
@@ -306,7 +306,7 @@
     setMessages(chatId, messages)
   }
 
-  export const getMessage = (chatId: number, uuid:string):Message|undefined => {
+  export const getMessage = (chatId: number, uuid: string): Message | undefined => {
     return getMessages(chatId).find((m) => m.uuid === uuid)
   }
 
@@ -419,7 +419,7 @@
     chatsStorage.set(chats)
   }
 
-  export const cleanSettingValue = (type:string, value: any) => {
+  export const cleanSettingValue = (type: string, value: any) => {
     switch (type) {
       case 'number':
       case 'select-number':
@@ -461,7 +461,7 @@
     chatsStorage.set(chats)
   }
 
-  export const getChatSettingValueNullDefault = (chatId: number, setting: ChatSetting):any => {
+  export const getChatSettingValueNullDefault = (chatId: number, setting: ChatSetting): any => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     let value = chat.settings && chat.settings[setting.key]
@@ -481,21 +481,21 @@
   }
 
   
-  export const getGlobalSettingValue = (key:keyof GlobalSetting, value):any => {
+  export const getGlobalSettingValue = (key: keyof GlobalSetting, value): any => {
     const store = get(globalStorage)
     return store[key]
   }
 
-  export const getGlobalSettings = ():GlobalSettings => {
+  export const getGlobalSettings = (): GlobalSettings => {
     return get(globalStorage)
   }
 
-  export const getCustomProfiles = ():Record<string, ChatSettings> => {
+  export const getCustomProfiles = (): Record<string, ChatSettings> => {
     const store = get(globalStorage)
     return store.profiles || {}
   }
 
-  export const deleteCustomProfile = async (chatId:number, profileId:string) => {
+  export const deleteCustomProfile = async (chatId: number, profileId: string) => {
     if (isStaticProfile(profileId)) {
       throw new Error('Sorry, you can\'t delete a static profile.')
     }
@@ -510,7 +510,7 @@
     await getProfiles(true) // force update profile cache
   }
 
-  export const saveCustomProfile = async (profile:ChatSettings) => {
+  export const saveCustomProfile = async (profile: ChatSettings) => {
     const store = get(globalStorage)
     let profiles = store.profiles
     if (!profiles) {
@@ -564,10 +564,10 @@
     checkStateChange.set(get(checkStateChange) + 1)
   }
 
-  export const newName = (name:string, nameMap:Record<string, any>):string => {
+  export const newName = (name: string, nameMap: Record<string, any>): string => {
     if (!nameMap[name]) return name
     const nm = name.match(/^(.*[^0-9]+)([- ])*([0-9]+)$/)
-    let i:number = 1
+    let i: number = 1
     let s = ' '
     if (nm) {
       name = nm[1]
@@ -582,16 +582,14 @@
     return cname
   }
 
-  export const getLatestKnownModel = (model:Model) => {
+  export const getLatestKnownModel = (model: Model) => {
     const modelMapStore = get(latestModelMap)
     return modelMapStore[model] || model
   }
-
   
-  export const setLatestKnownModel = (requestedModel:Model, responseModel:Model) => {
+  export const setLatestKnownModel = (requestedModel: Model, responseModel: Model) => {
     const modelMapStore = get(latestModelMap)
     modelMapStore[requestedModel] = responseModel
     latestModelMap.set(modelMapStore)
   }
-  
 </script>

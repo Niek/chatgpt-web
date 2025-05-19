@@ -6,16 +6,16 @@
   import type { Message, SelectOption, ChatSettings } from './Types.svelte'
   import { v4 as uuidv4 } from 'uuid'
 
-const defaultProfile = 'default'
+  const defaultProfile = 'default'
 
-const chatDefaults = getChatDefaults()
-export let profileCache = writable({} as Record<string, ChatSettings>) //
+  const chatDefaults = getChatDefaults()
+  export let profileCache = writable({} as Record<string, ChatSettings>) //
 
-export const isStaticProfile = (key:string):boolean => {
+  export const isStaticProfile = (key: string): boolean => {
     return !!profiles[key]
-}
+  }
 
-export const getProfiles = async (forceUpdate:boolean = false):Promise<Record<string, ChatSettings>> => {
+  export const getProfiles = async (forceUpdate: boolean = false): Promise<Record<string, ChatSettings>> => {
     const defaultModel = await getDefaultModel()
 
     const pc = get(profileCache)
@@ -41,25 +41,25 @@ export const getProfiles = async (forceUpdate:boolean = false):Promise<Record<st
     })
     profileCache.set(pc)
     return result
-}
+  }
 
-// Return profiles list.
-export const getProfileSelect = async ():Promise<SelectOption[]> => {
+  // Return profiles list.
+  export const getProfileSelect = async (): Promise<SelectOption[]> => {
     const allProfiles = await getProfiles()
     return Object.entries(allProfiles).reduce((a, [k, v]) => {
       a.push({ value: k, text: v.profileName } as SelectOption)
       return a
     }, [] as SelectOption[])
-}
+  }
 
-export const getDefaultProfileKey = async ():Promise<string> => {
+  export const getDefaultProfileKey = async (): Promise<string> => {
     const allProfiles = await getProfiles()
     return (allProfiles[getGlobalSettings().defaultProfile || ''] ||
           profiles[defaultProfile] ||
           profiles[Object.keys(profiles)[0]]).profile
-}
+  }
 
-export const getProfile = async (key:string, forReset:boolean = false):Promise<ChatSettings> => {
+  export const getProfile = async (key: string, forReset: boolean = false): Promise<ChatSettings> => {
     const allProfiles = await getProfiles()
     let profile = allProfiles[key] ||
     allProfiles[getGlobalSettings().defaultProfile || ''] ||
@@ -73,34 +73,34 @@ export const getProfile = async (key:string, forReset:boolean = false):Promise<C
       delete clone[k]
     })
     return clone
-}
+  }
 
-export const mergeProfileFields = (settings: ChatSettings, content: string|undefined, maxWords: number|undefined = undefined): string => {
+  export const mergeProfileFields = (settings: ChatSettings, content: string | undefined, maxWords: number | undefined = undefined): string => {
     if (!content?.toString) return ''
     content = (content + '').replaceAll('[[CHARACTER_NAME]]', settings.characterName || 'Assistant')
     if (maxWords) content = (content + '').replaceAll('[[MAX_WORDS]]', maxWords.toString())
     return content
-}
+  }
 
-export const cleanContent = (settings: ChatSettings, content: string|undefined): string => {
+  export const cleanContent = (settings: ChatSettings, content: string | undefined): string => {
     return (content || '').replace(/::NOTE::[\s\S]*?::NOTE::\s*/g, '')
-}
+  }
 
-export const prepareProfilePrompt = (chatId:number) => {
+  export const prepareProfilePrompt = (chatId: number) => {
     const settings = getChatSettings(chatId)
     return mergeProfileFields(settings, settings.systemPrompt).trim()
-}
+  }
 
-export const prepareSummaryPrompt = (chatId:number, maxTokens:number) => {
+  export const prepareSummaryPrompt = (chatId: number, maxTokens: number) => {
     const settings = getChatSettings(chatId)
     const currentSummaryPrompt = settings.summaryPrompt
     // ~.75 words per token.  We'll use 0.70 for a little extra margin.
     return mergeProfileFields(settings, currentSummaryPrompt, Math.floor(maxTokens * 0.70)).trim()
-}
+  }
 
-export const setSystemPrompt = (chatId: number) => {
+  export const setSystemPrompt = (chatId: number) => {
     const messages = getMessages(chatId)
-    const systemPromptMessage:Message = {
+    const systemPromptMessage: Message = {
       role: 'system',
       content: prepareProfilePrompt(chatId),
       uuid: uuidv4()
@@ -108,10 +108,10 @@ export const setSystemPrompt = (chatId: number) => {
     if (messages[0]?.role === 'system') deleteMessage(chatId, messages[0].uuid)
     messages.unshift(systemPromptMessage)
     setMessages(chatId, messages.filter(m => true))
-}
+  }
 
-// Restart currently loaded profile
-export const restartProfile = async (chatId:number, noApply:boolean = false) => {
+  // Restart currently loaded profile
+  export const restartProfile = async (chatId: number, noApply: boolean = false) => {
     const settings = getChatSettings(chatId)
     if (!settings.profile && !noApply) return await applyProfile(chatId, '', true)
     // Clear current messages
@@ -130,21 +130,21 @@ export const restartProfile = async (chatId:number, noApply:boolean = false) => 
     saveChatStore()
     // Mark mark this as last used
     setGlobalSettingValueByKey('lastProfile', settings.profile)
-}
+  }
 
-export const newNameForProfile = async (name:string) => {
+  export const newNameForProfile = async (name: string) => {
     const profiles = await getProfileSelect()
     return newName(name, profiles.reduce((a, p) => { a[p.text] = p; return a }, {}))
-}
+  }
 
-// Apply currently selected profile
-export const applyProfile = async (chatId:number, key:string = '', resetChat:boolean = false) => {
+  // Apply currently selected profile
+  export const applyProfile = async (chatId: number, key: string = '', resetChat: boolean = false) => {
     await resetChatSettings(chatId, resetChat) // Fully reset
     if (!resetChat) return
     return await restartProfile(chatId, true)
-}
+  }
 
-const summaryPrompts = {
+  const summaryPrompts = {
 
     // General assistant use
     general: `# SUMMARY REQUEST
@@ -177,9 +177,9 @@ Give no explanations. Exclude prompts from system. Give no notes or warnings.
 Example response format: 
 ## [[CHARACTER_NAME]]'s memories:
 *We met at... where you and I talked about..., then..., and then you... and then we... Now we're...*`
-}
+  }
 
-const profiles:Record<string, ChatSettings> = {
+  const profiles: Record<string, ChatSettings> = {
 
     default: {
       ...chatDefaults,
@@ -315,9 +315,8 @@ Initial scene:
       hideSystemPrompt: true,
       holdSocket: true
     }
-}
+  }
 
-// Set keys for static profiles
-Object.entries(profiles).forEach(([k, v]) => { v.profile = k })
-
+  // Set keys for static profiles
+  Object.entries(profiles).forEach(([k, v]) => { v.profile = k })
 </script>

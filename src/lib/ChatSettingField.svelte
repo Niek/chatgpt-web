@@ -10,15 +10,15 @@
   import PromptConfirm from './PromptConfirm.svelte'
   import { afterUpdate, onMount } from 'svelte'
 
-  export let setting:ChatSetting
-  export let chatSettings:ChatSettings
-  export let chat:Chat
-  export let chatDefaults:Record<string, any>
-  export let originalProfile:String
-  export let rkey:number = 0
+  export let setting: ChatSetting
+  export let chatSettings: ChatSettings
+  export let chat: Chat
+  export let chatDefaults: Record<string, any>
+  export let originalProfile: String
+  export let rkey: number = 0
 
 
-  let fieldControls:ControlAction[]
+  let fieldControls: ControlAction[]
 
   const chatId = chat.id
   let show = false
@@ -59,7 +59,7 @@
     dispatch('refresh')
   }
 
-  const settingChecks:Record<string, SettingPrompt[]> = {
+  const settingChecks: Record<string, SettingPrompt[]> = {
     profile: [
       {
         title: 'Unsaved Profile Changes',
@@ -72,7 +72,7 @@
     ]
   }
 
-  const resetSettingCheck = (key:keyof ChatSettings) => {
+  const resetSettingCheck = (key: keyof ChatSettings) => {
     const checks = settingChecks[key]
     checks && checks.forEach((c) => { c.passed = false })
   }
@@ -149,45 +149,44 @@
     resetSettingCheck(setting.key)
     doSet()
   }
-
 </script>
 
 {#if show}
   {#if header}
-  <p class="notification {headerClass}">
-    {@html header}
-  </p>
+    <p class="notification {headerClass}">
+      {@html header}
+    </p>
   {/if}
   <div class="field is-horizontal">
     {#if setting.type === 'boolean'}
-    <div class="field is-normal">
-      <label class="label" for="settings-{setting.key}" title="{setting.title}">
-        <input 
-        type="checkbox"
-        title="{setting.title}"
-        class="checkbox" 
-        id="settings-{setting.key}"
-        checked={!!chatSettings[setting.key]} 
-        on:click={e => queueSettingValueChange(e, setting)}
-      >
-        {setting.name}
-      </label>
-    </div>
+      <div class="field is-normal">
+        <label class="label" for="settings-{setting.key}" title="{setting.title}">
+          <input 
+            type="checkbox"
+            title="{setting.title}"
+            class="checkbox" 
+            id="settings-{setting.key}"
+            checked={!!chatSettings[setting.key]} 
+            on:click={e => queueSettingValueChange(e, setting)}
+          />
+          {setting.name}
+        </label>
+      </div>
     {:else if setting.type === 'textarea'}
-    <div class="field is-normal" style="width:100%">
-      <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
-      <textarea
-        class="input is-info is-focused chat-input auto-size"
-        placeholder={placeholder || ''}
-        rows="1"
-        on:input={e => autoGrowInputOnEvent(e)}
-        on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
-      >{chatSettings[setting.key]}</textarea>
-    </div>
+      <div class="field is-normal" style="width:100%">
+        <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
+        <textarea
+          class="input is-info is-focused chat-input auto-size"
+          placeholder={placeholder || ''}
+          rows="1"
+          on:input={e => autoGrowInputOnEvent(e)}
+          on:change={e => { queueSettingValueChange(e, setting); autoGrowInputOnEvent(e) }}
+        >{chatSettings[setting.key]}</textarea>
+      </div>
     {:else}
-    <div class="field-label is-normal">
-      <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
-    </div>
+      <div class="field-label is-normal">
+        <label class="label" for="settings-{setting.key}" title="{setting.title}">{setting.name}</label>
+      </div>
     {/if}
     <div class="field-body">
       <div class="field" class:has-addons={fieldControls.length}>
@@ -207,42 +206,52 @@
           />
         {:else if setting.type === 'select' || setting.type === 'select-number'}
           <!-- <div class="select"> -->
-            <div class="select" class:control={fieldControls.length}>
+          <div class="select" class:control={fieldControls.length}>
             {#key rkey}
-            <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
-              {#each setting.options as option}
-                <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]} disabled={option.disabled}>{option.text}</option>
-              {/each}
-            </select>
+              <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
+                {#each setting.options as option}
+                  <option 
+                    class:is-default={option.value === chatDefaults[setting.key]} 
+                    value={option.value} 
+                    selected={option.value === chatSettings[setting.key]} 
+                    disabled={option.disabled}
+                  >
+                    {option.text}
+                  </option>
+                {/each}
+              </select>
             {/key}
-            </div>
-            {#each fieldControls as cont}
+          </div>
+          {#each fieldControls as cont}
             <div class="control">
-              <button title={cont.text} on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
+              <button 
+                title={cont.text} 
+                on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} 
+                class="button {cont.class || ''}"
+              >
                 {#if cont.text}
-                <span class="text">
-                  <Fa icon={cont.icon} />
-                </span> 
+                  <span class="text">
+                    <Fa icon={cont.icon} />
+                  </span> 
                 {/if}
                 {#if cont.icon}
-                <span class="icon">
-                  <Fa icon={cont.icon} />
-                </span> 
+                  <span class="icon">
+                    <Fa icon={cont.icon} />
+                  </span> 
                 {/if}
               </button>
             </div>
-            {/each}
-
+          {/each}
         {:else if setting.type === 'text'}
           <div class="field">
-              <input 
+            <input 
               type="text"
               title="{setting.title}"
               class="input" 
               value={chatSettings[setting.key]} 
               placeholder={String(placeholder || chatDefaults[setting.key])}
               on:change={e => { queueSettingValueChange(e, setting) }}
-            >
+            />
           </div>
         {/if}
       </div>

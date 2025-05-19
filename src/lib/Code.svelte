@@ -85,6 +85,7 @@
       break
     default:
       language = plaintext
+      break
   }
 
   // For copying code - reference: https://vyacheslavbasharov.com/blog/adding-click-to-copy-code-markdown-blog

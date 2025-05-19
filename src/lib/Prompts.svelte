@@ -11,36 +11,36 @@
 
   const extract = (prompt: typeof prompts[0]) => prompt.act
 
-  export let input : HTMLTextAreaElement
+  export let input: HTMLTextAreaElement
 </script>
 
 {#if input}
-<div class="columns is-centered">
-  <div class="column is-half">
-    <Typeahead
-      data={prompts}
-      {extract}
-      label="Select a pre-made prompt"
-      hideLabel
-      showDropdownOnFocus
-      showAllResultsOnFocus
-      inputAfterSelect="clear"
-      on:select={({ detail }) => inputPrompt(detail.original.prompt)}
-      placeholder="Select a pre-made prompt 👇"
-      let:result
-    >
-      <a class="dropdown-item" href="#top" on:click|preventDefault title="{result.original.prompt}">
-        <!--
-          Sanitize result.string because Typeahead introduces HTML tags and prompt
-          strings are untrusted.
-        -->
-        {@html DOMPurify.sanitize(result.string, { ALLOWED_TAGS: ['mark'] })}
-      </a>
-    </Typeahead>
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <Typeahead
+        data={prompts}
+        {extract}
+        label="Select a pre-made prompt"
+        hideLabel
+        showDropdownOnFocus
+        showAllResultsOnFocus
+        inputAfterSelect="clear"
+        on:select={({ detail }) => inputPrompt(detail.original.prompt)}
+        placeholder="Select a pre-made prompt 👇"
+        let:result
+      >
+        <a class="dropdown-item" href="#top" on:click|preventDefault title="{result.original.prompt}">
+          <!--
+            Sanitize result.string because Typeahead introduces HTML tags and prompt
+            strings are untrusted.
+          -->
+          {@html DOMPurify.sanitize(result.string, { ALLOWED_TAGS: ['mark'] })}
+        </a>
+      </Typeahead>
+    </div>
   </div>
-</div>
 
-<div class="columns is-centered">
-  <div class="column is-half has-text-centered">or type below:</div>
-</div>
+  <div class="columns is-centered">
+    <div class="column is-half has-text-centered">or type below:</div>
+  </div>
 {/if}
