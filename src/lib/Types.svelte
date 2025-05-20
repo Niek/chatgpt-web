@@ -73,6 +73,8 @@ export type ChatSettings = {
     pinBottom: number;
     summaryPrompt: string;
     titleGeneratorProfile: string;
+    useTitleGenerationPrompt: boolean;
+    titleGenerationPrompt?: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
     hideSystemPrompt: boolean;
