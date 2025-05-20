@@ -69,6 +69,13 @@ export const getExcludeFromProfile = () => {
   return excludeFromProfile
 }
 
+/**
+ * Get a fallback prompt to use for title generation.
+ */
+export const getTitleFallbackPrompt = (): string => {
+  return "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary."
+}
+
 const hideModelSetting = (chatId, setting) => {
   return getModelDetail(getChatSettings(chatId).model).hideSetting(chatId, setting)
 }
