@@ -21,7 +21,7 @@ export interface ChatImage {
   }
 
 export type Message = {
-    role: 'user' | 'assistant' | 'system' | 'error' | 'image';
+    role: 'user' | 'assistant' | 'system' | 'developer' | 'error' | 'image';
     content: string;
     uuid: string;
     usage?: Usage;

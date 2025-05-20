@@ -145,7 +145,7 @@ export class ChatRequest {
           }) as Message[]
 
         // Parse system and expand prompt if needed
-        if (messagePayload[0]?.role === 'system') {
+        if (messagePayload[0]?.role === 'developer' || messagePayload[0]?.role === 'system') {
           const spl = chatSettings.sendSystemPromptLast
           const sp = messagePayload[0]
           if (sp) {
