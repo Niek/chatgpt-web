@@ -21,7 +21,7 @@ export interface ChatImage {
   }
 
 export type Message = {
-    role: 'user' | 'assistant' | 'system' | 'error' | 'image';
+    role: 'user' | 'assistant' | 'system' | 'developer' | 'error' | 'image';
     content: string;
     uuid: string;
     usage?: Usage;
@@ -72,6 +72,9 @@ export type ChatSettings = {
     pinTop: number;
     pinBottom: number;
     summaryPrompt: string;
+    titleGeneratorProfile: string;
+    useTitleGenerationPrompt: boolean;
+    titleGenerationPrompt?: string;
     useSystemPrompt: boolean;
     systemPrompt: string;
     hideSystemPrompt: boolean;
@@ -143,6 +146,7 @@ export type ChatCompletionOpts = {
     autoAddMessages: boolean;
     maxTokens?:number;
     summaryRequest?:boolean;
+    titleRequest?: boolean;
     didSummary?:boolean;
     streaming?:boolean;
     onMessageChange?: (messages: Message[]) => void;

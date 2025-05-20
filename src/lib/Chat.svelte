@@ -15,11 +15,12 @@
   } from './Storage.svelte'
   import {
     type Message,
-    type Chat
+    type Chat,
+    type ChatSettings
   } from './Types.svelte'
   import Prompts from './Prompts.svelte'
   import Messages from './Messages.svelte'
-  import { restartProfile } from './Profiles.svelte'
+  import { getProfiles, restartProfile } from './Profiles.svelte'
   import { afterUpdate, onMount, onDestroy } from 'svelte'
   import Fa from 'svelte-fa/src/fa.svelte'
   import {
@@ -41,6 +42,7 @@
   import PromptInput from './PromptInput.svelte'
   import { ChatRequest } from './ChatRequest.svelte'
   import { getModelDetail } from './Models.svelte'
+  import { getTitleFallbackPrompt } from './Settings.svelte'
 
   export let params = { chatId: '' }
   const chatId: number = parseInt(params.chatId)
@@ -288,23 +290,102 @@
     focusInput()
   }
 
-  const suggestName = async (): Promise<void> => {
-    const suggestMessage: Message = {
-      role: 'user',
-      content: "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary.",
-      uuid: uuidv4()
+  /**
+   * Gets the profile to be used for title generation.
+   *
+   * @param chatSettings The current chat model
+   */
+  const getTitleProfile = async (chatSettings: ChatSettings): Promise<ChatSettings> => {
+    // Get the name of the profile used for title generation.
+    const titleProfileName: string = chatSettings.titleGeneratorProfile
+    // If the profile is not set, simply use the current model.
+    if (!titleProfileName) {
+      return chatSettings
     }
 
-    const suggestMessages = $currentChatMessages.slice(0, 10) // limit to first 10 messages
-    suggestMessages.push(suggestMessage)
+    // Get the set of all profiles.
+    const profiles: Record<string, ChatSettings> = await getProfiles()
+    // If the target profile exists, return that, otherwise simply use the current model.
+    if (titleProfileName in profiles) {
+      return profiles[titleProfileName]
+    }
+  
+    return chatSettings
+  }
+
+  /**
+   * Suggest name using the title generator for the current profile.
+   */
+  const suggestNameFromGenerator = async (): Promise<void> => {
+    // Cache the current chat profile.
+    const currentProfile: ChatSettings = chatRequest.getChatSettings()
+
+    // Get the profile to be used for title generation.
+    //   We can await on this later. In the meantime we have to slice an
+    // array.
+    const titleProfilePromise: Promise<ChatSettings> = getTitleProfile(currentProfile)
+
+    const suggestMessages: Message[] = $currentChatMessages.slice(0, 10) // limit to first 10 messages
+
+    // If there are no messages we can simply return.
+    if (suggestMessages.length <= 0) {
+      return
+    }
+
+    //   Store the role to use as the developer/system. We'll default to
+    // 'system' for now.
+    //   This is required since OpenAI has deprecated the use of 'system'
+    // in its newer models in favor of 'developer'.
+    let developerRole: Message['role'] = 'system'
+
+    //   If there is already a developer/system message, remove it, but
+    // save the name of the role used.
+    if (suggestMessages[0].role === 'developer' || suggestMessages[0].role === 'system') {
+      developerRole = suggestMessages[0].role
+      suggestMessages.shift()
+    }
+
+    //   Initialize the developer/system prompt using the chosen role, and
+    // an empty message for now.
+    suggestMessages.unshift({
+      role: developerRole,
+      content: '',
+      uuid: uuidv4()
+    })
+
+    //  If the current profile has chosen to use a custom prompt for title
+    // generation, use that. If they checked the box, but didn't actually
+    // set a prompt, use the fallback prompt.
+    if (currentProfile.useTitleGenerationPrompt) {
+      suggestMessages[0].content = currentProfile.titleGenerationPrompt || getTitleFallbackPrompt()
+    }
 
     chatRequest.updating = true
     chatRequest.updatingMessage = 'Getting suggestion for chat name...'
+
+    // Await the title profile now that it is needed.
+    const titleProfile = await titleProfilePromise
+
+    //   If the prompt was not overriden by the current profile, attempt to
+    // get the prompt from the title generator profile.
+    if (suggestMessages[0].content === '') {
+      if (titleProfile.useTitleGenerationPrompt) {
+        suggestMessages[0].content = titleProfile.titleGenerationPrompt || getTitleFallbackPrompt()
+      }
+    }
+
+    // If the prompt remains unset, use the fallback prompt.
+    if (suggestMessages[0].content === '') {
+      suggestMessages[0].content = getTitleFallbackPrompt()
+    }
+
     const response = await chatRequest.sendRequest(suggestMessages, {
       chat,
       autoAddMessages: false,
       streaming: false,
-      summaryRequest: true
+      titleRequest: true
+    }, {
+      ...titleProfile
     })
 
     try {
@@ -366,7 +447,7 @@
       <p class="subtitle is-5">
         <span>{chat.name || `Chat ${chat.id}`}</span>
         <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
+        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestNameFromGenerator}><Fa icon={faLightbulb} /></a>
         <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
         <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
       </p>

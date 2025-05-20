@@ -190,6 +190,10 @@
     // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
     defaultProfile = await getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
+
+    // Generate the list of profiles that can be used as Title Generators.
+    const titleGeneratorSelect = getChatSettingObjectByKey('titleGeneratorProfile') as ChatSetting & SettingSelect
+    titleGeneratorSelect.options = await getProfileSelect()
   }
   
   const showSettings = async () => {
