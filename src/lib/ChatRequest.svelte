@@ -68,7 +68,7 @@ export class ChatRequest {
        * @param opts
        * @param overrides
        */
-      async sendRequest (messages: Message[], opts: ChatCompletionOpts, overrides: ChatSettings = {} as ChatSettings): Promise<ChatCompletionResponse> {
+      async sendRequest (messages: Message[], opts: ChatCompletionOpts, overrides: Partial<ChatSettings> = {} as ChatSettings): Promise<ChatCompletionResponse> {
         // TODO:  Continue to break this method down to smaller chunks
         const _this = this
         const chat = getChat(_this.chat.id)
@@ -321,7 +321,7 @@ export class ChatRequest {
         return result
       }
 
-      private async doContinuousChat (filtered: Message[], opts: ChatCompletionOpts, overrides: ChatSettings): Promise<ChatCompletionResponse> {
+      private async doContinuousChat (filtered: Message[], opts: ChatCompletionOpts, overrides: Partial<ChatSettings>): Promise<ChatCompletionResponse> {
         const _this = this
         const chat = _this.chat
         const chatSettings = chat.settings
