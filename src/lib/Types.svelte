@@ -146,6 +146,7 @@ export type ChatCompletionOpts = {
     autoAddMessages: boolean;
     maxTokens?:number;
     summaryRequest?:boolean;
+    titleRequest?: boolean;
     didSummary?:boolean;
     streaming?:boolean;
     onMessageChange?: (messages: Message[]) => void;

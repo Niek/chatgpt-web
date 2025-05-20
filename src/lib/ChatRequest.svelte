@@ -94,7 +94,7 @@ export class ChatRequest {
           }
         }
 
-        if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
+        if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user' && !opts.titleRequest) {
           const im = lastMessage.content.match(imagePromptDetect)
           if (im) {
             // console.log('image prompt request', im)
@@ -124,7 +124,7 @@ export class ChatRequest {
         const modelDetail = getModelDetail(model)
         const maxTokens = getModelMaxTokens(model)
 
-        const includedRoles = ['user', 'assistant'].concat(chatSettings.useSystemPrompt ? ['system'] : [])
+        const includedRoles = ['user', 'assistant'].concat(chatSettings.useSystemPrompt || opts.titleRequest ? ['system', 'developer'] : [])
     
         // Submit only the role and content of the messages, provide the previous messages as well for context
         const messageFilter = (m:Message) => !m.suppress &&
@@ -133,7 +133,7 @@ export class ChatRequest {
         const filtered = messages.filter(messageFilter)
     
         // If we're doing continuous chat, do it
-        if (!opts.didSummary && !opts.summaryRequest && chatSettings.continuousChat) return await this.doContinuousChat(filtered, opts, overrides)
+        if (!opts.didSummary && !opts.summaryRequest && !opts.titleRequest && chatSettings.continuousChat) return await this.doContinuousChat(filtered, opts, overrides)
 
         // Inject hidden prompts if requested
         // if (!opts.summaryRequest)
