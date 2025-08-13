@@ -132,6 +132,27 @@
     flex: false,
     max: 128000
   }
+  const chatgpt5latest = {
+    ...chatModelBase,
+    prompt: 0.00000125, // $5.00 per 1M input tokens
+    completion: 0.000010, // $15.00 per 1M output tokens
+    flex: false,
+    max: 400000
+  }
+  const chatgpt5mini = {
+    ...chatModelBase,
+    prompt: 0.00000025, // $5.00 per 1M input tokens
+    completion: 0.000020, // $15.00 per 1M output tokens
+    flex: false,
+    max: 400000
+  }
+  const chatgpt5nano = {
+    ...chatModelBase,
+    prompt: 0.000000005, // $5.00 per 1M input tokens
+    completion: 0.00004, // $15.00 per 1M output tokens
+    flex: false,
+    max: 400000
+  }
 
   // Fallback model details for unknown models. Since we do not
   // know the pricing or context limits, we will assume a free
@@ -150,7 +171,10 @@
     'gpt-4o': { ...gpt4o },
     o3: { ...o3 },
     'o4-mini': { ...o4mini },
-    'chatgpt-4o-latest': { ...chatgpt4olatest }
+    'chatgpt-4o-latest': { ...chatgpt4olatest },
+    'gpt-5': { ...chatgpt5latest },
+    'gpt-5-mini': { ...chatgpt5mini },
+    'gpt-5-nano': { ...chatgpt5nano }
   }
 
   export const fetchRemoteModels = async () => {

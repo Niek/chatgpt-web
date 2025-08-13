@@ -69,6 +69,13 @@ export const getExcludeFromProfile = () => {
   return excludeFromProfile
 }
 
+/**
+ * Get a fallback prompt to use for title generation.
+ */
+export const getTitleFallbackPrompt = (): string => {
+  return "Using appropriate language, please tell me a short 6 word summary of this conversation's topic for use as a book title. Only respond with the summary."
+}
+
 const hideModelSetting = (chatId, setting) => {
   return getModelDetail(getChatSettings(chatId).model).hideSetting(chatId, setting)
 }
@@ -103,6 +110,9 @@ const defaults:ChatSettings = {
   pinTop: 0,
   pinBottom: 6,
   summaryPrompt: '',
+  titleGeneratorProfile: 'titleGenerator',
+  useTitleGenerationPrompt: false,
+  titleGenerationPrompt: '',
   useSystemPrompt: false,
   systemPrompt: '',
   hideSystemPrompt: false,
@@ -282,6 +292,31 @@ const systemPromptSettings: ChatSetting[] = [
         hide: (chatId) => !getChatSettings(chatId).useSystemPrompt
       }
 ]
+    
+const titleGeneratorSettings: ChatSetting[] = [
+      {
+        key: 'titleGeneratorProfile',
+        name: 'Title Generator Profile',
+        title: 'Select the profile to use for generating titles.',
+        header: 'Title',
+        headerClass: 'is-info',
+        type: 'select',
+        options: []
+      },
+      {
+        key: 'useTitleGenerationPrompt',
+        name: 'Use Title Generation Prompt',
+        title: 'Whether to use a custom prompt for title generation.',
+        type: 'boolean'
+      },
+      {
+        key: 'titleGenerationPrompt',
+        name: 'Title Generation Prompt',
+        title: 'An alternate prompt to use for title generation. This should be set for profiles specifically created for title generation.',
+        type: 'textarea',
+        hide: (chatId) => !getChatSettings(chatId).useTitleGenerationPrompt
+      }
+]
 
 const summarySettings: ChatSetting[] = [
       {
@@ -370,6 +405,7 @@ const summarySettings: ChatSetting[] = [
         type: 'textarea',
         hide: (chatId) => getChatSettings(chatId).continuousChat !== 'summary'
       },
+      ...titleGeneratorSettings,
       {
         key: 'imageGenerationModel',
         name: 'Image Generation Model',
