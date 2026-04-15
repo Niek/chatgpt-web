@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Router, { location, replace, querystring } from 'svelte-spa-router'
+  import Router, { replace, router } from 'svelte-spa-router'
   import { wrap } from 'svelte-spa-router/wrap'
 
   import Navbar from './lib/Navbar.svelte'
@@ -8,14 +8,14 @@
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
   import { chatsStorage, setGlobalSettingValueByKey } from './lib/Storage.svelte'
-  import { Modals, closeModal } from 'svelte-modals'
+  import { Modals, closeModal } from 'svelte-modals/legacy'
   import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
   import { set as setOpenAI } from './lib/providers/openai/util.svelte'
   import { hasActiveModels } from './lib/Models.svelte'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
-  const urlParams: URLSearchParams = new URLSearchParams($querystring)
+  const urlParams: URLSearchParams = new URLSearchParams(router.querystring || '')
   if (urlParams.has('key')) {
     setOpenAI({ apiKey: urlParams.get('key') as string })
   }
@@ -50,7 +50,7 @@
     dispatchModalEsc()
   }
 
-  $: onLocationChange($location)
+  $: onLocationChange(router.location)
 
 </script>
 
@@ -59,18 +59,19 @@
   <Sidebar />
 </div>
 <div class="main-content-column" id="content">
-  {#key $location}
-    <Router {routes} on:conditionsFailed={() => replace('/')}/>
+  {#key router.location}
+    <Router {routes} onConditionsFailed={() => replace('/')}/>
   {/key}
 </div>
 
 <Modals>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div
+  <button
     slot="backdrop"
+    type="button"
     class="backdrop"
+    aria-label="Close modal"
     on:click={closeModal}
-  />
+  ></button>
 </Modals>
 
 <svelte:window

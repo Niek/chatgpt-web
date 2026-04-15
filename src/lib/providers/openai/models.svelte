@@ -25,7 +25,6 @@
     systemMessageEnd: true,
     repetitionPenalty: true,
     holdSocket: true
-    // leadPrompt: true
   } as any
 
   const chatModelBase = {
@@ -79,59 +78,23 @@
     }
   } as ModelDetail
 
-  // Reference: https://openai.com/pricing#language-models
-
-  const gpt41 = {
+  // Pricing values are in USD per 1M tokens.
+  // Reference: https://openai.com/api/pricing/
+  const perMillion = (price: number) => price / 1_000_000
+  const pricedChatModel = (
+    input: number,
+    cachedInput: number,
+    output: number,
+    max: number,
+    extra: Record<string, any> = {}
+  ) => ({
     ...chatModelBase,
-    prompt: 0.000002, // $2.00 per 1M input tokens
-    cachedPrompt: 0.0000005, // $0.50 per 1M cached input tokens
-    completion: 0.000008, // $8.00 per 1M output tokens
-    max: 1047576
-  }
-  const gpt41mini = {
-    ...chatModelBase,
-    prompt: 0.0000004, // $0.40 per 1M input tokens
-    cachedPrompt: 0.0000001, // $0.10 per 1M cached input tokens
-    completion: 0.0000016, // $1.60 per 1M output tokens
-    max: 1047576
-  }
-  const gpt41nano = {
-    ...chatModelBase,
-    prompt: 0.0000001, // $0.10 per 1M input tokens
-    cachedPrompt: 0.000000025, // $0.025 per 1M cached input tokens
-    completion: 0.0000004, // $0.40 per 1M output tokens
-    max: 1047576
-  }
-  const gpt4o = {
-    ...chatModelBase,
-    prompt: 0.0000025, // $2.50 per 1M input tokens
-    cachedPrompt: 0.00000125, // $1.25 per 1M cached input tokens
-    completion: 0.00001, // $10.00 per 1M output tokens
-    max: 128000
-  }
-  const o3 = {
-    ...chatModelBase,
-    prompt: 0.00001, // $10.00 per 1M input tokens
-    cachedPrompt: 0.0000025, // $2.50 per 1M cached input tokenshttps://colab.research.google.com/drive/1BJsD1TYQwBMOaUg9h84Qy2UoxnowKoBR#scrollTo=6-cl0Yjnp0-_
-    completion: 0.00004, // $40.00 per 1M output tokens
-    max: 200000,
-    temperature: 1
-  }
-  const o4mini = {
-    ...chatModelBase,
-    prompt: 0.0000011, // $1.10 per 1M input tokens
-    cachedPrompt: 0.000000275, // $0.275 per 1M cached input tokens
-    completion: 0.0000044, // $4.40 per 1M output tokens
-    max: 200000,
-    temperature: 1
-  }
-  const chatgpt4olatest = {
-    ...chatModelBase,
-    prompt: 0.000005, // $5.00 per 1M input tokens
-    completion: 0.000015, // $15.00 per 1M output tokens
-    flex: false,
-    max: 128000
-  }
+    prompt: perMillion(input),
+    cachedPrompt: perMillion(cachedInput),
+    completion: perMillion(output),
+    max,
+    ...extra
+  })
 
   // Fallback model details for unknown models. Since we do not
   // know the pricing or context limits, we will assume a free
@@ -144,26 +107,35 @@
   }
 
   export const chatModels: Record<string, ModelDetail> = {
-    'gpt-4.1': { ...gpt41 },
-    'gpt-4.1-mini': { ...gpt41mini },
-    'gpt-4.1-nano': { ...gpt41nano },
-    'gpt-4o': { ...gpt4o },
-    o3: { ...o3 },
-    'o4-mini': { ...o4mini },
-    'chatgpt-4o-latest': { ...chatgpt4olatest }
+    'gpt-5.4': pricedChatModel(2.5, 0.25, 15, 1050000),
+    'gpt-5.4-mini': pricedChatModel(0.75, 0.075, 4.5, 400000),
+    'gpt-5.4-nano': pricedChatModel(0.2, 0.02, 1.25, 400000),
+    'gpt-5': pricedChatModel(1.25, 0.125, 10, 400000),
+    'gpt-5-mini': pricedChatModel(0.25, 0.025, 2, 400000),
+    'gpt-5-nano': pricedChatModel(0.05, 0.005, 0.4, 400000),
+    'gpt-5-chat-latest': pricedChatModel(1.25, 0.125, 10, 128000),
+    'gpt-4.1': pricedChatModel(2, 0.5, 8, 1047576),
+    'gpt-4.1-mini': pricedChatModel(0.4, 0.1, 1.6, 1047576),
+    'gpt-4.1-nano': pricedChatModel(0.1, 0.025, 0.4, 1047576),
+    'gpt-4o': pricedChatModel(2.5, 1.25, 10, 128000),
+    o3: pricedChatModel(10, 2.5, 40, 200000, { temperature: 1 }),
+    'o4-mini': pricedChatModel(1.1, 0.275, 4.4, 200000, { temperature: 1 }),
+    'chatgpt-4o-latest': pricedChatModel(5, 0, 15, 128000)
   }
 
-  export const fetchRemoteModels = async () => {
+  export const fetchRemoteModels = async (): Promise<Record<string, ModelDetail>> => {
     const supportedModels = await getSupportedModels()
+    const remoteModels = {} as Record<string, ModelDetail>
 
     Object.keys(supportedModels).forEach((key) => {
-      supportedModels[key] = {
+      remoteModels[key] = {
         ...chatModelBase,
-        ...supportedModels[key]
+        id: key,
+        modelQuery: key
       }
     })
 
-    return supportedModels
+    return remoteModels
   }
 
   const imageModelBase = {

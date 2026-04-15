@@ -76,7 +76,6 @@ export const chatRequest = async (
       const fMessages = (request.messages || [] as Message[])
       const rMessages = fMessages.reduce((a, m, i) => {
         a.push(m)
-        // if (m.role === 'system') m.content = m.content.trim()
         const nm = fMessages[i + 1]
         if (userAfterSystem && m.role === 'system' && (!nm || nm.role !== 'user')) {
           const nc = {
@@ -141,7 +140,6 @@ export const chatRequest = async (
         lastMessage.content = leadPromptSequence + lastMessage.content
         doLead = false
       }
-      // const inputArray = buildInputArray(rMessages).map(m => m.content)
       const lInputArray = doLead
         ? (rMessages.length > 1 ? buildInputArray(rMessages.slice(0, -1)).map(m => m.content) : [])
         : buildInputArray(rMessages.slice()).map(m => m.content)
@@ -177,7 +175,6 @@ export const chatRequest = async (
       let inputPrompt = doLead ? midDel : ''
 
       const getNewWs = ():Promise<WebSocket> => new Promise<WebSocket>((resolve, reject) => {
-        // console.warn('requesting new ws')
         const nws = new WebSocket(getEndpoint(model))
         let opened = false
         let done = false
@@ -195,7 +192,6 @@ export const chatRequest = async (
             console.error(err)
             throw err
           }
-          // console.warn('got new ws')
           inputPrompt = lastPrompt + (doLead && lInputArray.length ? delimiter : '')
           providerData.knownBuffer = ''
           providerData.ws = nws
@@ -248,12 +244,6 @@ export const chatRequest = async (
 
       inputPrompt += nextPrompt
       providerData.knownBuffer += inputPrompt
-    
-      // console.log(
-      //   '\n\n*** inputPrompt: ***\n\n',
-      //   inputPrompt
-    
-      // )
     
       const petalsRequest = {
         type: 'generate',

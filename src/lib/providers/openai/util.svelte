@@ -13,7 +13,7 @@ type ResponseModels = {
 
 let availableModels: Record<string, boolean> | undefined
 
-let _resetSupportedModelsTimer
+let _resetSupportedModelsTimer: ReturnType<typeof setTimeout> | undefined
 
 export const set = (opt: Record<string, any>) => {
   availableModels = undefined
@@ -35,9 +35,9 @@ export const getSupportedModels = async (): Promise<Record<string, boolean>> => 
           })
         ).json()) as ResponseModels
         availableModels = result.data.reduce((a, v) => {
-          a[v.id] = v
+          a[v.id] = true
           return a
-        }, {})
+        }, {} as Record<string, boolean>)
         return availableModels
   } catch (e) {
         console.error(e)

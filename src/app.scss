@@ -6,10 +6,8 @@ html {
   /* Back-ground */
   --BgColorDark: hsl(228, 10%, 10%);
   --BgColorLight: hsl(0, 0%, 100%);
-  // --BgColorSidebarDark: rgb(28, 30, 36);
   --BgColorSidebarDark: rgb(16, 17, 22);
   --BgColorSidebarLight: hsla(0, 0%, 93%, 0.354);
-  // Tool drawer for messages
   --chatToolDrawerSize: 40px;
   --chatToolDrawerColor: var(--BgColorSidebarLight);
   
@@ -31,7 +29,7 @@ html {
   --chatInputPaddingBottom: 10px;
   --chatInputPaddingLeft: 60px;
 
-  --BgColor: var(-BgColorLight);
+  --BgColor: var(--BgColorLight);
   --running-totals: 0;
 }
 
@@ -42,7 +40,7 @@ html {
 @media (prefers-color-scheme: dark) {
   html {
     --thumbBG: #3f3f3f; /* scrollbar color dark */
-    --BgColor: var(-BgColorDark);
+    --BgColor: var(--BgColorDark);
     --chatToolDrawerColor: var(--BgColorSidebarDark);
   }
 }
@@ -82,7 +80,6 @@ html {
   }
   html {
     --BgColorSidebarLight: hsl(210, 12%, 97%);
-    // --BgColorSidebarDark: rgb(22, 24, 30);
     --sidebarWidth: max(300px, 20%);
     --mainContentWidth: calc(100%);
     --sidebarTop: 56px;
@@ -166,11 +163,7 @@ select option.is-default {
   resize: vertical;
 }
 
-// $footer-padding: 1.5rem 1.5rem;
-// $fullhd: 2000px;
-// $modal-content-width: 1000px;
-
-@import "/node_modules/bulma/bulma.sass";
+@import "bulma/bulma.scss";
 
 /* Pulsing effect - background goes to red color and back */
 .is-pulse {
@@ -184,7 +177,7 @@ select option.is-default {
   }
 
   50% {
-    background-color: $danger;
+    background-color: var(--bulma-danger);
     /* Red */
   }
 
@@ -193,10 +186,6 @@ select option.is-default {
       /* Default color */
   }
 }
-
-/* Support for dark mode */
-$modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove this once a new version of bulma-prefers-dark is released
-@import "/node_modules/bulma-prefers-dark/build/bulma-prefers-dark.sass";
 
 /* For the message notes on light mode */
 .message-note, .running-totals {
@@ -209,8 +198,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
     opacity: 0.5;
   }
   .modal-card-body {
-    // remove this once https: //github.com/jloh/bulma-prefers-dark/pull/90 is merged and released
-   background-color: $background-dark;
+    background-color: var(--bulma-background);
   }
 }
 
@@ -230,7 +218,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 /* Delete button on side menu chat name */
 
 .menu-list {
-  a:hover {
+  li:hover {
     .delete-button, .edit-button {
       display: block !important;
       background-color: initial;
@@ -248,10 +236,12 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
 /* Loading chat messages */
 .is-loading {
   opacity: 0.5;
-  @include loader;
   width: 1.5rem;
   height: 1.5rem;
-  border-width: 0.25em;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: spinAround 500ms infinite linear;
   display: inline-block;
 }
 
@@ -343,7 +333,7 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   }
 }
 
-.chat-menu-item {
+.chat-menu-item-wrap {
   position: relative;
 }
 .chat-menu-item .chat-item-name {
@@ -353,13 +343,13 @@ $modal-background-background-color-dark: rgba($dark, 0.86) !default; // remove t
   -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
   mask-image: linear-gradient(to right, rgba(0,0,0,1) 75%, rgba(0,0,0,0));
 }
-.chat-menu-item .delete-button {
+.chat-menu-item-wrap .delete-button {
   position: absolute;
   right: .4em;
   z-index: 200;
 }
 
-.chat-menu-item .edit-button {
+.chat-menu-item-wrap .edit-button {
   position: absolute;
   right: 2em;
   z-index: 200;
@@ -528,8 +518,6 @@ aside.menu.main-menu .menu-expanse {
 
 .content.running-total-container {
   min-height:1em;
-  // padding-bottom:.6em;
-  // /* padding-left: 1.9em; */
   margin-bottom: .5em;
 }
 
@@ -586,7 +574,6 @@ aside.menu.main-menu .menu-expanse {
 .button-pack .button {
   display: block;
   margin: 4px;
-  // border-radius: 10px;
   opacity: .6;
 }
 .button-pack .button:hover {
@@ -600,10 +587,6 @@ aside.menu.main-menu .menu-expanse {
   position: relative;
   transition: 0.3s;
 }
-
-// .chat-message.message:hover .button-pack, article.message:focus .button-pack {
-//   display: block;
-// }
 .chat-message.summarized .message-body, .chat-message.suppress .message-body {
   opacity: 0.4;
 }
@@ -728,7 +711,7 @@ aside.menu.main-menu .menu-expanse {
 }
 
 .message-footer {
-  padding: $message-header-padding;
+  padding: var(--bulma-message-header-padding);
 }
 
 .modal .message-body {

@@ -26,7 +26,9 @@
   export let currentChatId = writable(0)
   export let lastChatId = persisted('lastChatId', 0)
 
-  const chatDefaults = getChatDefaults()
+  const getChatDefaultValues = (): ChatSettings => {
+    return getChatDefaults()
+  }
   
   export const getApiKey = (): string => {
     return get(apiKeyStorage)
@@ -56,7 +58,7 @@
     const chatId = newChatID()
 
     profile = JSON.parse(JSON.stringify(profile || await getProfile(''))) as ChatSettings
-    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
+    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {} as Record<string, Chat>)
 
     // Add a new chat
     chats.push({
@@ -164,7 +166,7 @@
   }
   
   // Reset all setting to current profile defaults
-  export const resetChatSettings = async (chatId, resetAll:boolean = false) => {
+  export const resetChatSettings = async (chatId:number, resetAll:boolean = false) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     const profile = await getProfile(chat.settings.profile)
@@ -354,7 +356,6 @@
     if (message?.image) {
       deleteImage(chatId, message.image.id)
     }
-    // console.warn(`Deleting message with ID: ${uuid}`, found, index)
     messages.splice(index, 1) // remove item
     setMessages(chatId, messages.filter(m => true))
   }
@@ -400,7 +401,7 @@
   export const copyChat = async (chatId: number) => {
     const chats = get(chatsStorage)
     const chat = chats.find((chat) => chat.id === chatId) as Chat
-    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {})
+    const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {} as Record<string, Chat>)
     const cname = newName(chat.name, nameMap)
     const chatCopy = JSON.parse(JSON.stringify(chat))
 
@@ -437,6 +438,7 @@
   export const setChatSettingValueByKey = (chatId: number, key: keyof ChatSettings, value) => {
     const setting = getChatSettingObjectByKey(key)
     if (setting) return setChatSettingValue(chatId, setting, value)
+    const chatDefaults = getChatDefaultValues()
     if (!(key in chatDefaults)) throw new Error('Invalid chat setting: ' + key)
     const d = chatDefaults[key]
     if (d === null || d === undefined) {
@@ -466,6 +468,7 @@
     const chat = chats.find((chat) => chat.id === chatId) as Chat
     let value = chat.settings && chat.settings[setting.key]
     value = (value === undefined) ? null : value
+    const chatDefaults = getChatDefaultValues()
     if (!setting.forceApi && value === chatDefaults[setting.key]) value = null
     return value
   }
@@ -481,7 +484,7 @@
   }
 
   
-  export const getGlobalSettingValue = (key:keyof GlobalSetting, value):any => {
+  export const getGlobalSettingValue = (key:keyof GlobalSettings, value:any):any => {
     const store = get(globalStorage)
     return store[key]
   }
@@ -531,8 +534,6 @@
       throw new Error('Your profile\'s character needs a valid name.')
     }
     if (isStaticProfile(profile.profile)) {
-      // throw new Error('Sorry, you can\'t modify a static profile. You can clone it though!')
-      // Save static profile as new custom
       profile.profileName = await newNameForProfile(profile.profileName)
       profile.profile = uuidv4()
     }
@@ -541,10 +542,6 @@
     Object.keys(getExcludeFromProfile()).forEach(k => {
       delete clone[k]
     })
-    // pull defaults
-    // Object.entries(getChatDefaults()).forEach(([k, v]) => {
-    //   if (clone[k] === v || (v === undefined && clone[k] === null)) delete clone[k]
-    // })
     profiles[profile.profile as string] = clone
     globalStorage.set(store)
     profile.isDirty = false

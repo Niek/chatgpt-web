@@ -14,7 +14,7 @@
   } from './Storage.svelte'
   import type { Chat, ChatSetting, SettingSelect, ChatSettings } from './Types.svelte'
   import { errorNotice, sizeTextElements } from './Util.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import {
     faTrash,
     faClone,
@@ -25,17 +25,17 @@
     faUpload,
     faSquarePlus,
     faRotateLeft
-    // faCheckCircle
   } from '@fortawesome/free-solid-svg-icons/index'
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
   import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
-  import { openModal } from 'svelte-modals'
+  import { openModal } from 'svelte-modals/legacy'
   import PromptConfirm from './PromptConfirm.svelte'
   import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
   import { faClipboard } from '@fortawesome/free-regular-svg-icons'
+  import { clickOutside } from 'svelte-use-click-outside'
 
   export let chatId:number
   export const show = () => { showSettings() }
@@ -101,7 +101,6 @@
   }
   
   const copySettingsAsUri = () => {
-    // location.protocol + '//' + location.host + location.pathname
     const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
       const t = typeof v
       if (hasChatSetting(k as any) && (t === 'boolean' || t === 'string' || t === 'number')) {
@@ -187,7 +186,6 @@
     profileSelect.options = await getProfileSelect()
     chatDefaults.profile = await getDefaultProfileKey()
     chatDefaults.max_completion_tokens = getModelMaxTokens(chatSettings.model)
-    // const defaultProfile = globalStore.defaultProfile || profileSelect.options[0].value
     defaultProfile = await getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
   }
@@ -267,75 +265,74 @@
 
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="modal chat-settings" class:is-active={showSettingsModal} on:modal-esc={closeSettings}>
-  <div class="modal-background" on:click={closeSettings} />
-  <div class="modal-card wide" on:click={() => { showProfileMenu = false }}>
+  <button
+    type="button"
+    class="modal-background"
+    aria-label="Close chat settings"
+    on:click={closeSettings}
+  ></button>
+  <div class="modal-card wide">
     <header class="modal-card-head">
       <p class="modal-card-title">Chat Settings</p>
-      <button class="delete" aria-label="close" on:click={closeSettings}></button>
+      <button class="delete" aria-label="close" type="button" on:click={closeSettings}></button>
     </header>
     <section class="modal-card-body">
       {#each settingsList as setting}
-      <!-- {#key showSettingsModal} -->
-        <ChatSettingField rkey={showSettingsModal} on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} originalProfile={originalProfile} />
-      <!-- {/key} -->
+        <ChatSettingField rkey={showSettingsModal} on:refresh={refreshSettings} on:change={setDirty} chat={chat} chatDefaults={chatDefaults} chatSettings={chatSettings} setting={setting} />
       {/each}
     </section>
 
     <footer class="modal-card-foot">
       <div class="level is-mobile">
         <div class="level-left">
-          <!-- <button class="button is-info" on:click={closeSettings}>Close</button> -->
-          <button class="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
-          <button class="button is-warning" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
-          <button class="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat <span class="is-hidden-mobile">&nbsp;from Current</span></button>
+          <button class="button" type="button" title="Save changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={saveProfile}>Save</button>    
+          <button class="button is-warning" type="button" title="Throw away changes to this profile." class:is-disabled={!chatSettings.isDirty} on:click={clearSettings}>Reset</button>
+          <button class="button" type="button" title="Start new chat with this profile." on:click={startNewChat}>New Chat <span class="is-hidden-mobile">&nbsp;from Current</span></button>
         </div>
         <div class="level-right">
-          <div class="dropdown is-right is-up" class:is-active={showProfileMenu}>
+          <div class="dropdown is-right is-up" class:is-active={showProfileMenu} use:clickOutside={() => { showProfileMenu = false }}>
             <div class="dropdown-trigger">
-              <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
+              <button class="button" type="button" aria-haspopup="true" aria-controls="dropdown-menu3" on:click|preventDefault|stopPropagation={() => { showProfileMenu = !showProfileMenu }}>
                 <span class="icon"><Fa icon={faEllipsis}/></span>
               </button>
             </div>
             <div class="dropdown-menu" id="dropdown-menu3" role="menu">
               <div class="dropdown-content">
-                <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={saveProfile}>
+                <button type="button" class="dropdown-item" class:is-disabled={!chatSettings.isDirty} disabled={!chatSettings.isDirty} on:click={saveProfile}>
                   <span class="menu-icon"><Fa icon={faFloppyDisk}/></span> Save Changes
-                </a>
-                <a href={'#'} class="dropdown-item" class:is-disabled={!chatSettings.isDirty} on:click|preventDefault={clearSettings}>
+                </button>
+                <button type="button" class="dropdown-item" class:is-disabled={!chatSettings.isDirty} disabled={!chatSettings.isDirty} on:click={clearSettings}>
                   <span class="menu-icon"><Fa icon={faRotateLeft}/></span> Reset Changes
-                </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={cloneProfile}>
+                </button>
+                <button type="button" class="dropdown-item" on:click={cloneProfile}>
                   <span class="menu-icon"><Fa icon={faClone}/></span> Clone Profile
-                </a>
+                </button>
                 <hr class="dropdown-divider">
-                <a href={'#'} class="dropdown-item" class:is-disabled={isDefault} on:click|preventDefault={pinDefaultProfile}>
+                <button type="button" class="dropdown-item" class:is-disabled={isDefault} disabled={isDefault} on:click={pinDefaultProfile}>
                   <span class="menu-icon"><Fa icon={faThumbtack}/></span> Set as Default Profile
-                </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={startNewChat}>
+                </button>
+                <button type="button" class="dropdown-item" on:click={startNewChat}>
                   <span class="menu-icon"><Fa icon={faSquarePlus}/></span> Start New Chat from Current
-                </a>
-                <!-- <a href={'#'} class="dropdown-item" on:click|preventDefault={applyToChat}>
-                  <span class="menu-icon"><Fa icon={faCheckCircle}/></span> Apply Prompts to Current Chat
-                </a> -->
+                </button>
                 <hr class="dropdown-divider">
-                <a href={'#'} 
+                <button
+                  type="button"
                   class="dropdown-item"
-                  on:click|preventDefault={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
+                  on:click={() => { showProfileMenu = false; exportProfileAsJSON(chatId) }}
                 >
                   <span class="menu-icon"><Fa icon={faDownload}/></span> Backup Profile JSON
-                </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; profileFileInput.click() }}>
+                </button>
+                <button type="button" class="dropdown-item" on:click={() => { showProfileMenu = false; profileFileInput.click() }}>
                   <span class="menu-icon"><Fa icon={faUpload}/></span> Restore Profile JSON
-                </a>
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={() => { showProfileMenu = false; copySettingsAsUri() }}>
+                </button>
+                <button type="button" class="dropdown-item" on:click={() => { showProfileMenu = false; copySettingsAsUri() }}>
                   <span class="menu-icon"><Fa icon={faClipboard}/></span> Copy Profile URL to Clipboard
-                </a>
+                </button>
                 <hr class="dropdown-divider">
-                <a href={'#'} class="dropdown-item" on:click|preventDefault={promptDeleteProfile}>
+                <button type="button" class="dropdown-item" on:click={promptDeleteProfile}>
                   <span class="menu-icon"><Fa icon={faTrash}/></span> Delete Profile
-                </a>
+                </button>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { closeModal } from 'svelte-modals'
+  import { closeModal } from 'svelte-modals/legacy'
 
   export let isOpen:boolean
 
@@ -31,8 +31,12 @@
 
 {#if isOpen}
 <div class="modal is-active" on:modal-esc={doCancel}>
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="modal-background" on:click={doCancel} />
+  <button
+    type="button"
+    class="modal-background"
+    aria-label="Close confirmation"
+    on:click={doCancel}
+  ></button>
   <div class="modal-content nomax">
     <article class="message {classes}">
       <div class="message-header">

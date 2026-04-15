@@ -57,6 +57,7 @@ export type Request = {
     frequency_penalty?: number;
     logit_bias?: Record<string, number> | null;
     user?: string;
+    [key: string]: any;
   };
 
 export type ChatSettings = {
@@ -98,6 +99,7 @@ export type ChatSettings = {
     repetitionPenalty: number;
     holdSocket: boolean;
     isDirty?: boolean;
+    [key: string]: any;
   } & Request;
 
 export type Chat = {
@@ -163,6 +165,7 @@ export type GlobalSettings = {
     enablePetals: boolean;
     pedalsEndpoint: string;
     openAiEndpoint: string;
+    [key: string]: any;
   };
 
   type SettingNumber = {

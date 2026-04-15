@@ -37,8 +37,6 @@ export const chatRequest = async (
              * We'll get the response a token at a time, as soon as they are ready
             */
         chatResponse.onFinish(() => {
-          // chatRequest.updating = false
-          // chatRequest.updatingMessage = ''
         })
         fetchEventSource(getEndpoint(model), {
           ...fetchOptions,
@@ -47,13 +45,11 @@ export const chatRequest = async (
           // Remove updating indicator
             chatRequest.updating = 1 // hide indicator, but still signal we're updating
             chatRequest.updatingMessage = ''
-            // console.log('ev.data', ev.data)
             if (!chatResponse.hasFinished()) {
               if (ev.data === '[DONE]') {
               // ?? anything to do when "[DONE]"?
               } else {
                 const data = JSON.parse(ev.data)
-                // console.log('data', data)
                 window.setTimeout(() => { chatResponse.updateFromAsyncResponse(data) }, 1)
               }
             }
@@ -66,7 +62,7 @@ export const chatRequest = async (
             throw err
           },
           async onopen (response) {
-            if (response.ok && response.headers.get('content-type').startsWith(EventStreamContentType)) {
+            if (response.ok && response.headers.get('content-type')?.startsWith(EventStreamContentType)) {
             // everything's good
             } else {
             // client-side errors are usually non-retriable:
@@ -158,7 +154,6 @@ export const imageRequest = async (
           await chatRequest.handleError(response)
         } else {
           const json = await response.json()
-          // console.log('image json', json, json?.data[0])
           const images = json?.data.map(d => d.b64_json)
           chatResponse.updateImageFromSyncResponse(images, prompt, imageModel)
         }
