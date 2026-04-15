@@ -3,7 +3,7 @@
   import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
   import { deleteMessage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
-  import SvelteMarkdown from '@humanspeak/svelte-markdown'
+  import SvelteMarkdown, { buildUnsupportedHTML } from '@humanspeak/svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
   import Fa from 'svelte-fa'
   import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard } from '@fortawesome/free-solid-svg-icons/index'
@@ -30,6 +30,10 @@
     gfm: true, // Use GitHub Flavored Markdown
     breaks: true, // Enable line breaks in markdown
     mangle: false // Do not mangle email addresses
+  }
+  const markdownRenderers = {
+    code: Code,
+    html: buildUnsupportedHTML()
   }
 
   const getDisplayMessage = ():string => {
@@ -272,10 +276,10 @@
         <p><b>Summarizing...</b></p>
         {/if}
         {#key refreshCounter}
-        <SvelteMarkdown 
-          source={displayMessage} 
-          options={markdownOptions} 
-          renderers={{ code: Code }}
+        <SvelteMarkdown
+          source={displayMessage}
+          options={markdownOptions}
+          renderers={markdownRenderers}
         />
         {/key}
         {#if imageUrl}
