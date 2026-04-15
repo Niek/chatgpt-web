@@ -43,14 +43,18 @@
   import { getModelDetail } from './Models.svelte'
 
   export let params = { chatId: '' }
-  const chatId: number = parseInt(params.chatId)
+  let chatId = 0
 
   let chatRequest = new ChatRequest()
   let input: HTMLTextAreaElement
   let recognition: any = null
+  let recognitionInitialized = false
   let recording = false
   let lastSubmitRecorded = false
+  let mounted = false
+  let initializedChatId = 0
 
+  $: chatId = parseInt(params.chatId)
   $: chat = $chatsStorage.find((chat) => chat.id === chatId) as Chat
   $: chatSettings = chat?.settings
   let showSettingsModal
@@ -96,8 +100,75 @@
   $: afterChatLoad($currentChatId)
 
   setCurrentChat(0)
-  // Make sure chat object is ready to go
-  updateChatSettings(chatId)
+
+  const initializeRecognition = () => {
+    if (recognitionInitialized) return
+    recognitionInitialized = true
+
+    if ('SpeechRecognition' in window) {
+      // @ts-ignore
+      recognition = new window.SpeechRecognition()
+    } else if ('webkitSpeechRecognition' in window) {
+      // @ts-ignore
+      recognition = new window.webkitSpeechRecognition()
+    } else {
+      console.log('Speech recognition not supported')
+      return
+    }
+
+    recognition.interimResults = false
+    recognition.onstart = () => {
+      recording = true
+    }
+    recognition.onresult = (event) => {
+      // Stop speech recognition, submit the form and remove the pulse
+      const last = event.results.length - 1
+      const text = event.results[last][0].transcript
+      input.value = text
+      recognition.stop()
+      recording = false
+      submitForm(true)
+    }
+  }
+
+  const initializeChat = async (nextChatId: number) => {
+    if (!nextChatId || initializedChatId === nextChatId) return
+
+    initializedChatId = nextChatId
+    chatRequest.controller.abort()
+    ttsStop()
+
+    updateChatSettings(nextChatId)
+    const nextChat = $chatsStorage.find((storedChat) => storedChat.id === nextChatId) as Chat | undefined
+    if (!nextChat) return
+
+    setCurrentChat(nextChatId)
+
+    const nextChatRequest = new ChatRequest()
+    chatRequest = nextChatRequest
+    await nextChatRequest.setChat(nextChat)
+    if (chatRequest !== nextChatRequest) return
+
+    nextChat.lastAccess = Date.now()
+    saveChatStore()
+    $checkStateChange++
+
+    focusInput()
+
+    if (nextChat.startSession) {
+      await restartProfile(nextChatId)
+      if (nextChat.startSession) {
+        nextChat.startSession = false
+        saveChatStore()
+        // Auto start the session
+        setTimeout(() => { submitForm(false, true) }, 0)
+      }
+    }
+  }
+
+  $: if (mounted && chat?.id === chatId) {
+    void initializeChat(chatId)
+  }
 
   onDestroy(async () => {
     // clean up
@@ -106,56 +177,9 @@
     ttsStop()
   })
 
-  onMount(async () => {
-    if (!chat) return
-
-    setCurrentChat(chatId)
-
-    chatRequest = new ChatRequest()
-    await chatRequest.setChat(chat)
-
-    chat.lastAccess = Date.now()
-    saveChatStore()
-    $checkStateChange++
-
-    // Focus the input on mount
-    focusInput()
-
-    // Try to detect speech recognition support
-    if ('SpeechRecognition' in window) {
-      // @ts-ignore
-      recognition = new window.SpeechRecognition()
-    } else if ('webkitSpeechRecognition' in window) {
-      // @ts-ignore
-      recognition = new window.webkitSpeechRecognition()  
-    }
-
-    if (recognition) {
-      recognition.interimResults = false
-      recognition.onstart = () => {
-        recording = true
-      }
-      recognition.onresult = (event) => {
-        // Stop speech recognition, submit the form and remove the pulse
-        const last = event.results.length - 1
-        const text = event.results[last][0].transcript
-        input.value = text
-        recognition.stop()
-        recording = false
-        submitForm(true)
-      }
-    } else {
-      console.log('Speech recognition not supported')
-    }
-    if (chat.startSession) {
-      await restartProfile(chatId)
-      if (chat.startSession) {
-        chat.startSession = false
-        saveChatStore()
-        // Auto start the session
-        setTimeout(() => { submitForm(false, true) }, 0)
-      }
-    }
+  onMount(() => {
+    mounted = true
+    initializeRecognition()
   })
 
   // Scroll to the bottom of the chat on update
@@ -165,6 +189,7 @@
 
   // Scroll to the bottom of the chat on update
   const focusInput = () => {
+    if (!input) return
     input.focus()
     scrollToBottom()
   }

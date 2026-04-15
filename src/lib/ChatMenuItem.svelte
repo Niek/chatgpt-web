@@ -104,12 +104,14 @@
       on:click={() => { $pinMainMenu = false }} >
       <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
     </a>
-    {#if waitingForConfirm}
-    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Confirm delete chat"><Fa icon={faCircleCheck} /></button>
-    {:else}
-    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold edit-button" on:click={edit} aria-label="Rename chat"><Fa icon={faPencil} /></button>
-    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Delete chat"><Fa icon={faTrash} /></button>
-    {/if}
+    <div class="chat-menu-actions">
+      {#if waitingForConfirm}
+      <button type="button" class="is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Confirm delete chat"><Fa icon={faCircleCheck} /></button>
+      {:else}
+      <button type="button" class="is-hidden px-1 py-0 has-text-weight-bold edit-button" on:click={edit} aria-label="Rename chat"><Fa icon={faPencil} /></button>
+      <button type="button" class="is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Delete chat"><Fa icon={faTrash} /></button>
+      {/if}
+    </div>
   </div>
   {/if}
 </li>
