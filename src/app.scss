@@ -1,3 +1,5 @@
+@use "bulma/sass";
+
 html {
   /* Scrollbar */
   /* TODO: Update these to use bulma's scss variables, not css vars. */
@@ -175,8 +177,6 @@ select option.is-default {
   overflow-y: hidden;
   resize: vertical;
 }
-
-@import "bulma/bulma.scss";
 
 /* Pulsing effect - background goes to red color and back */
 .is-pulse {

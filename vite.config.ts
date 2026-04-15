@@ -4,6 +4,11 @@ import dsv from '@rollup/plugin-dsv'
 import purgecss from '@fullhuman/postcss-purgecss'
 
 const plugins = [svelte(), dsv()]
+const scssPreprocessorOptions = {
+  scss: {
+    quietDeps: true
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
@@ -12,6 +17,7 @@ export default defineConfig(({ command }) => {
     return {
       plugins,
       css: {
+        preprocessorOptions: scssPreprocessorOptions,
         postcss: {
           plugins: [
             purgecss({
@@ -45,7 +51,10 @@ export default defineConfig(({ command }) => {
     }
   } else {
     return {
-      plugins
+      plugins,
+      css: {
+        preprocessorOptions: scssPreprocessorOptions
+      }
     }
   }
 })
