@@ -97,7 +97,6 @@ export class ChatRequest {
         if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
           const im = lastMessage.content.match(imagePromptDetect)
           if (im) {
-            // console.log('image prompt request', im)
             let n = parseInt((im[5] || '').toLowerCase().trim()
               .replace(/one/ig, '1')
               .replace(/two/ig, '2')
@@ -114,9 +113,6 @@ export class ChatRequest {
               prompt: im[9],
               count: n
             })
-    
-            // (lastMessage, im[9], n, messages, opts, overrides)
-            // throw new Error('Image prompt:' + im[7])
           }
         }
 
@@ -135,8 +131,6 @@ export class ChatRequest {
         // If we're doing continuous chat, do it
         if (!opts.didSummary && !opts.summaryRequest && chatSettings.continuousChat) return await this.doContinuousChat(filtered, opts, overrides)
 
-        // Inject hidden prompts if requested
-        // if (!opts.summaryRequest)
         await this.buildHiddenPromptPrefixMessages(filtered, true)
         const messagePayload = filtered
           .filter(m => { if (m.skipOnce) { delete m.skipOnce; return false } return true })
@@ -201,7 +195,6 @@ export class ChatRequest {
 
         // Build the API request body
         const request: Request = {
-          model: chatSettings.model,
           messages: messagePayload,
           // Provide the settings by mapping the settingsMap to key/value pairs
           ...getRequestSettingList().reduce((acc, setting) => {
@@ -229,7 +222,7 @@ export class ChatRequest {
             }
             if (value !== null) acc[key] = value
             return acc
-          }, {}),
+          }, {} as Request),
           stream: opts.streaming
         }
 
@@ -241,7 +234,6 @@ export class ChatRequest {
           // run request for given model
           await modelDetail.request(request, _this, chatResponse, opts)
         } catch (e) {
-        // console.error(e)
           console.error(e, e.stack)
           _this.updating = false
           _this.updatingMessage = ''
@@ -338,7 +330,7 @@ export class ChatRequest {
         }
 
         // Get extra counts for when the prompts are finally sent.
-        const countPadding = this.getTokenCountPadding(filtered, chat)
+        const countPadding = await this.getTokenCountPadding(filtered, chat)
 
         let threshold = chatSettings.summaryThreshold
         if (threshold < 1) threshold = Math.round(maxTokens * threshold)
@@ -463,8 +455,6 @@ export class ChatRequest {
               } as ChatCompletionOpts, {
                 temperature: chatSettings.summaryTemperature, // make summary more deterministic
                 top_p: 1,
-                // presence_penalty: 0,
-                // frequency_penalty: 0,
                 ...overrides
               } as ChatSettings)
               // Wait for the response to complete

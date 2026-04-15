@@ -221,7 +221,7 @@
     <article class="message is-info">
       <div class="message-body">
         Select an existing chat on the sidebar, or
-        <a href={'#/chat/new'}>create a new chat</a>
+        <a href="#/chat/new">create a new chat</a>
       </div>
     </article>
   {/if}

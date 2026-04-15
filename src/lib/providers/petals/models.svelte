@@ -62,15 +62,6 @@ export const chatModels : Record<string, ModelDetail> = {
         label: 'Petals - Guanaco-65b',
         max: 2048
       },
-      // 'codellama/CodeLlama-34b-Instruct-hf ': {
-      //   ...chatModelBase,
-      //   label: 'Petals - CodeLlama-34b',
-      //   max: 2048
-      // },
-      // 'meta-llama/Llama-2-70b-hf': {
-      //   ...chatModelBase,
-      //   label: 'Petals - Llama-2-70b'
-      // },
       'meta-llama/Llama-2-70b-chat-hf': {
         ...chatModelBase,
         label: 'Petals - Llama-2-70b-chat',
@@ -81,18 +72,11 @@ export const chatModels : Record<string, ModelDetail> = {
         userEnd: ' [/INST]',
         systemStart: '[INST] <<SYS>>\n',
         systemEnd: '\n<</SYS>> [/INST]'
-        // leadPrompt: ''
       },
       'stabilityai/StableBeluga2': {
         ...chatModelBase,
         label: 'Petals - StableBeluga-2-70b'
       }
-      // 'tiiuae/falcon-180B-chat': {
-      //   ...chatModelBase,
-      //   start: '###',
-      //   stop: ['###', '</s>', '<|endoftext|>'],
-      //   label: 'Petals - Falcon-180b-chat'
-      // }
 }
 
 </script>

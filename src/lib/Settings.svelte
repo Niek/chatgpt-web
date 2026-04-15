@@ -27,8 +27,12 @@ export const getDefaultModel = async (): Promise<Model> => {
   if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
 
   const models = await getChatModelOptions()
+  const preferredModels: Model[] = ['gpt-5.4', 'gpt-5', 'gpt-5-chat-latest', 'gpt-4.1']
+  const preferredModel = preferredModels.find((model) =>
+    models.some((option) => option.value === model)
+  )
 
-  return models[0].text
+  return preferredModel || String(models[0]?.value || 'gpt-5.4')
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
@@ -126,8 +130,6 @@ const defaults:ChatSettings = {
   leadPrompt: '',
   repetitionPenalty: 1.1,
   holdSocket: true,
-  // useResponseAlteration: false,
-  // responseAlterations: [],
   isDirty: false
 }
 
@@ -143,7 +145,7 @@ export const globalDefaults: GlobalSettings = {
   openAiEndpoint: 'https://api.openai.com'
 }
 
-const excludeFromProfile = {
+const excludeFromProfile: Record<string, boolean> = {
   messages: true,
   user: true,
   isDirty: true
@@ -198,14 +200,12 @@ const systemPromptSettings: ChatSetting[] = [
         name: 'Profile Name',
         title: 'How this profile is displayed in the select list.',
         type: 'text'
-        // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
         key: 'profileDescription',
         name: 'Description',
         title: 'How this profile is displayed in the select list.',
         type: 'textarea'
-        // hide: (chatId) => { return !getChatSettingValueByKey(chatId, 'useSystemPrompt') }
       },
       {
         key: 'useSystemPrompt',
@@ -381,54 +381,6 @@ const summarySettings: ChatSetting[] = [
       }
 ]
 
-// const responseAlterationSettings: ChatSetting[] = [
-//       {
-//         key: 'useResponseAlteration',
-//         name: 'Alter Responses',
-//         header: 'Automatic Response Alteration',
-//         headerClass: 'is-info',
-//         title: 'When an undesired response is encountered, try to alter it in effort to improve future responses.',
-//         type: 'boolean',
-//         hide: () => true
-//       },
-//       {
-//         key: 'responseAlterations',
-//         name: 'Alterations',
-//         title: 'Add find/replace or re-prompts.',
-//         header: 'Profile / Presets',
-//         headerClass: 'is-info',
-//         settings: [
-//           {
-//             key: 'type',
-//             type: 'select',
-//             name: 'Alteration Type',
-//             default: 'replace',
-//             options: [{
-//               value: 'replace',
-//               text: 'Regexp Find / Replace'
-//             }, {
-//               value: 'prompt',
-//               text: 'Re-prompt with Instructions'
-//             }]
-//           },
-//           {
-//             key: 'match',
-//             type: 'text',
-//             name: 'Match Expression',
-//             title: 'Regular expression used to match '
-//           },
-//           {
-//             key: 'replace',
-//             type: 'text',
-//             name: 'Alteration',
-//             title: 'Regexp Replacement or Re-prompt'
-//           }
-//         ],
-//         type: 'subset',
-//         hide: (chatId) => !getChatSettings(chatId).useResponseAlteration!
-//       }
-// ]
-
 const modelSetting: ChatSetting & SettingSelect = {
       key: 'model',
       name: 'Model',
@@ -447,7 +399,6 @@ const chatSettingsList: ChatSetting[] = [
       profileSetting,
       ...systemPromptSettings,
       ...summarySettings,
-      // ...responseAlterationSettings,
       modelSetting,
       {
         key: 'stream',
@@ -668,7 +619,6 @@ const chatSettingsList: ChatSetting[] = [
         //     Generally, leading space plus common lower case word will more often result in a single token
         //     See: https://platform.openai.com/tokenizer
         apiTransform: (chatId, setting, val:Record<string, number>) => {
-          // console.log('logit_bias', val, getChatSettings(chatId).logit_bias)
           if (!val) return null
           const tokenized:Record<number, number> = Object.entries(val).reduce((a, [k, v]) => {
             const tokens:number[] = getTokens(getChatSettings(chatId).model, k)

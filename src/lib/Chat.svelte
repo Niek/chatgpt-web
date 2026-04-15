@@ -21,7 +21,7 @@
   import Messages from './Messages.svelte'
   import { restartProfile } from './Profiles.svelte'
   import { afterUpdate, onMount, onDestroy } from 'svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import {
     faArrowUpFromBracket,
     faPaperPlane,
@@ -37,7 +37,7 @@
   import { autoGrowInputOnEvent, scrollToBottom, sizeTextElements } from './Util.svelte'
   import ChatSettingsModal from './ChatSettingsModal.svelte'
   import Footer from './Footer.svelte'
-  import { openModal } from 'svelte-modals'
+  import { openModal } from 'svelte-modals/legacy'
   import PromptInput from './PromptInput.svelte'
   import { ChatRequest } from './ChatRequest.svelte'
   import { getModelDetail } from './Models.svelte'
@@ -127,7 +127,7 @@
       recognition = new window.SpeechRecognition()
     } else if ('webkitSpeechRecognition' in window) {
       // @ts-ignore
-      recognition = new window.webkitSpeechRecognition() // eslint-disable-line new-cap
+      recognition = new window.webkitSpeechRecognition()  
     }
 
     if (recognition) {
@@ -161,8 +161,6 @@
   // Scroll to the bottom of the chat on update
   afterUpdate(() => {
     sizeTextElements()
-    // Scroll to the bottom of the page after any updates to the messages array
-    // focusInput()
   })
 
   // Scroll to the bottom of the chat on update
@@ -187,7 +185,6 @@
 
     // Clear the input value
     input.value = ''
-    // input.blur()
     focusInput()
   }
 
@@ -365,17 +362,9 @@
     <div class="level-item">
       <p class="subtitle is-5">
         <span>{chat.name || `Chat ${chat.id}`}</span>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click|preventDefault={promptRename}><Fa icon={faPenToSquare} /></a>
-        <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click|preventDefault={suggestName}><Fa icon={faLightbulb} /></a>
-        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Copy this chat" on:click|preventDefault={() => { copyChat(chatId) }}><Fa icon={faClone} /></a> -->
-        <!-- <a href={'#'} class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Delete this chat" on:click|preventDefault={deleteChat}><Fa icon={faTrash} /></a> -->
+        <button type="button" class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Rename chat" on:click={promptRename}><Fa icon={faPenToSquare} /></button>
+        <button type="button" class="greyscale ml-2 is-hidden has-text-weight-bold editbutton" title="Suggest a chat name" on:click={suggestName}><Fa icon={faLightbulb} /></button>
       </p>
-    </div>
-  </div>
-
-  <div class="level-right">
-    <div class="level-item">
-      <!-- <button class="button is-warning" on:click={() => { clearMessages(chatId); window.location.reload() }}><span class="greyscale mr-2"><Fa icon={faTrash} /></span> Clear messages</button> -->
     </div>
   </div>
 </nav>
@@ -412,7 +401,7 @@
         }}
         on:input={e => autoGrowInputOnEvent(e)}
         bind:this={input}
-      />
+      ></textarea>
     </p>
     <p class="control mic" class:is-hidden={!recognition}>
       <button class="button" class:is-disabled={chatRequest.updating} class:is-pulse={recording} on:click|preventDefault={recordToggle}
@@ -441,7 +430,6 @@
     </p>
     {/if}
   </form>
-  <!-- a target to scroll to -->
   <div class="content has-text-centered running-total-container">
     {#each Object.entries(chat.usage || {}) as [model, usage]}
     <p class="is-size-7 running-totals">

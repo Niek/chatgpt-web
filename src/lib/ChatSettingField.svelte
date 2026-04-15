@@ -1,12 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  // import { getProfile } from './Profiles.svelte'
   import { cleanSettingValue, setChatSettingValue } from './Storage.svelte'
   import type { Chat, ChatSetting, ChatSettings, ControlAction, FieldControl, SettingPrompt } from './Types.svelte'
   import { autoGrowInputOnEvent, errorNotice, valueOf } from './Util.svelte'
-  // import { replace } from 'svelte-spa-router'
-  import Fa from 'svelte-fa/src/fa.svelte'
-  import { openModal } from 'svelte-modals'
+  import Fa from 'svelte-fa'
+  import { openModal } from 'svelte-modals/legacy'
   import PromptConfirm from './PromptConfirm.svelte'
   import { afterUpdate, onMount } from 'svelte'
 
@@ -14,7 +12,6 @@
   export let chatSettings:ChatSettings
   export let chat:Chat
   export let chatDefaults:Record<string, any>
-  export let originalProfile:String
   export let rkey:number = 0
 
 
@@ -47,11 +44,6 @@
     placeholder = valueOf(chatId, setting.placeholder)
     buildFieldControls()
   })
-
-
-  if (originalProfile) {
-    // eventually...
-  }
 
   const dispatch = createEventDispatcher()
 
@@ -100,7 +92,6 @@
       if (val === newVal) return
       try {
         if ((typeof setting.afterChange === 'function') && setting.afterChange(chatId, setting, chatSettings[setting.key])) {
-          // console.log('Refreshed from setting', setting.key, chatSettings[setting.key], val)
           refreshSettings()
         }
       } catch (e) {
@@ -206,32 +197,31 @@
             on:change={e => queueSettingValueChange(e, setting)}
           />
         {:else if setting.type === 'select' || setting.type === 'select-number'}
-          <!-- <div class="select"> -->
-            <div class="select" class:control={fieldControls.length}>
-            {#key rkey}
-            <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
-              {#each setting.options as option}
-                <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]} disabled={option.disabled}>{option.text}</option>
-              {/each}
-            </select>
-            {/key}
-            </div>
-            {#each fieldControls as cont}
-            <div class="control">
-              <button title={cont.text} on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
-                {#if cont.text}
-                <span class="text">
-                  <Fa icon={cont.icon} />
-                </span> 
-                {/if}
-                {#if cont.icon}
-                <span class="icon">
-                  <Fa icon={cont.icon} />
-                </span> 
-                {/if}
-              </button>
-            </div>
+          <div class="select" class:control={fieldControls.length}>
+          {#key rkey}
+          <select id="settings-{setting.key}" title="{setting.title}" on:change={e => queueSettingValueChange(e, setting) } >
+            {#each setting.options as option}
+              <option class:is-default={option.value === chatDefaults[setting.key]} value={option.value} selected={option.value === chatSettings[setting.key]} disabled={option.disabled}>{option.text}</option>
             {/each}
+          </select>
+          {/key}
+          </div>
+          {#each fieldControls as cont}
+          <div class="control">
+            <button title={cont.text} on:click={() => { cont.action && cont.action(chatId, setting, chatSettings[setting.key]); refreshSettings() }} class="button {cont.class || ''}">
+              {#if cont.text}
+              <span class="text">
+                <Fa icon={cont.icon} />
+              </span> 
+              {/if}
+              {#if cont.icon}
+              <span class="icon">
+                <Fa icon={cont.icon} />
+              </span> 
+              {/if}
+            </button>
+          </div>
+          {/each}
 
         {:else if setting.type === 'text'}
           <div class="field">

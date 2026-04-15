@@ -3,12 +3,12 @@
   import { afterUpdate, createEventDispatcher, onMount } from 'svelte'
   import { deleteMessage, deleteSummaryMessage, truncateFromMessage, submitExitingPromptsNow, continueMessage, updateMessages } from './Storage.svelte'
   import { getPrice } from './Stats.svelte'
-  import SvelteMarkdown from 'svelte-markdown'
+  import SvelteMarkdown from '@humanspeak/svelte-markdown'
   import type { Message, Model, Chat } from './Types.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import { faTrash, faDiagramPredecessor, faDiagramNext, faCircleCheck, faPaperPlane, faEye, faEyeSlash, faEllipsis, faDownload, faClipboard } from '@fortawesome/free-solid-svg-icons/index'
   import { errorNotice, scrollToMessage } from './Util.svelte'
-  import { openModal } from 'svelte-modals'
+  import { openModal } from 'svelte-modals/legacy'
   import PromptConfirm from './PromptConfirm.svelte'
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
@@ -214,6 +214,13 @@
     document.body.removeChild(a)
   }
 
+  const editOnKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      edit()
+    }
+  }
+
 </script>
 
 <article
@@ -234,9 +241,19 @@
   <div class="message-body content">
  
     {#if editing}
-      <form class="message-edit" on:submit|preventDefault={update} on:keydown={keydown}>
-        <div id={'edit-' + message.uuid} class="message-editor" bind:innerText={message.content} contenteditable
-        on:input={update} on:blur={exit} />
+      <form class="message-edit" on:submit|preventDefault={update}>
+        <div
+          id={'edit-' + message.uuid}
+          class="message-editor"
+          bind:innerText={message.content}
+          contenteditable
+          on:input={update}
+          on:blur={exit}
+          on:keydown={keydown}
+          role="textbox"
+          tabindex="0"
+          aria-label="Edit message"
+        ></div>
       </form>
         {#if imageUrl}
           <img src={imageUrl} alt="">
@@ -244,10 +261,13 @@
     {:else}
       <div 
         class="message-display" 
-         
         on:touchend={editOnDoubleTap}
-          on:dblclick|preventDefault={() => edit()}
-        >
+        on:dblclick|preventDefault={() => edit()}
+        on:keydown={editOnKeydown}
+        role="button"
+        tabindex="0"
+        aria-label="Edit message"
+      >
         {#if message.summary && !message.summary.length}
         <p><b>Summarizing...</b></p>
         {/if}
@@ -255,7 +275,7 @@
         <SvelteMarkdown 
           source={displayMessage} 
           options={markdownOptions} 
-          renderers={{ code: Code, html: Code }}
+          renderers={{ code: Code }}
         />
         {/key}
         {#if imageUrl}
@@ -276,47 +296,47 @@
   <div class="tool-drawer">
     <div class="button-pack">
       {#if message.finish_reason === 'length' || message.finish_reason === 'abort'}
-      <a
-        href={'#'}
+      <button
+        type="button"
         title="Continue "
         class="msg-incomplete button is-small"
-        on:click|preventDefault={() => {
+        on:click={() => {
           continueIncomplete()
         }}
       >
       <span class="icon"><Fa icon={faEllipsis} /></span>
-      </a>
+      </button>
       {/if}
       {#if message.summarized}
-      <a
-        href={'#'}
+      <button
+        type="button"
         title="Jump to summary"
         class="msg-summary button is-small"
-        on:click|preventDefault={() => {
+        on:click={() => {
           scrollToMessage(message.summarized)
         }}
       >
       <span class="icon"><Fa icon={faDiagramNext} /></span>
-      </a>
+      </button>
       {/if}
       {#if message.summary}
-      <a
-        href={'#'}
+      <button
+        type="button"
         title="Jump to summarized"
         class="msg-summarized button is-small"
-        on:click|preventDefault={() => {
+        on:click={() => {
           scrollToMessage(message.summary)
         }}
       >
       <span class="icon"><Fa icon={faDiagramPredecessor} /></span>
-      </a>
+      </button>
       {/if}
       {#if !message.summarized}
-      <a
-        href={'#'}
+      <button
+        type="button"
         title="Delete this message"
         class="msg-delete button is-small"
-        on:click|preventDefault={() => {
+        on:click={() => {
           checkDelete()
         }}
       >
@@ -325,14 +345,14 @@
       {:else}
       <span class="icon"><Fa icon={faTrash} /></span>
       {/if}
-      </a>
+      </button>
       {/if}
       {#if !isImage && !message.summarized && !isError}
-        <a
-          href={'#'}
+        <button
+          type="button"
           title="Truncate from here and send"
           class="msg-truncate button is-small"
-          on:click|preventDefault={() => {
+          on:click={() => {
             checkTruncate()
           }}
         >
@@ -341,14 +361,14 @@
         {:else}
         <span class="icon"><Fa icon={faPaperPlane} /></span>
         {/if}
-        </a>
+        </button>
       {/if}
       {#if !isImage && !message.summarized && !isSystem && !isError}
-        <a
-          href={'#'}
+        <button
+          type="button"
           title={(message.suppress ? 'Uns' : 'S') + 'uppress message from submission'}
           class="msg-supress button is-small"
-          on:click|preventDefault={() => {
+          on:click={() => {
             setSuppress(!message.suppress)
           }}
         >
@@ -357,31 +377,31 @@
         {:else}
         <span class="icon"><Fa icon={faEyeSlash} /></span>
         {/if}
-        </a>
+        </button>
       {/if}
       {#if !isImage}
-        <a
-          href={'#'}
+        <button
+          type="button"
           title="Copy to Clipboard"
           class="msg-image button is-small"
-          on:click|preventDefault={() => {
+          on:click={() => {
             navigator.clipboard.writeText(message.content)
           }}
         >
         <span class="icon"><Fa icon={faClipboard} /></span>
-        </a>
+        </button>
       {/if}
       {#if imageUrl}
-        <a
-          href={'#'}
+        <button
+          type="button"
           title="Download Image"
           class="msg-image button is-small"
-          on:click|preventDefault={() => {
+          on:click={() => {
             downloadImage()
           }}
         >
         <span class="icon"><Fa icon={faDownload} /></span>
-        </a>
+        </button>
       {/if}
       </div>
 

@@ -2,7 +2,7 @@
   import { replace } from 'svelte-spa-router'
   import type { Chat } from './Types.svelte'
   import { deleteChat, pinMainMenu, saveChatStore } from './Storage.svelte'
-  import Fa from 'svelte-fa/src/fa.svelte'
+  import Fa from 'svelte-fa'
   import { faTrash, faCircleCheck, faPencil } from '@fortawesome/free-solid-svg-icons/index'
   import { faMessage } from '@fortawesome/free-regular-svg-icons/index'
   import { onMount } from 'svelte'
@@ -82,20 +82,34 @@
 
 <li>
   {#if editing}
-    <div id="chat-menu-item-{chat.id}" class="chat-name-editor" on:keydown={keydown} contenteditable bind:innerText={chat.name} on:blur={update} />
+    <div
+      id="chat-menu-item-{chat.id}"
+      class="chat-name-editor"
+      on:keydown={keydown}
+      contenteditable
+      bind:innerText={chat.name}
+      on:blur={update}
+      role="textbox"
+      tabindex="0"
+      aria-label="Edit chat name"
+    ></div>
   {:else}
-  <a 
-    href={`#/chat/${chat.id}`}
-    class="chat-menu-item"
-    class:is-waiting={waitingForConfirm} class:is-disabled={!hasActiveModels()} class:is-active={activeChatId === chat.id}
-    on:click={() => { $pinMainMenu = false }} >
+  <div class="chat-menu-item-wrap">
+    <a 
+      href={`#/chat/${chat.id}`}
+      class="chat-menu-item"
+      class:is-waiting={waitingForConfirm}
+      class:is-disabled={!hasActiveModels()}
+      class:is-active={activeChatId === chat.id}
+      on:click={() => { $pinMainMenu = false }} >
+      <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
+    </a>
     {#if waitingForConfirm}
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faCircleCheck} /></a>
+    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Confirm delete chat"><Fa icon={faCircleCheck} /></button>
     {:else}
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold edit-button" href={'$'} on:click|preventDefault={() => edit()}><Fa icon={faPencil} /></a>
-    <a class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" href={'$'} on:click|preventDefault={() => delChat()}><Fa icon={faTrash} /></a>
+    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold edit-button" on:click={edit} aria-label="Rename chat"><Fa icon={faPencil} /></button>
+    <button type="button" class="is-pulled-right is-hidden px-1 py-0 has-text-weight-bold delete-button" on:click={delChat} aria-label="Delete chat"><Fa icon={faTrash} /></button>
     {/if}
-    <span class="chat-item-name"><Fa class="mr-2 chat-icon" size="xs" icon="{faMessage}"/>{chat.name || `Chat ${chat.id}`}</span>
-  </a>
+  </div>
   {/if}
 </li>
