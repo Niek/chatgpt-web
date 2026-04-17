@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { router } from 'svelte-spa-router'
   import ChatMenuItem from './ChatMenuItem.svelte'
   import { chatsStorage, pinMainMenu, checkStateChange, getChatSortOption, setChatSortOption } from './Storage.svelte'
   import Fa from 'svelte-fa'
@@ -10,9 +9,9 @@
   import { startNewChatWithWarning } from './Util.svelte'
   import { chatSortOptions } from './Settings.svelte'
   import { hasActiveModels } from './Models.svelte'
+  import { activeChatId } from './RouteState'
 
   $: sortedChats = $chatsStorage.sort(getChatSortOption().sortFn)
-  $: activeChatId = router.params?.chatId ? parseInt(router.params.chatId) : undefined
 
   let sortOption = getChatSortOption()
   let hasModels = hasActiveModels()
@@ -37,7 +36,7 @@
           <p class="ml-2 is-size-5 has-text-weight-bold">ChatGPT-web</p>
         </a>
         <div class="chat-option-menu navbar-item is-pulled-right">
-          <ChatOptionMenu bind:chatId={activeChatId} />
+          <ChatOptionMenu chatId={$activeChatId} />
         </div>
       </div>
     <ul class="menu-list menu-expansion-list">
@@ -47,7 +46,7 @@
         {#key $checkStateChange}
         {#each sortedChats as chat, i}       
         {#key chat.id}
-        <ChatMenuItem activeChatId={activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
+        <ChatMenuItem activeChatId={$activeChatId} chat={chat} prevChat={sortedChats[i - 1]} nextChat={sortedChats[i + 1]} />
         {/key}
         {/each}
         {/key}
@@ -89,7 +88,7 @@
           ></div>
         {:else}
         <div class="level-item">
-          <button on:click={async () => { $pinMainMenu = false; await startNewChatWithWarning(activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!hasModels}
+          <button on:click={async () => { $pinMainMenu = false; await startNewChatWithWarning($activeChatId) }} class="panel-block button" title="Start new chat with default profile" class:is-disabled={!hasModels}
             ><span class="greyscale mr-1"><Fa icon={faSquarePlus} /></span> New chat</button>
           </div>
         {/if}

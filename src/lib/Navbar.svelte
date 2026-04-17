@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { router } from 'svelte-spa-router'
   import { pinMainMenu } from './Storage.svelte'
   import logo from '../assets/logo.svg'
   import ChatOptionMenu from './ChatOptionMenu.svelte'
   import Fa from 'svelte-fa'
   import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons/index'
-
-$: activeChatId = router.params?.chatId ? parseInt(router.params.chatId) : undefined
+  import { activeChatId } from './RouteState'
 </script>
 
 <nav class="navbar is-fixed-top" aria-label="main navigation">
@@ -32,7 +30,7 @@ $: activeChatId = router.params?.chatId ? parseInt(router.params.chatId) : undef
       <p class="ml-2 is-size-6 has-text-weight-bold">ChatGPT-web</p>
     </a>
     <div class="chat-option-menu navbar-item is-pulled-right">
-      <ChatOptionMenu bind:chatId={activeChatId} />
+      <ChatOptionMenu chatId={$activeChatId} />
     </div>
   </div>
 </nav>

@@ -12,6 +12,7 @@
   import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
   import { set as setOpenAI } from './lib/providers/openai/util.svelte'
   import { hasActiveModels } from './lib/Models.svelte'
+  import { routeLocation } from './lib/RouteState'
 
   // Check if the API key is passed in as a "key" query parameter - if so, save it
   // Example: https://niek.github.io/chatgpt-web/#/?key=sk-...
@@ -45,12 +46,12 @@
     '*': Home
   }
 
-  const onLocationChange = (...args:any) => {
-    // close all modals on route change
-    dispatchModalEsc()
-  }
+  let didInitializeRoute = false
 
-  $: onLocationChange(router.location)
+  $: if ($routeLocation) {
+    if (didInitializeRoute) dispatchModalEsc()
+    else didInitializeRoute = true
+  }
 
 </script>
 
@@ -59,7 +60,7 @@
   <Sidebar />
 </div>
 <div class="main-content-column" id="content">
-  {#key router.location}
+  {#key $routeLocation}
     <Router {routes} onConditionsFailed={() => replace('/')}/>
   {/key}
 </div>
