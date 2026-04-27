@@ -28,7 +28,7 @@
     "@types/node": "^25.6.0",
     "bulma": "^1.0.4",
     "bulma-prefers-dark": "^0.1.0-beta.1",
-    "copy-to-clipboard": "^3.3.3",
+    "copy-to-clipboard": "^4.0.2",
     "dexie": "^4.4.2",
     "dompurify": "^3.4.1",
     "eslint": "^10.2.1",
