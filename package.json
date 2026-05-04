@@ -41,7 +41,7 @@
     "sass": "^1.99.0",
     "stacking-order": "^2.0.0",
     "svelte": "^5.55.4",
-    "svelte-check": "^4.4.6",
+    "svelte-check": "^4.4.7",
     "svelte-eslint-parser": "^1.6.0",
     "svelte-fa": "^4.0.4",
     "svelte-highlight": "^7.9.0",
