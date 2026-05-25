@@ -54,6 +54,12 @@ export default defineConfig(({ command }) => {
       plugins,
       css: {
         preprocessorOptions: scssPreprocessorOptions
+      },
+      server: {
+        allowedHosts: true
+      },
+      preview: {
+        allowedHosts: true
       }
     }
   }
