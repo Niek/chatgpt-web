@@ -50,6 +50,20 @@ npm run build
 
 This command generates a `dist` folder containing the production build of your project, ready for deployment.
 
+### Using an OpenAI-Compatible API Endpoint
+
+By default, ChatGPT-web sends requests to OpenAI. To use a local inference
+server, private gateway, or another OpenAI-compatible endpoint, set
+`VITE_API_BASE` in your `.env` file:
+
+```bash
+VITE_API_BASE=https://api.openai.com/v1
+```
+
+The endpoint paths can also be customized with `VITE_ENDPOINT_COMPLETIONS`,
+`VITE_ENDPOINT_GENERATIONS`, `VITE_ENDPOINT_MODELS`, and
+`VITE_ENDPOINT_EMBEDDINGS`.
+
 ### Incorporating Awesome ChatGPT Prompts
 
 The *[Awesome ChatGPT Prompts](/src/awesome-chatgpt-prompts/)* repository is a treasure trove of prompt examples designed for use with the ChatGPT model. This collection can inspire new conversations or expand existing ones with the model. Get involved by adding your prompts or utilizing the repository to inspire your contributions:
