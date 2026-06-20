@@ -269,6 +269,7 @@ select option.is-default {
 
 [data-svelte-typeahead] {
   display: flex;
+  width: 100%;
   background-color: transparent !important;
   
   &[aria-expanded="true"] {
@@ -278,16 +279,32 @@ select option.is-default {
       @extend .dropdown-content;
       max-height: 60vh;
       overflow: auto;
+
+      @media only screen and (max-width: 768px) {
+        max-height: 48vh;
+      }
   
       > li {
         padding: 0;
         border-bottom: 0 none;
 
-        &.selected {
-          @media (prefers-color-scheme: dark) {
+        @media (prefers-color-scheme: dark) {
+          &:hover,
+          &.selected {
             background-color: #2a2a2a;
           }
         }
+
+        > .dropdown-item {
+          width: 100%;
+          white-space: normal;
+          background-color: transparent;
+        }
+      }
+
+      mark {
+        color: inherit;
+        background-color: rgba(114, 137, 255, .3);
       }
     }
   }
@@ -298,6 +315,7 @@ select option.is-default {
     input {
       @extend .button;
       @extend .default-text;
+      width: 100%;
       text-align: center;
   
       &::placeholder {
