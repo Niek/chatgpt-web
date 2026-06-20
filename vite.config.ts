@@ -24,7 +24,9 @@ export default defineConfig(({ command }) => {
               content: [
                 './index.html',
                 './src/**/*.{svelte,js,ts}',
-                './node_modules/svelte-fa/dist/*.svelte'
+                './node_modules/svelte-fa/dist/*.svelte',
+                './node_modules/svelte-search/src/*.svelte',
+                './node_modules/svelte-typeahead/src/*.svelte'
               ],
               safelist: [
                 'pre',
