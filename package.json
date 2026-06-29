@@ -25,7 +25,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2.11.3",
     "@tsconfig/svelte": "^5.0.8",
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.0.1",
     "bulma": "^1.0.4",
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "copy-to-clipboard": "^4.0.2",
