@@ -47,7 +47,7 @@
     "svelte-highlight": "^7.11.0",
     "svelte-local-storage-store": "^0.6.4",
     "svelte-modals": "^2.0.1",
-    "svelte-spa-router": "^5.1.0",
+    "svelte-spa-router": "^5.1.1",
     "svelte-typeahead": "^5.0.2",
     "svelte-use-click-outside": "^1.1.0",
     "tslib": "^2.8.1",
