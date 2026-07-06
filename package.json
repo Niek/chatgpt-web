@@ -44,7 +44,7 @@
     "svelte-check": "^4.6.0",
     "svelte-eslint-parser": "^1.8.0",
     "svelte-fa": "^4.0.4",
-    "svelte-highlight": "^7.11.0",
+    "svelte-highlight": "^7.14.0",
     "svelte-local-storage-store": "^0.6.4",
     "svelte-modals": "^2.0.1",
     "svelte-spa-router": "^5.1.0",
