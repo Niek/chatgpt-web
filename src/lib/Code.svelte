@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Highlight } from 'svelte-highlight'
+  import Highlight from 'svelte-highlight/Highlight.svelte'
   import flourite from 'flourite'
 
   // Import both dark and light styles
