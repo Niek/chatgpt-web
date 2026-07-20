@@ -107,6 +107,10 @@
   }
 
   export const chatModels: Record<string, ModelDetail> = {
+    'gpt-5.6-sol': pricedChatModel(5, 0.5, 30, 1050000),
+    'gpt-5.6-terra': pricedChatModel(2.5, 0.25, 15, 1050000),
+    'gpt-5.6-luna': pricedChatModel(1, 0.1, 6, 1050000),
+    'gpt-5.5': pricedChatModel(5, 0.5, 30, 1050000),
     'gpt-5.4': pricedChatModel(2.5, 0.25, 15, 1050000),
     'gpt-5.4-mini': pricedChatModel(0.75, 0.075, 4.5, 400000),
     'gpt-5.4-nano': pricedChatModel(0.2, 0.02, 1.25, 400000),
@@ -118,7 +122,7 @@
     'gpt-4.1-mini': pricedChatModel(0.4, 0.1, 1.6, 1047576),
     'gpt-4.1-nano': pricedChatModel(0.1, 0.025, 0.4, 1047576),
     'gpt-4o': pricedChatModel(2.5, 1.25, 10, 128000),
-    o3: pricedChatModel(10, 2.5, 40, 200000, { temperature: 1 }),
+    o3: pricedChatModel(2, 0.5, 8, 200000, { temperature: 1 }),
     'o4-mini': pricedChatModel(1.1, 0.275, 4.4, 200000, { temperature: 1 }),
     'chatgpt-4o-latest': pricedChatModel(5, 0, 15, 128000)
   }

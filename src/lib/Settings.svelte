@@ -28,12 +28,12 @@ export const getDefaultModel = async (): Promise<Model> => {
 
   const models = await getChatModelOptions()
   const enabledModels = models.filter((option) => !option.disabled)
-  const preferredModels: Model[] = ['gpt-5.4', 'gpt-5', 'gpt-5-chat-latest', 'gpt-4.1']
+  const preferredModels: Model[] = ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4', 'gpt-5', 'gpt-5-chat-latest', 'gpt-4.1']
   const preferredModel = preferredModels.find((model) =>
     enabledModels.some((option) => option.value === model)
   )
 
-  return preferredModel || String(enabledModels[0]?.value || models[0]?.value || 'gpt-5.4')
+  return preferredModel || String(enabledModels[0]?.value || models[0]?.value || 'gpt-5.6-sol')
 }
 
 export const getChatSettingList = (): ChatSetting[] => {
