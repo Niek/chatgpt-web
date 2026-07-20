@@ -19,7 +19,7 @@
     "@fortawesome/free-regular-svg-icons": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.0",
     "@fullhuman/postcss-purgecss": "^8.0.0",
-    "@humanspeak/svelte-markdown": "^1.7.10",
+    "@humanspeak/svelte-markdown": "^1.8.4",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@rollup/plugin-dsv": "^4.0.0",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
