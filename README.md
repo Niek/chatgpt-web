@@ -88,6 +88,23 @@ For instances where immediate API responses are preferred, consider utilizing th
   * To specify the length of the response, use `l` followed by the desired number of sentences (e.g., `l10` for a response of 10 sentences).
   * For instance, sending `d2 l10` configures the mocked API to delay the response by 2 seconds and to include 10 sentences.
 
+## Using OrcaRouter
+
+[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible model routing gateway that exposes 150+ models from OpenAI, Anthropic, Google, DeepSeek, Qwen, MiniMax, xAI and others behind a single endpoint and API key, with gateway-level security controls for AI agents.
+
+To use it:
+
+1. Get an API key at https://www.orcarouter.ai/console (keys start with `sk-orca-`).
+2. On the home screen, choose **OrcaRouter** from the "Provider preset" dropdown (or enter `https://api.orcarouter.ai` as the API BASE URI) and paste your key.
+3. Pick any model exposed by the gateway in a chat (e.g. `orcarouter/auto`, `deepseek/deepseek-v4-flash`, `openai/gpt-4o`).
+
+Alternatively, set it via the `.env` file:
+
+```
+VITE_API_BASE=https://api.orcarouter.ai/v1
+VITE_OPENAI_API_KEY="sk-orca-..."
+```
+
 ## Desktop app
 
 To use ChatGPT-web as a desktop application:

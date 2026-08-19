@@ -57,6 +57,25 @@
       return false
     }
   }
+
+  // Named presets for OpenAI-compatible API endpoints.  Choosing one
+  // validates the endpoint the same way the "Save" button does.
+  const endpointPresets: Record<string, string> = {
+    openai: 'https://api.openai.com',
+    orcarouter: 'https://api.orcarouter.ai'
+  }
+
+  let endpointPreset = ''
+
+  const applyEndpointPreset = async (event: Event) => {
+    const preset = (event.target as HTMLSelectElement).value
+    endpointPreset = ''
+    if (!preset) return
+    const baseUri = endpointPresets[preset]
+    if (await testApiEndpoint(baseUri)) {
+      setGlobalSettingValueByKey('openAiEndpoint', baseUri)
+    }
+  }
 </script>
 
 <section class="section">
@@ -122,6 +141,16 @@
   <article class="message" class:is-danger={!hasModels || apiError} class:is-warning={!openAiEndpoint} class:is-info={openAiEndpoint && !apiError}>
     <div class="message-body">
       Set the API BASE URI for alternative OpenAI-compatible endpoints:
+      <div class="field my-3">
+        <label class="label" for="apiEndpointPreset">Provider preset</label>
+        <div class="select">
+          <select id="apiEndpointPreset" bind:value={endpointPreset} on:change={applyEndpointPreset}>
+            <option value="">Custom...</option>
+            <option value="openai">OpenAI</option>
+            <option value="orcarouter">OrcaRouter</option>
+          </select>
+        </div>
+      </div>
       <form
         class="field has-addons has-addons-right"
         on:submit|preventDefault={async (event) => {
