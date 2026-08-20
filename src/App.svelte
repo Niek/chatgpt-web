@@ -56,9 +56,7 @@
   <Sidebar />
 </div>
 <div class="main-content-column" id="content">
-  {#key $routeLocation}
-    <Router {routes} onConditionsFailed={() => replace('/')}/>
-  {/key}
+  <Router {routes} onConditionsFailed={() => replace('/')}/>
 </div>
 
 <Modals>
