@@ -29,11 +29,10 @@
   import { exportProfileAsJSON } from './Export.svelte'
   import { onMount, afterUpdate } from 'svelte'
   import ChatSettingField from './ChatSettingField.svelte'
-  import { getModelMaxTokens } from './Stats.svelte'
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals/legacy'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
+  import { getChatModelOptions } from './Models.svelte'
   import { faClipboard } from '@fortawesome/free-regular-svg-icons'
   import { clickOutside } from 'svelte-use-click-outside'
 
@@ -48,7 +47,6 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
-  const imageModelSetting = getChatSettingObjectByKey('imageGenerationModel') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
   const excludeFromProfile = getExcludeFromProfile()
 
@@ -185,7 +183,6 @@
     const profileSelect = getChatSettingObjectByKey('profile') as ChatSetting & SettingSelect
     profileSelect.options = await getProfileSelect()
     chatDefaults.profile = await getDefaultProfileKey()
-    chatDefaults.max_completion_tokens = getModelMaxTokens(chatSettings.model)
     defaultProfile = await getDefaultProfileKey()
     isDefault = defaultProfile === chatSettings.profile
   }
@@ -204,7 +201,6 @@
     // Update the models in the settings
     if (modelSetting) {
       modelSetting.options = await getChatModelOptions()
-      imageModelSetting.options = await getImageModelOptions()
     }
     // Refresh settings modal
     showSettingsModal++

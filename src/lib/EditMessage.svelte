@@ -12,6 +12,7 @@
   import PromptConfirm from './PromptConfirm.svelte'
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
+  import DOMPurify from 'dompurify'
 
   export let message:Message
   export let chatId:number
@@ -36,6 +37,121 @@
     html: buildUnsupportedHTML()
   }
 
+  type DisplayPart =
+    | { type: 'markdown'; content: string }
+    | { type: 'svg'; content: string }
+    | { type: 'pending'; content: string }
+
+  const svgBlockPattern = /(?:```(?:svg|xml)?\s*)?(<svg\b[\s\S]*?<\/svg\s*>)(?:\s*```)?/gi
+  const voidHtmlElements = new Set([
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+    'link', 'meta', 'param', 'source', 'track', 'wbr'
+  ])
+
+  const findUnclosedMarkup = (content: string): { index: number; svg: boolean } | undefined => {
+    const stack: { name: string; index: number }[] = []
+    let index = 0
+
+    while (index < content.length) {
+      const tagIndex = content.indexOf('<', index)
+      if (tagIndex < 0) break
+
+      if (content.startsWith('<!--', tagIndex)) {
+        const commentEnd = content.indexOf('-->', tagIndex + 4)
+        if (commentEnd < 0) {
+          return { index: stack[0]?.index ?? tagIndex, svg: stack.some(tag => tag.name === 'svg') }
+        }
+        index = commentEnd + 3
+        continue
+      }
+
+      const tagMatch = content.slice(tagIndex).match(/^<\/?([a-z][\w:-]*)/i)
+      if (!tagMatch) {
+        const suffix = content.slice(tagIndex)
+        if (/^<(?:\/?)$/.test(suffix) || (/^<(?:!|\?)/.test(suffix) && !suffix.includes('>'))) {
+          return { index: stack[0]?.index ?? tagIndex, svg: stack.some(tag => tag.name === 'svg') }
+        }
+        index = tagIndex + 1
+        continue
+      }
+
+      const tagRemainder = content.slice(tagIndex + tagMatch[0].length)
+      if (tagRemainder && !/^(?:\s|>|\/(?:\s*>|\s*$))/.test(tagRemainder)) {
+        index = tagIndex + 1
+        continue
+      }
+
+      let quote = ''
+      let tagEnd = -1
+      for (let cursor = tagIndex + tagMatch[0].length; cursor < content.length; cursor++) {
+        const character = content[cursor]
+        if (quote) {
+          if (character === quote) quote = ''
+        } else if (character === '"' || character === "'") {
+          quote = character
+        } else if (character === '>') {
+          tagEnd = cursor
+          break
+        }
+      }
+
+      const name = tagMatch[1].toLowerCase()
+      if (tagEnd < 0) {
+        return {
+          index: stack[0]?.index ?? tagIndex,
+          svg: name === 'svg' || stack.some(tag => tag.name === 'svg')
+        }
+      }
+
+      const tag = content.slice(tagIndex, tagEnd + 1)
+      if (tag.startsWith('</')) {
+        const openIndex = stack.map(openTag => openTag.name).lastIndexOf(name)
+        if (openIndex >= 0) stack.splice(openIndex)
+      } else if (!/\/\s*>$/.test(tag) && !voidHtmlElements.has(name)) {
+        stack.push({ name, index: tagIndex })
+      }
+      index = tagEnd + 1
+    }
+
+    if (!stack.length) return
+    return { index: stack[0].index, svg: stack.some(tag => tag.name === 'svg') }
+  }
+
+  const svgDataUrl = (source: string): string => {
+    const sanitized = String(DOMPurify.sanitize(source, {
+      USE_PROFILES: { svg: true, svgFilters: true },
+      FORBID_TAGS: ['script', 'style', 'foreignobject'],
+      FORBID_ATTR: ['href', 'xlink:href']
+    }))
+    if (!/^<svg(?:\s|>)/i.test(sanitized)) return ''
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sanitized)}`
+  }
+
+  const buildDisplayParts = (content: string, streaming: boolean): DisplayPart[] => {
+    if (!isAssistant) return [{ type: 'markdown', content }]
+
+    const pendingMarkup = streaming ? findUnclosedMarkup(content) : undefined
+    const renderableContent = pendingMarkup
+      ? content.slice(0, pendingMarkup.index).replace(/```(?:html|svg|xml)?\s*$/i, '')
+      : content
+    const parts: DisplayPart[] = []
+    let offset = 0
+    for (const match of renderableContent.matchAll(svgBlockPattern)) {
+      const index = match.index || 0
+      if (index > offset) parts.push({ type: 'markdown', content: renderableContent.slice(offset, index) })
+      const image = svgDataUrl(match[1])
+      parts.push(image
+        ? { type: 'svg', content: image }
+        : { type: 'markdown', content: match[0] })
+      offset = index + match[0].length
+    }
+    if (offset < renderableContent.length) parts.push({ type: 'markdown', content: renderableContent.slice(offset) })
+    if (pendingMarkup) {
+      parts.push({ type: 'pending', content: pendingMarkup.svg ? 'Rendering SVG…' : 'Receiving markup…' })
+    }
+    return parts.length ? parts : [{ type: 'markdown', content: renderableContent }]
+  }
+
   const getDisplayMessage = ():string => {
     const content = message.content
     if (isSystem && chatSettings.hideSystemPrompt) {
@@ -51,21 +167,32 @@
   let defaultModel:Model
   let imageUrl:string
   let refreshCounter = 0
-  let displayMessage = message.content
+  let renderedContent:string
+  let renderedStreaming:boolean
+  let displayParts:DisplayPart[] = []
+
+  const updateDisplayParts = () => {
+    const content = getDisplayMessage()
+    const streaming = Boolean(message.streaming)
+    if (content === renderedContent && streaming === renderedStreaming) return
+    renderedContent = content
+    renderedStreaming = streaming
+    displayParts = buildDisplayParts(content, streaming)
+  }
 
   onMount(() => {
     defaultModel = chatSettings.model
     if (message?.image) {
       getImage(message.image.id).then(i => {
-        imageUrl = 'data:image/png;base64, ' + i.b64image
+        imageUrl = `data:${i.mediaType || 'image/png'};base64,${i.b64image}`
       })
     }
-    displayMessage = getDisplayMessage()
+    updateDisplayParts()
   })
 
   afterUpdate(() => {
     if (message.streaming && message.content.slice(-5).includes('```')) refreshCounter++
-    displayMessage = getDisplayMessage()
+    updateDisplayParts()
   })
 
   const edit = () => {
@@ -276,11 +403,19 @@
         <p><b>Summarizing...</b></p>
         {/if}
         {#key refreshCounter}
-        <SvelteMarkdown
-          source={displayMessage}
-          options={markdownOptions}
-          renderers={markdownRenderers}
-        />
+        {#each displayParts as part}
+          {#if part.type === 'svg'}
+            <img class="generated-svg" src={part.content} alt="Generated SVG">
+          {:else if part.type === 'pending'}
+            <p class="streaming-markup">{part.content}</p>
+          {:else}
+            <SvelteMarkdown
+              source={part.content}
+              options={markdownOptions}
+              renderers={markdownRenderers}
+            />
+          {/if}
+        {/each}
         {/key}
         {#if imageUrl}
           <img src={imageUrl} alt="">

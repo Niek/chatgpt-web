@@ -5,6 +5,7 @@ from lorem_text import lorem
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
@@ -15,6 +16,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+MOCK_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XSn1WQAAAABJRU5ErkJggg=="
+
+
+def stream_chat_completion(answer: str, model: str):
+    """Yield a deterministic OpenAI-compatible SSE response."""
+    chunk_size = 8
+    for offset in range(0, len(answer), chunk_size):
+        chunk = {
+            "id": "mock-stream",
+            "model": model,
+            "choices": [{
+                "index": 0,
+                "finish_reason": None,
+                "delta": {"content": answer[offset:offset + chunk_size]},
+            }],
+        }
+        yield f"data: {json.dumps(chunk)}\n\n"
+        time.sleep(0.08)
+
+    finished = {
+        "id": "mock-stream",
+        "model": model,
+        "choices": [{
+            "index": 0,
+            "finish_reason": "stop",
+            "delta": {},
+        }],
+    }
+    yield f"data: {json.dumps(finished)}\n\n"
+    yield "data: [DONE]\n\n"
 
 
 # Define a route to handle POST requests
@@ -46,6 +78,18 @@ async def post_data(data: dict):
     if lines:
         answer = "\n".join([lorem.sentence() for _ in range(int(lines))])
 
+    if 'mock svg' in instructions.lower():
+        answer = 'Here is the SVG:\n\n<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="180" rx="24" fill="#74aa9c"/><circle cx="92" cy="90" r="48" fill="#f4d06f"/><text x="160" y="100" fill="#102a2a" font-size="24" font-family="sans-serif">SVG rendered</text></svg>'
+
+    if 'mock html' in instructions.lower():
+        answer = 'Here is the HTML:\n\n<div><strong>HTML rendered</strong><p>Streaming markup stayed stable.</p></div>'
+
+    if data.get('stream'):
+        return StreamingResponse(
+            stream_chat_completion(answer, data.get('model', 'mock-model')),
+            media_type='text/event-stream',
+        )
+
     response = {
         "id": 0,
         "choices": [{
@@ -55,6 +99,28 @@ async def post_data(data: dict):
         }]
     }
     return response
+
+
+@app.post("/v1/images/generations")
+@app.post("/v1/images")
+async def generate_images(data: dict):
+    """Returns base64-encoded mock images for compatible image endpoints."""
+    count = max(1, min(int(data.get("n", 1)), 4))
+    return {
+        "created": int(time.time()),
+        "data": [
+            {
+                "b64_json": MOCK_IMAGE_B64,
+                "media_type": "image/png",
+            }
+            for _ in range(count)
+        ],
+        "usage": {
+            "input_tokens": 1,
+            "output_tokens": count,
+            "total_tokens": count + 1,
+        },
+    }
 
 
 @app.get('/v1/models')

@@ -3,7 +3,7 @@ import { setImage } from './ImageStore.svelte'
 import { countTokens, getModelDetail } from './Models.svelte'
 // TODO: Integrate API calls
 import { addMessage, getLatestKnownModel, setLatestKnownModel, subtractRunningTotal, updateMessages, updateRunningTotal } from './Storage.svelte'
-import type { Chat, ChatCompletionOpts, ChatImage, Message, Model, Response, Usage } from './Types.svelte'
+import type { Chat, ChatCompletionOpts, ChatImage, GeneratedImage, Message, Model, Response, Usage } from './Types.svelte'
 import { v4 as uuidv4 } from 'uuid'
 
 export class ChatCompletionResponse {
@@ -69,21 +69,18 @@ export class ChatCompletionResponse {
     return this.promptTokenCount
   }
 
-  async updateImageFromSyncResponse (images: string[], prompt: string, model: Model) {
-    this.setModel(model)
+  async updateImageFromSyncResponse (images: GeneratedImage[], prompt: string, model: Model, usage: Usage) {
+    this.model = model
     for (let i = 0; i < images.length; i++) {
-      const b64image = images[i]
       const message = {
         role: 'image',
         uuid: uuidv4(),
         content: prompt,
-        image: await setImage(this.chat.id, { b64image } as ChatImage),
+        image: await setImage(this.chat.id, images[i] as ChatImage),
         model,
-        usage: {
-          prompt_tokens: 0,
-          completion_tokens: 1,
-          total_tokens: 1
-        } as Usage
+        usage: i === 0
+          ? { ...usage }
+          : { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
       } as Message
       this.messages[i] = message
       if (this.opts.autoAddMessages) addMessage(this.chat.id, message)

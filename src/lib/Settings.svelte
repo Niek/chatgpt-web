@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { get } from 'svelte/store'
-    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, getProviderId, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -19,6 +19,15 @@ import {
 
 } from './Types.svelte'
 import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
+import { getImageEndpoint } from './ApiUtil.svelte'
+import { getProvider } from './providers/openai/providers'
+
+const getImageModelHelp = (): string => {
+  const provider = getProvider(getProviderId())
+  return provider.image?.suggestedModel
+    ? `Optional override. Blank uses <code>${provider.image.suggestedModel}</code>.`
+    : 'Enter an image model ID from your provider. Blank disables image generation.'
+}
 
 // We are adding default model names explicitly here to avoid
 // circular dependencies. Alternative would be a big refactor,
@@ -86,7 +95,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_completion_tokens: 512,
+  max_completion_tokens: null,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -372,11 +381,12 @@ const summarySettings: ChatSetting[] = [
       {
         key: 'imageGenerationModel',
         name: 'Image Generation Model',
-        header: 'Image Generation',
+        header: getImageModelHelp,
         headerClass: 'is-info',
-        title: 'Prompt an image with: show me an image of ...',
-        type: 'select',
-        options: []
+        title: 'Optionally override the provider default, then prompt an image with: show me an image of ...',
+        placeholder: () => getProvider(getProviderId()).image?.suggestedModel || 'Image model ID',
+        hide: () => !getImageEndpoint(getProviderId()),
+        type: 'text'
       }
 ]
 
@@ -448,14 +458,12 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'max_completion_tokens',
         name: 'Max Tokens',
-        title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_completion_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
+        title: 'Optional maximum number of tokens to generate. Leave blank to use the provider and model default.',
+        placeholder: 'Provider default',
         min: 1,
-        max: 32768,
+        max: 128000,
         step: 1,
-        type: 'number',
-        forceApi: true // Since default here is different than gpt default, will make sure we always send it
+        type: 'number'
       },
       {
         key: 'presence_penalty',

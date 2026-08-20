@@ -6,7 +6,7 @@
 
 export type Model = typeof supportedChatModelKeys[number];
 
-export type RequestType = 'chat' | 'instruct' | 'image'
+export type RequestType = 'chat' | 'instruct'
 
 export type Usage = {
     completion_tokens: number;
@@ -17,8 +17,11 @@ export type Usage = {
 export interface ChatImage {
     id: string;
     b64image: string;
+    mediaType?: string;
     chats: number[];
   }
+
+export type GeneratedImage = Pick<ChatImage, 'b64image' | 'mediaType'>
 
 export type Message = {
     role: 'user' | 'assistant' | 'system' | 'error' | 'image';
@@ -52,7 +55,7 @@ export type Request = {
     n?: number;
     stream?: boolean;
     stop?: string | null;
-    max_completion_tokens?: number;
+    max_completion_tokens?: number | null;
     presence_penalty?: number;
     frequency_penalty?: number;
     logit_bias?: Record<string, number> | null;
@@ -81,7 +84,7 @@ export type ChatSettings = {
     hiddenPromptPrefix: string;
     hppContinuePrompt: string; // hiddenPromptPrefix used, optional glue when trying to continue truncated completion
     hppWithSummaryPrompt: boolean; // include hiddenPromptPrefix when before summary prompt
-    imageGenerationModel: Model;
+    imageGenerationModel: string;
     trainingPrompts?: Message[];
     useResponseAlteration?: boolean;
     responseAlterations?: ResponseAlteration[];

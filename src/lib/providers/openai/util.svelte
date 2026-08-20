@@ -3,7 +3,7 @@
     import { get } from 'svelte/store'
     import type { ModelDetail } from '../../Types.svelte'
     import { getEndpointModels } from '../../ApiUtil.svelte'
-    import { getProvider, getProviderHeaders, joinApiUrl, normalizeApiBase, type ProviderId } from './providers'
+    import { getProviderHeaders, joinApiUrl, normalizeApiBase, type ProviderId } from './providers'
 
 type ResponseModels = {
   object?: string;
@@ -79,11 +79,7 @@ export const getSupportedModels = async (): Promise<Record<string, boolean>> => 
 
 export const checkModel = async (modelDetail: ModelDetail) => {
   const supportedModels = await getSupportedModels()
-  if (modelDetail.type === 'chat' || modelDetail.type === 'instruct') {
-        modelDetail.enabled = !!supportedModels[modelDetail.modelQuery || '']
-  } else {
-        modelDetail.enabled = getProvider(getProviderId()).supportsImageGeneration && !!Object.keys(supportedModels).length
-  }
+  modelDetail.enabled = !!supportedModels[modelDetail.modelQuery || '']
 }
 
 </script>
