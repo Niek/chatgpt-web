@@ -12,6 +12,32 @@
   // TODO: move chatsStorage to indexedDB with localStorage as a fallback for private browsing.
   //       Enough long chats will overflow localStorage.
   export const chatsStorage = persisted('chats', [] as Chat[])
+
+  const ensureUniqueChatIds = (chats: Chat[]): Chat[] => {
+    const usedIds = new Set<number>()
+    let nextId = chats.reduce((maxId, chat) => Number.isInteger(chat.id) && chat.id > 0 ? Math.max(maxId, chat.id) : maxId, 0)
+    let changed = false
+
+    const normalized = chats.map((chat) => {
+      if (Number.isInteger(chat.id) && chat.id > 0 && !usedIds.has(chat.id)) {
+        usedIds.add(chat.id)
+        return chat
+      }
+
+      changed = true
+      do nextId++
+      while (usedIds.has(nextId))
+      usedIds.add(nextId)
+      return { ...chat, id: nextId }
+    })
+
+    return changed ? normalized : chats
+  }
+
+  const storedChats = get(chatsStorage)
+  const normalizedChats = ensureUniqueChatIds(storedChats)
+  if (normalizedChats !== storedChats) chatsStorage.set(normalizedChats)
+
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
   const apiKeyFromEnv = import.meta.env.VITE_API_KEY || import.meta.env.VITE_OPENAI_API_KEY || ''
@@ -76,12 +102,11 @@
   }
 
   export const addChat = async (profile:ChatSettings|undefined = undefined): Promise<number> => {
-    const chats = get(chatsStorage)
-
-    // Find the max chatId
-    const chatId = newChatID()
-
     profile = JSON.parse(JSON.stringify(profile || await getProfile(''))) as ChatSettings
+
+    // Reserve the ID immediately before insertion so concurrent profile loads cannot reuse it.
+    const chats = get(chatsStorage)
+    const chatId = newChatID()
     const nameMap = chats.reduce((a, chat) => { a[chat.name] = chat; return a }, {} as Record<string, Chat>)
 
     // Add a new chat
