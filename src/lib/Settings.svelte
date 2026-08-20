@@ -95,7 +95,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_completion_tokens: 16384,
+  max_completion_tokens: null,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -458,13 +458,12 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'max_completion_tokens',
         name: 'Max Tokens',
-        title: 'Maximum number of tokens to generate. Defaults to 16,384; leave blank to use the provider and model default.',
+        title: 'Optional maximum number of tokens to generate. Leave blank to use the provider and model default.',
         placeholder: 'Provider default',
         min: 1,
         max: 128000,
         step: 1,
-        type: 'number',
-        forceApi: true
+        type: 'number'
       },
       {
         key: 'presence_penalty',
