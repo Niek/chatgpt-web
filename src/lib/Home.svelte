@@ -52,6 +52,8 @@
   }
 
   const saveProvider = async () => {
+    const candidateProviderId = providerId
+    const candidateProvider = getProvider(candidateProviderId)
     const candidateKey = apiKey.trim()
     const candidateBase = apiBase.trim()
     apiError = ''
@@ -69,17 +71,17 @@
     testing = true
     try {
       const modelCount = await testProviderConnection({
-        provider: providerId,
+        provider: candidateProviderId,
         apiBase: candidateBase,
         apiKey: candidateKey
       })
-      setProviderConfig(providerId, candidateBase, candidateKey)
+      setProviderConfig(candidateProviderId, candidateBase, candidateKey)
       resetSupportedModels()
       hasModels = hasActiveModels()
-      apiSuccess = `Connected to ${provider.name} (${modelCount} model${modelCount === 1 ? '' : 's'} available).`
+      apiSuccess = `Connected to ${candidateProvider.name} (${modelCount} model${modelCount === 1 ? '' : 's'} available).`
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      apiError = `Could not connect to ${provider.name}: ${message}`
+      apiError = `Could not connect to ${candidateProvider.name}: ${message}`
     } finally {
       testing = false
     }
@@ -103,7 +105,7 @@
         <div class="field">
           <label class="label" for="api-provider">Provider</label>
           <div class="control select is-fullwidth">
-            <select id="api-provider" aria-label="API provider" value={providerId} on:change={selectProvider}>
+            <select id="api-provider" aria-label="API provider" value={providerId} disabled={testing} on:change={selectProvider}>
               {#each providers as option}
                 <option value={option.id}>{option.name}</option>
               {/each}
@@ -119,6 +121,7 @@
               aria-label="API key"
               type="password"
               autocomplete="off"
+              disabled={testing}
               class="input"
               class:is-danger={!!apiError}
               bind:value={apiKey}
@@ -135,6 +138,7 @@
                 id="api-base"
                 aria-label="API base URL"
                 type="url"
+                disabled={testing}
                 class="input"
                 class:is-danger={!!apiError}
                 bind:value={customApiBase}
