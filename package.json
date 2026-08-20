@@ -10,6 +10,7 @@
     "build:github": "vite build --base=/chatgpt-web/",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "update-prompts": "node scripts/update-prompts.mjs",
     "tauri": "tauri",
     "lint": "eslint . --fix"
   },

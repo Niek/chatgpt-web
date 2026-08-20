@@ -66,17 +66,17 @@ npm run build
 
 This command generates a `dist` folder containing the production build of your project, ready for deployment.
 
-### Incorporating Awesome ChatGPT Prompts
+### Updating pre-selected prompts
 
-The *[Awesome ChatGPT Prompts](/src/awesome-chatgpt-prompts/)* repository is a treasure trove of prompt examples designed for use with the ChatGPT model. This collection can inspire new conversations or expand existing ones with the model. Get involved by adding your prompts or utilizing the repository to inspire your contributions:
+The *[prompts.chat](/src/awesome-chatgpt-prompts/)* data provides the pre-selected prompts shown in the chat interface. The bundled list contains the 100 most-upvoted text prompts from the public prompts.chat API.
 
-To update and integrate the latest prompts from the repository into your project, run:
+To refresh the bundled snapshot, run:
 
 ```bash
-git subtree pull --prefix src/awesome-chatgpt-prompts https://github.com/f/awesome-chatgpt-prompts.git main --squash
+npm run update-prompts
 ```
 
-This command synchronizes the latest set of prompts into your project's `src/awesome-chatgpt-prompts/` directory, fostering an environment of continuous innovation and expansion.
+The updater validates the response before atomically replacing `src/awesome-chatgpt-prompts/prompts.csv`, so an API or network failure leaves the existing snapshot intact.
 
 ## Using Docker Compose for Local Deployment
 
