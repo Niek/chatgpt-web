@@ -18,6 +18,7 @@
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
     import { getLeadPrompt, getModelDetail } from './Models.svelte'
+    import { imageRequest } from './providers/openai/request.svelte'
 
 export class ChatRequest {
       constructor () {
@@ -94,7 +95,7 @@ export class ChatRequest {
           }
         }
 
-        if (chatSettings.imageGenerationModel && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
+        if (chatSettings.imageGenerationModel.trim() && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
           const im = lastMessage.content.match(imagePromptDetect)
           if (im) {
             let n = parseInt((im[5] || '').toLowerCase().trim()
@@ -107,8 +108,7 @@ export class ChatRequest {
             n = Math.min(Math.max(1, n), 4)
             lastMessage.suppress = true
 
-            const imageModelDetail = getModelDetail(chatSettings.imageGenerationModel)
-            return await imageModelDetail.request({} as unknown as Request, _this, chatResponse, {
+            return await imageRequest(_this, chatResponse, {
               ...opts,
               prompt: im[9],
               count: n

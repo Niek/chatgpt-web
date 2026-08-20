@@ -33,7 +33,7 @@
   import { replace } from 'svelte-spa-router'
   import { openModal } from 'svelte-modals/legacy'
   import PromptConfirm from './PromptConfirm.svelte'
-  import { getChatModelOptions, getImageModelOptions } from './Models.svelte'
+  import { getChatModelOptions } from './Models.svelte'
   import { faClipboard } from '@fortawesome/free-regular-svg-icons'
   import { clickOutside } from 'svelte-use-click-outside'
 
@@ -48,7 +48,6 @@
 
   const settingsList = getChatSettingList()
   const modelSetting = getChatSettingObjectByKey('model') as ChatSetting & SettingSelect
-  const imageModelSetting = getChatSettingObjectByKey('imageGenerationModel') as ChatSetting & SettingSelect
   const chatDefaults = getChatDefaults()
   const excludeFromProfile = getExcludeFromProfile()
 
@@ -204,7 +203,6 @@
     // Update the models in the settings
     if (modelSetting) {
       modelSetting.options = await getChatModelOptions()
-      imageModelSetting.options = await getImageModelOptions()
     }
     // Refresh settings modal
     showSettingsModal++

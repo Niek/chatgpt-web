@@ -1,26 +1,30 @@
 export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'mistral' | 'apipie' | 'openrouter' | 'orcarouter' | 'custom'
 
+export type ImageProvider = {
+  endpoint: string
+  suggestedModel?: string
+  responseFormat?: 'b64_json'
+}
+
 export type Provider = {
   id: ProviderId
   name: string
   apiBase: string
   endpoints: {
     completions: string
-    generations: string
     models: string
     embeddings: string
   }
+  image?: ImageProvider
   documentationUrl: string
   apiKeyUrl?: string
   compatibilityNotice?: string
-  supportsImageGeneration: boolean
   headers?: Record<string, string>
   apiKeyHeader?: string
 }
 
 const openAiEndpoints = {
   completions: '/v1/chat/completions',
-  generations: '/v1/images/generations',
   models: '/v1/models',
   embeddings: '/v1/embeddings'
 }
@@ -31,9 +35,12 @@ export const providers: Provider[] = [
     name: 'OpenAI',
     apiBase: 'https://api.openai.com',
     endpoints: openAiEndpoints,
+    image: {
+      endpoint: '/v1/images/generations',
+      suggestedModel: 'gpt-image-2'
+    },
     documentationUrl: 'https://platform.openai.com/docs/api-reference',
-    apiKeyUrl: 'https://platform.openai.com/api-keys',
-    supportsImageGeneration: true
+    apiKeyUrl: 'https://platform.openai.com/api-keys'
   },
   {
     id: 'anthropic',
@@ -43,7 +50,6 @@ export const providers: Provider[] = [
     documentationUrl: 'https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
     compatibilityNotice: 'Anthropic supports the OpenAI SDK primarily for testing and comparison. Some OpenAI fields are ignored or translated.',
-    supportsImageGeneration: false,
     apiKeyHeader: 'x-api-key',
     headers: {
       'anthropic-version': '2023-06-01',
@@ -55,9 +61,13 @@ export const providers: Provider[] = [
     name: 'xAI',
     apiBase: 'https://api.x.ai',
     endpoints: openAiEndpoints,
+    image: {
+      endpoint: '/v1/images/generations',
+      suggestedModel: 'grok-imagine-image-quality',
+      responseFormat: 'b64_json'
+    },
     documentationUrl: 'https://docs.x.ai/docs/api-reference',
-    apiKeyUrl: 'https://console.x.ai/',
-    supportsImageGeneration: false
+    apiKeyUrl: 'https://console.x.ai/'
   },
   {
     id: 'gemini',
@@ -65,13 +75,16 @@ export const providers: Provider[] = [
     apiBase: 'https://generativelanguage.googleapis.com/v1beta/openai',
     endpoints: {
       completions: '/chat/completions',
-      generations: '/images/generations',
       models: '/models',
       embeddings: '/embeddings'
     },
+    image: {
+      endpoint: '/images/generations',
+      suggestedModel: 'gemini-2.5-flash-image',
+      responseFormat: 'b64_json'
+    },
     documentationUrl: 'https://ai.google.dev/gemini-api/docs/openai',
-    apiKeyUrl: 'https://aistudio.google.com/app/apikey',
-    supportsImageGeneration: false
+    apiKeyUrl: 'https://aistudio.google.com/app/apikey'
   },
   {
     id: 'mistral',
@@ -79,8 +92,7 @@ export const providers: Provider[] = [
     apiBase: 'https://api.mistral.ai/v1',
     endpoints: openAiEndpoints,
     documentationUrl: 'https://docs.mistral.ai/api',
-    apiKeyUrl: 'https://console.mistral.ai/api-keys',
-    supportsImageGeneration: false
+    apiKeyUrl: 'https://console.mistral.ai/api-keys'
   },
   {
     id: 'apipie',
@@ -88,33 +100,36 @@ export const providers: Provider[] = [
     apiBase: 'https://apipie.ai',
     endpoints: openAiEndpoints,
     documentationUrl: 'https://apipie.ai/',
-    apiKeyUrl: 'https://apipie.ai/dashboard/profile/api-keys',
-    supportsImageGeneration: false
+    apiKeyUrl: 'https://apipie.ai/dashboard/profile/api-keys'
   },
   {
     id: 'openrouter',
     name: 'OpenRouter',
     apiBase: 'https://openrouter.ai/api',
     endpoints: openAiEndpoints,
+    image: {
+      endpoint: '/v1/images'
+    },
     documentationUrl: 'https://openrouter.ai/docs/quickstart',
-    apiKeyUrl: 'https://openrouter.ai/settings/keys',
-    supportsImageGeneration: false
+    apiKeyUrl: 'https://openrouter.ai/settings/keys'
   },
   {
     id: 'orcarouter',
     name: 'OrcaRouter',
     apiBase: 'https://api.orcarouter.ai',
     endpoints: openAiEndpoints,
-    documentationUrl: 'https://docs.orcarouter.ai/',
-    supportsImageGeneration: false
+    documentationUrl: 'https://docs.orcarouter.ai/'
   },
   {
     id: 'custom',
     name: 'Custom OpenAI-compatible',
     apiBase: '',
     endpoints: openAiEndpoints,
-    documentationUrl: 'https://platform.openai.com/docs/api-reference',
-    supportsImageGeneration: true
+    image: {
+      endpoint: '/v1/images/generations',
+      responseFormat: 'b64_json'
+    },
+    documentationUrl: 'https://platform.openai.com/docs/api-reference'
   }
 ]
 

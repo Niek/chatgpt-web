@@ -1,11 +1,12 @@
 <script context="module" lang="ts">
     import { EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source'
-    import { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
-    import { ChatRequest } from '../../ChatRequest.svelte'
-    import { getEndpoint, getModelDetail } from '../../Models.svelte'
-    import { getApiKey, getProviderId } from '../../Storage.svelte'
-    import type { ChatCompletionOpts, Request } from '../../Types.svelte'
-    import { getProviderHeaders } from './providers'
+    import type { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
+    import type { ChatRequest } from '../../ChatRequest.svelte'
+    import { getEndpoint } from '../../Models.svelte'
+    import { getApiBase, getApiKey, getProviderId } from '../../Storage.svelte'
+    import type { ChatCompletionOpts, GeneratedImage, Request, Usage } from '../../Types.svelte'
+    import { getImageEndpoint } from '../../ApiUtil.svelte'
+    import { getProvider, getProviderHeaders, joinApiUrl } from './providers'
 
 export const chatRequest = async (
   request: Request,
@@ -87,22 +88,43 @@ export const chatRequest = async (
 }
 
 type ResponseImageDetail = {
-    url: string;
-    b64_json: string;
+    b64_json?: string;
+    media_type?: string;
+    mime_type?: string;
   }
 
 type RequestImageGeneration = {
     prompt: string;
-    n?: number;
-    size?: string;
-    response_format?: keyof ResponseImageDetail;
-    model?: string;
-    quality?: string;
-    style?: string;
+    model: string;
+    n: number;
+    response_format?: 'b64_json';
   }
 
+type ResponseImageGeneration = {
+    data?: ResponseImageDetail[];
+    usage?: Partial<Usage> & {
+      input_tokens?: number;
+      output_tokens?: number;
+    };
+  }
+
+const normalizeImageUsage = (usage?: ResponseImageGeneration['usage']): Usage => {
+  const promptTokens = usage?.prompt_tokens ?? usage?.input_tokens ?? 0
+  const completionTokens = usage?.completion_tokens ?? usage?.output_tokens ?? 0
+  return {
+    prompt_tokens: promptTokens,
+    completion_tokens: completionTokens,
+    total_tokens: usage?.total_tokens ?? promptTokens + completionTokens
+  }
+}
+
+const normalizeMediaType = (mediaType?: string): string => {
+  if (!mediaType) return 'image/png'
+  if (mediaType.includes('/')) return mediaType
+  return `image/${mediaType === 'jpg' ? 'jpeg' : mediaType}`
+}
+
 export const imageRequest = async (
-  na: Request,
   chatRequest: ChatRequest,
   chatResponse: ChatCompletionResponse,
   opts: ChatCompletionOpts): Promise<ChatCompletionResponse> => {
@@ -110,51 +132,63 @@ export const imageRequest = async (
   const chatSettings = chat.settings
   const count = opts.count || 1
   const prompt = opts.prompt || ''
+  const providerId = getProviderId()
+  const provider = getProvider(providerId)
+  const endpoint = getImageEndpoint(providerId)
+  if (!endpoint) {
+    chatResponse.updateFromError(`Image generation is not supported by ${provider.name}.`)
+    return chatResponse
+  }
   chatRequest.updating = true
   chatRequest.updatingMessage = 'Generating Image...'
-  const imageModel = chatSettings.imageGenerationModel
-  const imageModelDetail = getModelDetail(imageModel)
-  const size = imageModelDetail.opt?.size || '256x256'
-  const model = imageModelDetail.opt?.model
-  const style = imageModelDetail.opt?.style
-  const quality = imageModelDetail.opt?.quality
+  const imageModel = chatSettings.imageGenerationModel.trim()
   const request: RequestImageGeneration = {
-        prompt,
-        response_format: 'b64_json',
-        size,
-        n: count,
-        ...(model ? { model } : {}),
-        ...(style ? { style } : {}),
-        ...(quality ? { quality } : {})
+    prompt,
+    model: imageModel,
+    n: count,
+    ...(provider.image?.responseFormat ? { response_format: provider.image.responseFormat } : {})
   }
   // fetchEventSource doesn't seem to throw on abort,
   // so we deal with it ourselves
   const signal = chatRequest.controller.signal
-  const abortListener = (e:Event) => {
-        chatResponse.updateFromError('User aborted request.')
-        signal.removeEventListener('abort', abortListener)
+  const abortListener = () => {
+    chatRequest.updating = false
+    chatRequest.updatingMessage = ''
+    chatResponse.updateFromError('User aborted request.')
   }
   signal.addEventListener('abort', abortListener)
   // Create request
   const fetchOptions = {
         method: 'POST',
-        headers: getProviderHeaders(getProviderId(), getApiKey()),
+        headers: getProviderHeaders(providerId, getApiKey()),
         body: JSON.stringify(request),
         signal
   }
 
   try {
-        const response = await fetch(getEndpoint(imageModel), fetchOptions)
-        if (!response.ok) {
-          await chatRequest.handleError(response)
-        } else {
-          const json = await response.json()
-          const images = json?.data.map(d => d.b64_json)
-          chatResponse.updateImageFromSyncResponse(images, prompt, imageModel)
-        }
+    const response = await fetch(joinApiUrl(getApiBase(), endpoint), fetchOptions)
+    if (!response.ok) await chatRequest.handleError(response)
+
+    const json = await response.json() as ResponseImageGeneration
+    if (!Array.isArray(json.data) || !json.data.length) {
+      throw new Error('The provider returned an invalid image response.')
+    }
+    const images = json.data.map((image): GeneratedImage => {
+      if (!image.b64_json) {
+        throw new Error('The provider returned an image without base64 data.')
+      }
+      return {
+        b64image: image.b64_json,
+        mediaType: normalizeMediaType(image.media_type || image.mime_type)
+      }
+    })
+    await chatResponse.updateImageFromSyncResponse(images, prompt, imageModel, normalizeImageUsage(json.usage))
   } catch (e) {
-        chatResponse.updateFromError(e)
-        throw e
+    const error = e instanceof Error ? e : new Error(String(e))
+    chatResponse.updateFromError(error.message)
+    throw error
+  } finally {
+    signal.removeEventListener('abort', abortListener)
   }
   return chatResponse
 }

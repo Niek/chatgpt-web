@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { applyProfile } from './Profiles.svelte'
     import { get } from 'svelte/store'
-    import { apiKeyStorage, getChatSettings, getGlobalSettings, setGlobalSettingValueByKey } from './Storage.svelte'
+    import { apiKeyStorage, getChatSettings, getGlobalSettings, getProviderId, setGlobalSettingValueByKey } from './Storage.svelte'
     import { faArrowDown91, faArrowDownAZ, faCheck, faThumbTack } from '@fortawesome/free-solid-svg-icons/index'
 // Setting definitions
 
@@ -19,6 +19,8 @@ import {
 
 } from './Types.svelte'
 import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
+import { getImageEndpoint } from './ApiUtil.svelte'
+import { getProvider } from './providers/openai/providers'
 
 // We are adding default model names explicitly here to avoid
 // circular dependencies. Alternative would be a big refactor,
@@ -372,11 +374,12 @@ const summarySettings: ChatSetting[] = [
       {
         key: 'imageGenerationModel',
         name: 'Image Generation Model',
-        header: 'Image Generation',
+        header: 'Enter an image model ID from your provider. Leave blank to disable image generation.',
         headerClass: 'is-info',
-        title: 'Prompt an image with: show me an image of ...',
-        type: 'select',
-        options: []
+        title: 'Enter an image model ID, then prompt an image with: show me an image of ...',
+        placeholder: () => getProvider(getProviderId()).image?.suggestedModel || 'Image model ID',
+        hide: () => !getImageEndpoint(getProviderId()),
+        type: 'text'
       }
 ]
 

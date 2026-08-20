@@ -5,19 +5,14 @@
   import { mergeProfileFields } from './Profiles.svelte'
   import { getChatSettingObjectByKey } from './Settings.svelte'
   import { valueOf } from './Util.svelte'
-  import { chatModels as openAiModels, imageModels as openAiImageModels, fetchRemoteModels, fallbackModelDetail } from './providers/openai/models.svelte'
+  import { chatModels as openAiModels, fetchRemoteModels, fallbackModelDetail } from './providers/openai/models.svelte'
 
 export const supportedChatModels : Record<string, ModelDetail> = {
     ...openAiModels
 }
 
-export const supportedImageModels : Record<string, ModelDetail> = {
-    ...openAiImageModels
-}
-
 const lookupList = {
-    ...supportedChatModels,
-    ...supportedImageModels
+    ...supportedChatModels
 }
 
 Object.entries(lookupList).forEach(([k, v]) => {
@@ -198,22 +193,6 @@ export async function getChatModelOptions (): Promise<SelectOption[]> {
     modelOptionsInactive.sort(sortModelsAlphabetically)
 
     return [...modelOptionsActive, ...modelOptionsInactive]
-}
-
-export async function getImageModelOptions (): Promise<SelectOption[]> {
-    const models = Object.keys(supportedImageModels)
-    const result:SelectOption[] = [{ value: '', text: 'OFF - Disable Image Generation' }]
-    for (let i = 0, l = models.length; i < l; i++) {
-      const model = models[i]
-      const modelDetail = getModelDetail(model)
-      await modelDetail.check(modelDetail)
-      result.push({
-        value: model,
-        text: modelDetail.label || model,
-        disabled: !modelDetail.enabled
-      })
-    }
-    return result
 }
 
 </script>

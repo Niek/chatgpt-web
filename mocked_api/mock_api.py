@@ -16,6 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MOCK_IMAGE_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XSn1WQAAAABJRU5ErkJggg=="
+
 
 # Define a route to handle POST requests
 @app.post("/v1/chat/completions")
@@ -55,6 +57,28 @@ async def post_data(data: dict):
         }]
     }
     return response
+
+
+@app.post("/v1/images/generations")
+@app.post("/v1/images")
+async def generate_images(data: dict):
+    """Returns base64-encoded mock images for compatible image endpoints."""
+    count = max(1, min(int(data.get("n", 1)), 4))
+    return {
+        "created": int(time.time()),
+        "data": [
+            {
+                "b64_json": MOCK_IMAGE_B64,
+                "media_type": "image/png",
+            }
+            for _ in range(count)
+        ],
+        "usage": {
+            "input_tokens": 1,
+            "output_tokens": count,
+            "total_tokens": count + 1,
+        },
+    }
 
 
 @app.get('/v1/models')

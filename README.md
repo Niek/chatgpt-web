@@ -24,7 +24,7 @@ ChatGPT-web is a simple one-page web interface for OpenAI-compatible chat APIs. 
 * **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
 * **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them with one click.
 * **Desktop app**: ChatGPT-web can be bundled as a desktop app, so you can use it outside of the browser.
-* **Image generation**: With OpenAI (or a compatible custom endpoint), ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
+* **Image generation**: Generate images through OpenAI, xAI, Google Gemini, OpenRouter, or a compatible custom endpoint by entering a provider model ID and prompting "show me an image of ...".
 * **Streaming**: ChatGPT-web can stream the response from the API, so you can see the response as it's being generated.
 
 ## Supported providers
@@ -42,6 +42,8 @@ The setup screen has presets for:
 * Any custom OpenAI-compatible API
 
 Anthropic's compatibility layer is intended primarily for testing and comparison. Some OpenAI request fields are ignored or translated; see [Anthropic's compatibility documentation](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk) for the current limitations.
+
+Image generation is available for providers with a compatible image endpoint. In chat settings, enter an image model ID such as `gpt-image-2` for OpenAI, `grok-imagine-image-quality` for xAI, or `gemini-2.5-flash-image` for Google Gemini. Leave the field blank to disable image generation.
 
 ## Development and Building
 
@@ -100,6 +102,7 @@ For instances where immediate API responses are preferred, consider utilizing th
   * Assign the key `VITE_API_BASE=http://localhost:5174` to redirect requests to the mocked API.
   * Assign any non-empty value to `VITE_API_KEY`.
   * Execute `docker compose up -d mocked_api` to start the mocked API service.
+  * To test image generation, set the chat's Image Generation Model to `mock-image` and prompt "show me an image of ...".
 
 * **Customizing Responses**:
   * To introduce a delay in the API response, use `d` followed by the desired number of seconds (e.g., `d2` for a 2-second delay).
