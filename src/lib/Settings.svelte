@@ -95,7 +95,7 @@ const gptDefaults = {
   n: 1,
   stream: true,
   stop: null,
-  max_completion_tokens: 512,
+  max_completion_tokens: 16384,
   presence_penalty: 0,
   frequency_penalty: 0,
   logit_bias: null,
@@ -458,14 +458,13 @@ const chatSettingsList: ChatSetting[] = [
       {
         key: 'max_completion_tokens',
         name: 'Max Tokens',
-        title: 'The maximum number of tokens to generate in the completion.\n' +
-              '\n' +
-              'The token count of your prompt plus max_completion_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).\n',
+        title: 'Maximum number of tokens to generate. Defaults to 16,384; leave blank to use the provider and model default.',
+        placeholder: 'Provider default',
         min: 1,
-        max: 32768,
+        max: 128000,
         step: 1,
         type: 'number',
-        forceApi: true // Since default here is different than gpt default, will make sure we always send it
+        forceApi: true
       },
       {
         key: 'presence_penalty',
