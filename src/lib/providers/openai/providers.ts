@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'orcarouter' | 'custom'
+export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'apipie' | 'openrouter' | 'orcarouter' | 'custom'
 
 export type Provider = {
   id: ProviderId
@@ -15,6 +15,7 @@ export type Provider = {
   compatibilityNotice?: string
   supportsImageGeneration: boolean
   headers?: Record<string, string>
+  apiKeyHeader?: string
 }
 
 const openAiEndpoints = {
@@ -43,7 +44,9 @@ export const providers: Provider[] = [
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
     compatibilityNotice: 'Anthropic supports the OpenAI SDK primarily for testing and comparison. Some OpenAI fields are ignored or translated.',
     supportsImageGeneration: false,
+    apiKeyHeader: 'x-api-key',
     headers: {
+      'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     }
   },
@@ -68,6 +71,24 @@ export const providers: Provider[] = [
     },
     documentationUrl: 'https://ai.google.dev/gemini-api/docs/openai',
     apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+    supportsImageGeneration: false
+  },
+  {
+    id: 'apipie',
+    name: 'APIpie',
+    apiBase: 'https://apipie.ai',
+    endpoints: openAiEndpoints,
+    documentationUrl: 'https://apipie.ai/',
+    apiKeyUrl: 'https://apipie.ai/dashboard/profile/api-keys',
+    supportsImageGeneration: false
+  },
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    apiBase: 'https://openrouter.ai/api',
+    endpoints: openAiEndpoints,
+    documentationUrl: 'https://openrouter.ai/docs/quickstart',
+    apiKeyUrl: 'https://openrouter.ai/settings/keys',
     supportsImageGeneration: false
   },
   {
@@ -110,6 +131,8 @@ export const inferProviderId = (apiBase: string): ProviderId => {
   if (normalized.includes('api.anthropic.com')) return 'anthropic'
   if (normalized.includes('api.x.ai')) return 'xai'
   if (normalized.includes('generativelanguage.googleapis.com')) return 'gemini'
+  if (normalized.includes('apipie.ai')) return 'apipie'
+  if (normalized.includes('openrouter.ai')) return 'openrouter'
   if (normalized.includes('api.orcarouter.ai')) return 'orcarouter'
   if (!normalized || normalized.includes('api.openai.com')) return 'openai'
   return 'custom'
@@ -132,6 +155,7 @@ export const getProviderHeaders = (
   const provider = getProvider(providerId)
   return {
     Authorization: `Bearer ${apiKey}`,
+    ...(provider.apiKeyHeader ? { [provider.apiKeyHeader]: apiKey } : {}),
     ...(json ? { 'Content-Type': 'application/json' } : {}),
     ...provider.headers
   }
