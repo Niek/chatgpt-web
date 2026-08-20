@@ -161,10 +161,8 @@ export type GlobalSettings = {
     defaultProfile: string;
     hideSummarized: boolean;
     chatSort: ChatSortOptions;
-    openAICompletionEndpoint: string;
-    enablePetals: boolean;
-    pedalsEndpoint: string;
-    openAiEndpoint: string;
+    provider: import('./providers/openai/providers').ProviderId;
+    apiBase: string;
     [key: string]: any;
   };
 

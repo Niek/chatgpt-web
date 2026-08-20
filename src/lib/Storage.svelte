@@ -7,14 +7,16 @@
   import { getProfile, getProfiles, isStaticProfile, newNameForProfile, restartProfile } from './Profiles.svelte'
   import { errorNotice } from './Util.svelte'
   import { clearAllImages, deleteImage, setImage } from './ImageStore.svelte'
+  import { getProvider, inferProviderId, isProviderId, normalizeApiBase, type ProviderId } from './providers/openai/providers'
 
   // TODO: move chatsStorage to indexedDB with localStorage as a fallback for private browsing.
   //       Enough long chats will overflow localStorage.
   export const chatsStorage = persisted('chats', [] as Chat[])
   export const latestModelMap = persisted('latestModelMap', {} as Record<Model, Model>) // What was returned when a model was requested
   export const globalStorage = persisted('global', {} as GlobalSettings)
-  const apiKeyFromEnv = import.meta.env.VITE_OPENAI_API_KEY || ''
-  const apiBaseUriFromEnv = import.meta.env.VITE_API_BASE || 'https://api.openai.com/v1'
+  const apiKeyFromEnv = import.meta.env.VITE_API_KEY || import.meta.env.VITE_OPENAI_API_KEY || ''
+  const apiBaseUriFromEnv = import.meta.env.VITE_API_BASE || ''
+  const providerFromEnv = import.meta.env.VITE_PROVIDER
   export const apiKeyStorage = persisted('apiKey', apiKeyFromEnv as string)
   export let checkStateChange = writable(0) // Trigger for Chat
   export let showSetChatSettings = writable(false) //
@@ -34,15 +36,37 @@
     return get(apiKeyStorage)
   }
 
-  // Avoid user input errors. Trailing slashes or "/v1" break
-  // the API.  So we clean it up here.
-  const cleanApiBase = (endpoint: string): string => {
-    return endpoint.replace(/\/v1$/, '').replace(/\/$/, '')
+  export const getProviderId = (): ProviderId => {
+    const settings = get(globalStorage)
+    if (isProviderId(settings.provider)) return settings.provider
+
+    // Migrate the former custom OpenAI endpoint without rewriting storage until save.
+    const legacyApiBase = settings.openAiEndpoint as string | undefined
+    if (legacyApiBase) return inferProviderId(legacyApiBase)
+    if (isProviderId(providerFromEnv)) return providerFromEnv
+    if (apiBaseUriFromEnv) return inferProviderId(apiBaseUriFromEnv)
+    return 'openai'
   }
 
   export const getApiBase = (): string => {
-    const endpoint = get(globalStorage).openAiEndpoint || apiBaseUriFromEnv
-    return cleanApiBase(endpoint)
+    const settings = get(globalStorage)
+    const legacyApiBase = settings.openAiEndpoint as string | undefined
+    return normalizeApiBase(
+      settings.apiBase ||
+      legacyApiBase ||
+      apiBaseUriFromEnv ||
+      getProvider(getProviderId()).apiBase
+    )
+  }
+
+  export const setProviderConfig = (provider: ProviderId, apiBase: string, apiKey: string) => {
+    const settings = get(globalStorage)
+    settings.provider = provider
+    settings.apiBase = normalizeApiBase(apiBase)
+    delete settings.openAiEndpoint
+    delete settings.openAICompletionEndpoint
+    globalStorage.set(settings)
+    apiKeyStorage.set(apiKey.trim())
   }
 
   export const newChatID = (): number => {

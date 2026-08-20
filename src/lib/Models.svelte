@@ -1,16 +1,14 @@
 <script context="module" lang="ts">
-  import { apiKeyStorage, getApiBase, globalStorage } from './Storage.svelte'
+  import { apiKeyStorage, getProviderId } from './Storage.svelte'
   import { get } from 'svelte/store'
   import type { ModelDetail, Model, SelectOption, Chat } from './Types.svelte'
   import { mergeProfileFields } from './Profiles.svelte'
   import { getChatSettingObjectByKey } from './Settings.svelte'
   import { valueOf } from './Util.svelte'
   import { chatModels as openAiModels, imageModels as openAiImageModels, fetchRemoteModels, fallbackModelDetail } from './providers/openai/models.svelte'
-  import { chatModels as petalsModels } from './providers/petals/models.svelte'
 
 export const supportedChatModels : Record<string, ModelDetail> = {
-    ...openAiModels,
-    ...petalsModels
+    ...openAiModels
 }
 
 export const supportedImageModels : Record<string, ModelDetail> = {
@@ -41,6 +39,13 @@ export const getModelDetail = (model: Model): ModelDetail => {
         modelQuery: model
       }
     }
+    if (!model) {
+      return {
+        ...fallbackModelDetail,
+        id: model,
+        modelQuery: model
+      }
+    }
 
     // Attempt to fetch the model details directly from lookupList or cache
     let result = lookupList[model] || tpCache[model]
@@ -55,7 +60,6 @@ export const getModelDetail = (model: Model): ModelDetail => {
     if (bestMatchKey) {
       result = lookupList[bestMatchKey]
     } else {
-      console.warn('Unable to find model detail for:', model)
       result = {
         ...fallbackModelDetail,
         id: model,
@@ -158,8 +162,7 @@ export const countTokens = (model: Model, value: string): number => {
 }
 
 export const hasActiveModels = (): boolean => {
-    const globalSettings = get(globalStorage) || {}
-    return !!get(apiKeyStorage) || !!globalSettings.enablePetals
+    return !!get(apiKeyStorage)
 }
 
 const sortModelsAlphabetically = (a: SelectOption, b: SelectOption): number => {
@@ -172,11 +175,8 @@ const sortModelsAlphabetically = (a: SelectOption, b: SelectOption): number => {
 }
 
 export async function getChatModelOptions (): Promise<SelectOption[]> {
-    const isOpenAi = getApiBase().includes('openai.com')
-
-    // We are checking if the OpenAI endpoint is used, so we only fetch
-    // additional models for non-OpenAI endpoints
-    const remoteModels = isOpenAi ? {} : await fetchRemoteModels()
+    const remoteModels = getProviderId() === 'openai' ? {} : await fetchRemoteModels()
+    Object.assign(tpCache, remoteModels)
 
     const models = Object.keys({ ...supportedChatModels, ...remoteModels })
     const modelOptionsActive:SelectOption[] = []

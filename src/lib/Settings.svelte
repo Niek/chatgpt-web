@@ -24,7 +24,7 @@ import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
 // circular dependencies. Alternative would be a big refactor,
 // which we want to avoid for now.
 export const getDefaultModel = async (): Promise<Model> => {
-  if (!get(apiKeyStorage)) return 'stabilityai/StableBeluga2'
+  if (!get(apiKeyStorage)) return 'gpt-5.6-sol'
 
   const models = await getChatModelOptions()
   const enabledModels = models.filter((option) => !option.disabled)
@@ -140,10 +140,8 @@ export const globalDefaults: GlobalSettings = {
   defaultProfile: 'default',
   hideSummarized: false,
   chatSort: 'created',
-  openAICompletionEndpoint: '',
-  enablePetals: false,
-  pedalsEndpoint: '',
-  openAiEndpoint: 'https://api.openai.com'
+  provider: 'openai',
+  apiBase: 'https://api.openai.com'
 }
 
 const excludeFromProfile: Record<string, boolean> = {
@@ -663,23 +661,13 @@ const globalSettingsList:GlobalSetting[] = [
         type: 'boolean'
       },
       {
-        key: 'openAICompletionEndpoint',
-        name: 'OpenAI Completions Endpoint',
+        key: 'provider',
+        name: 'API Provider',
         type: 'text'
       },
       {
-        key: 'enablePetals',
-        name: 'Enable Petals APIs',
-        type: 'boolean'
-      },
-      {
-        key: 'pedalsEndpoint',
-        name: 'Petals API Endpoint',
-        type: 'text'
-      },
-      {
-        key: 'openAiEndpoint',
-        name: 'OpenAI API Endpoint',
+        key: 'apiBase',
+        name: 'API Base URL',
         type: 'text'
       }
 ]

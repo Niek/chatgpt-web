@@ -101,7 +101,7 @@
   }
   
   const copySettingsAsUri = () => {
-    const uri = '#/chat/new?petals=true&' + Object.entries(chatSettings).reduce((a, [k, v]) => {
+    const uri = '#/chat/new?' + Object.entries(chatSettings).reduce((a, [k, v]) => {
       const t = typeof v
       if (hasChatSetting(k as any) && (t === 'boolean' || t === 'string' || t === 'number')) {
         a.push(encodeURIComponent(k) + '=' + encodeURIComponent(v as any))
