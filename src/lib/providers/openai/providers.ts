@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'apipie' | 'openrouter' | 'orcarouter' | 'custom'
+export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'mistral' | 'apipie' | 'openrouter' | 'orcarouter' | 'custom'
 
 export type Provider = {
   id: ProviderId
@@ -74,6 +74,15 @@ export const providers: Provider[] = [
     supportsImageGeneration: false
   },
   {
+    id: 'mistral',
+    name: 'Mistral AI',
+    apiBase: 'https://api.mistral.ai/v1',
+    endpoints: openAiEndpoints,
+    documentationUrl: 'https://docs.mistral.ai/api',
+    apiKeyUrl: 'https://console.mistral.ai/api-keys',
+    supportsImageGeneration: false
+  },
+  {
     id: 'apipie',
     name: 'APIpie',
     apiBase: 'https://apipie.ai',
@@ -131,6 +140,7 @@ export const inferProviderId = (apiBase: string): ProviderId => {
   if (normalized.includes('api.anthropic.com')) return 'anthropic'
   if (normalized.includes('api.x.ai')) return 'xai'
   if (normalized.includes('generativelanguage.googleapis.com')) return 'gemini'
+  if (normalized.includes('api.mistral.ai')) return 'mistral'
   if (normalized.includes('apipie.ai')) return 'apipie'
   if (normalized.includes('openrouter.ai')) return 'openrouter'
   if (normalized.includes('api.orcarouter.ai')) return 'orcarouter'

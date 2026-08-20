@@ -35,6 +35,7 @@ The setup screen has presets for:
 * [Anthropic](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk)
 * [xAI](https://docs.x.ai/docs/api-reference)
 * [Google Gemini](https://ai.google.dev/gemini-api/docs/openai)
+* [Mistral AI](https://docs.mistral.ai/api)
 * [APIpie](https://apipie.ai/)
 * [OpenRouter](https://openrouter.ai/docs/quickstart)
 * [OrcaRouter](https://docs.orcarouter.ai/)
