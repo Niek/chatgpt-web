@@ -48,6 +48,9 @@ async def post_data(data: dict):
     if lines:
         answer = "\n".join([lorem.sentence() for _ in range(int(lines))])
 
+    if 'mock svg' in instructions.lower():
+        answer = '<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="180" rx="24" fill="#74aa9c"/><circle cx="92" cy="90" r="48" fill="#f4d06f"/><text x="160" y="100" fill="#102a2a" font-size="24" font-family="sans-serif">SVG rendered</text></svg>'
+
     response = {
         "id": 0,
         "choices": [{

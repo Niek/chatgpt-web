@@ -12,6 +12,7 @@
   import PromptConfirm from './PromptConfirm.svelte'
   import { getImage } from './ImageStore.svelte'
   import { getModelDetail } from './Models.svelte'
+  import DOMPurify from 'dompurify'
 
   export let message:Message
   export let chatId:number
@@ -36,6 +37,40 @@
     html: buildUnsupportedHTML()
   }
 
+  type DisplayPart =
+    | { type: 'markdown'; content: string }
+    | { type: 'svg'; content: string }
+
+  const svgBlockPattern = /(?:```(?:svg|xml)?\s*)?(<svg\b[\s\S]*?<\/svg\s*>)(?:\s*```)?/gi
+
+  const svgDataUrl = (source: string): string => {
+    const sanitized = String(DOMPurify.sanitize(source, {
+      USE_PROFILES: { svg: true, svgFilters: true },
+      FORBID_TAGS: ['script', 'style', 'foreignobject'],
+      FORBID_ATTR: ['href', 'xlink:href']
+    }))
+    if (!/^<svg(?:\s|>)/i.test(sanitized)) return ''
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sanitized)}`
+  }
+
+  const buildDisplayParts = (content: string): DisplayPart[] => {
+    if (!isAssistant) return [{ type: 'markdown', content }]
+
+    const parts: DisplayPart[] = []
+    let offset = 0
+    for (const match of content.matchAll(svgBlockPattern)) {
+      const index = match.index || 0
+      if (index > offset) parts.push({ type: 'markdown', content: content.slice(offset, index) })
+      const image = svgDataUrl(match[1])
+      parts.push(image
+        ? { type: 'svg', content: image }
+        : { type: 'markdown', content: match[0] })
+      offset = index + match[0].length
+    }
+    if (offset < content.length) parts.push({ type: 'markdown', content: content.slice(offset) })
+    return parts.length ? parts : [{ type: 'markdown', content }]
+  }
+
   const getDisplayMessage = ():string => {
     const content = message.content
     if (isSystem && chatSettings.hideSystemPrompt) {
@@ -51,7 +86,15 @@
   let defaultModel:Model
   let imageUrl:string
   let refreshCounter = 0
-  let displayMessage = message.content
+  let renderedContent:string
+  let displayParts:DisplayPart[] = []
+
+  const updateDisplayParts = () => {
+    const content = getDisplayMessage()
+    if (content === renderedContent) return
+    renderedContent = content
+    displayParts = buildDisplayParts(content)
+  }
 
   onMount(() => {
     defaultModel = chatSettings.model
@@ -60,12 +103,12 @@
         imageUrl = `data:${i.mediaType || 'image/png'};base64,${i.b64image}`
       })
     }
-    displayMessage = getDisplayMessage()
+    updateDisplayParts()
   })
 
   afterUpdate(() => {
     if (message.streaming && message.content.slice(-5).includes('```')) refreshCounter++
-    displayMessage = getDisplayMessage()
+    updateDisplayParts()
   })
 
   const edit = () => {
@@ -276,11 +319,17 @@
         <p><b>Summarizing...</b></p>
         {/if}
         {#key refreshCounter}
-        <SvelteMarkdown
-          source={displayMessage}
-          options={markdownOptions}
-          renderers={markdownRenderers}
-        />
+        {#each displayParts as part}
+          {#if part.type === 'svg'}
+            <img class="generated-svg" src={part.content} alt="Generated SVG">
+          {:else}
+            <SvelteMarkdown
+              source={part.content}
+              options={markdownOptions}
+              renderers={markdownRenderers}
+            />
+          {/if}
+        {/each}
         {/key}
         {#if imageUrl}
           <img src={imageUrl} alt="">

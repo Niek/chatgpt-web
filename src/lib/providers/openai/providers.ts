@@ -146,6 +146,12 @@ export const getProvider = (providerId: ProviderId): Provider => {
   return providerLookup[providerId] || providerLookup.openai
 }
 
+export const resolveImageModel = (providerId: ProviderId, configuredModel = ''): string => {
+  const imageProvider = getProvider(providerId).image
+  if (!imageProvider) return ''
+  return configuredModel.trim() || imageProvider.suggestedModel || ''
+}
+
 export const normalizeApiBase = (apiBase: string): string => {
   return apiBase.trim().replace(/\/+$/, '')
 }

@@ -602,6 +602,12 @@ aside.menu.main-menu .menu-expanse {
   min-width: 60px;
   min-height: 1.3em;
 }
+.message-display .generated-svg {
+  display: block;
+  width: 640px;
+  max-width: 100%;
+  height: auto;
+}
 .button-pack {
   display: block;
   position: sticky;

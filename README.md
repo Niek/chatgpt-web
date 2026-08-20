@@ -43,7 +43,7 @@ The setup screen has presets for:
 
 Anthropic's compatibility layer is intended primarily for testing and comparison. Some OpenAI request fields are ignored or translated; see [Anthropic's compatibility documentation](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk) for the current limitations.
 
-Image generation is available for providers with a compatible image endpoint. In chat settings, enter an image model ID such as `gpt-image-2` for OpenAI, `grok-imagine-image-quality` for xAI, or `gemini-2.5-flash-image` for Google Gemini. Leave the field blank to disable image generation.
+Image generation is available for providers with a compatible image endpoint. ChatGPT-web automatically uses the provider default, such as `gpt-image-2` for OpenAI, `grok-imagine-image-quality` for xAI, or `gemini-2.5-flash-image` for Google Gemini. The chat setting can override that default; providers without a known default require an explicit model ID.
 
 ## Development and Building
 
@@ -103,6 +103,7 @@ For instances where immediate API responses are preferred, consider utilizing th
   * Assign any non-empty value to `VITE_API_KEY`.
   * Execute `docker compose up -d mocked_api` to start the mocked API service.
   * To test image generation, set the chat's Image Generation Model to `mock-image` and prompt "show me an image of ...".
+  * To test safe inline SVG rendering, prompt `mock svg` without enabling image generation.
 
 * **Customizing Responses**:
   * To introduce a delay in the API response, use `d` followed by the desired number of seconds (e.g., `d2` for a 2-second delay).

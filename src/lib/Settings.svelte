@@ -22,6 +22,13 @@ import { getChatModelOptions, getModelDetail, getTokens } from './Models.svelte'
 import { getImageEndpoint } from './ApiUtil.svelte'
 import { getProvider } from './providers/openai/providers'
 
+const getImageModelHelp = (): string => {
+  const provider = getProvider(getProviderId())
+  return provider.image?.suggestedModel
+    ? `Optional override. Blank uses <code>${provider.image.suggestedModel}</code>.`
+    : 'Enter an image model ID from your provider. Blank disables image generation.'
+}
+
 // We are adding default model names explicitly here to avoid
 // circular dependencies. Alternative would be a big refactor,
 // which we want to avoid for now.
@@ -374,9 +381,9 @@ const summarySettings: ChatSetting[] = [
       {
         key: 'imageGenerationModel',
         name: 'Image Generation Model',
-        header: 'Enter an image model ID from your provider. Leave blank to disable image generation.',
+        header: getImageModelHelp,
         headerClass: 'is-info',
-        title: 'Enter an image model ID, then prompt an image with: show me an image of ...',
+        title: 'Optionally override the provider default, then prompt an image with: show me an image of ...',
         placeholder: () => getProvider(getProviderId()).image?.suggestedModel || 'Image model ID',
         hide: () => !getImageEndpoint(getProviderId()),
         type: 'text'

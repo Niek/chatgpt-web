@@ -12,13 +12,14 @@
     import { cleanContent, mergeProfileFields, prepareSummaryPrompt } from './Profiles.svelte'
     import { countMessageTokens, countPromptTokens, getModelMaxTokens } from './Stats.svelte'
     import type { Chat, ChatCompletionOpts, ChatSettings, Message, Model, Request } from './Types.svelte'
-    import { deleteMessage, getChatSettingValueNullDefault, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage, getChat } from './Storage.svelte'
+    import { deleteMessage, getChatSettingValueNullDefault, getProviderId, insertMessages, addError, currentChatMessages, getMessages, updateMessages, deleteSummaryMessage, getChat } from './Storage.svelte'
     import { scrollToBottom, scrollToMessage } from './Util.svelte'
     import { getDefaultModel, getRequestSettingList } from './Settings.svelte'
     import { v4 as uuidv4 } from 'uuid'
     import { get } from 'svelte/store'
     import { getLeadPrompt, getModelDetail } from './Models.svelte'
     import { imageRequest } from './providers/openai/request.svelte'
+    import { resolveImageModel } from './providers/openai/providers'
 
 export class ChatRequest {
       constructor () {
@@ -76,7 +77,7 @@ export class ChatRequest {
         await this.setChat(chat)
         const chatSettings = _this.chat.settings
         const chatId = chat.id
-        const imagePromptDetect = /^\s*(please|can\s+you|will\s+you)*\s*(give|generate|create|show|build|design)\s+(me)*\s*(an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(image|photo|picture|pic)s*\s*(for\s+me)*\s*(of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i
+        const imagePromptDetect = /^\s*(please|can\s+you|will\s+you)*\s*(give|generate|create|show|build|design|make)\s+(me)*\s*(an|a|set|a\s+set\s+of)*\s*([0-9]+|one|two|three|four)*\s+(image|photo|picture|pic)s*\s*(for\s+me)*\s*(of|[^a-z0-9]+|about|that\s+has|showing|with|having|depicting)\s+[^a-z0-9]*(.*)$/i
         opts.chat = chat
         _this.updating = true
 
@@ -95,7 +96,7 @@ export class ChatRequest {
           }
         }
 
-        if (chatSettings.imageGenerationModel.trim() && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
+        if (resolveImageModel(getProviderId(), chatSettings.imageGenerationModel) && !opts.didSummary && !opts.summaryRequest && lastMessage?.role === 'user') {
           const im = lastMessage.content.match(imagePromptDetect)
           if (im) {
             let n = parseInt((im[5] || '').toLowerCase().trim()

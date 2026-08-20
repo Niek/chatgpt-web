@@ -6,7 +6,7 @@
     import { getApiBase, getApiKey, getProviderId } from '../../Storage.svelte'
     import type { ChatCompletionOpts, GeneratedImage, Request, Usage } from '../../Types.svelte'
     import { getImageEndpoint } from '../../ApiUtil.svelte'
-    import { getProvider, getProviderHeaders, joinApiUrl } from './providers'
+    import { getProvider, getProviderHeaders, joinApiUrl, resolveImageModel } from './providers'
 
 export const chatRequest = async (
   request: Request,
@@ -141,7 +141,11 @@ export const imageRequest = async (
   }
   chatRequest.updating = true
   chatRequest.updatingMessage = 'Generating Image...'
-  const imageModel = chatSettings.imageGenerationModel.trim()
+  const imageModel = resolveImageModel(providerId, chatSettings.imageGenerationModel)
+  if (!imageModel) {
+    chatResponse.updateFromError(`Choose an image model for ${provider.name}.`)
+    return chatResponse
+  }
   const request: RequestImageGeneration = {
     prompt,
     model: imageModel,
