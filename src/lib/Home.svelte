@@ -1,19 +1,32 @@
 <script lang="ts">
-  import { apiKeyStorage, globalStorage, lastChatId, getChat, started, setGlobalSettingValueByKey, checkStateChange } from './Storage.svelte'
+  import {
+    apiKeyStorage,
+    lastChatId,
+    getApiBase,
+    getApiKey,
+    getChat,
+    getProviderId,
+    setProviderConfig,
+    started,
+    checkStateChange
+  } from './Storage.svelte'
   import Footer from './Footer.svelte'
   import { replace } from 'svelte-spa-router'
   import { afterUpdate, onMount } from 'svelte'
-  import { getPetalsBase, getPetalsWebsocket } from './ApiUtil.svelte'
-  import { set as setOpenAI } from './providers/openai/util.svelte'
   import { hasActiveModels } from './Models.svelte'
-  import { get } from 'svelte/store'
+  import { getProvider, providers, type ProviderId } from './providers/openai/providers'
+  import { resetSupportedModels, testProviderConnection } from './providers/openai/util.svelte'
 
-  $: apiKey = $apiKeyStorage
-  const openAiEndpoint = $globalStorage.openAiEndpoint || ''
-  let showPetalsSettings = $globalStorage.enablePetals
-  let pedalsEndpoint = $globalStorage.pedalsEndpoint
+  let providerId: ProviderId = getProviderId()
+  let apiKey = getApiKey()
+  let customApiBase = providerId === 'custom' ? getApiBase() : ''
   let hasModels = hasActiveModels()
-  let apiError: string = ''
+  let apiError = ''
+  let apiSuccess = ''
+  let testing = false
+
+  $: provider = getProvider(providerId)
+  $: apiBase = providerId === 'custom' ? customApiBase : provider.apiBase
 
   onMount(() => {
     if (!$started) {
@@ -29,32 +42,48 @@
 
   afterUpdate(() => {
     hasModels = hasActiveModels()
-    pedalsEndpoint = $globalStorage.pedalsEndpoint
     $checkStateChange++
   })
 
-  const setPetalsEnabled = (event: Event) => {
-    const el = (event.target as HTMLInputElement)
-    setGlobalSettingValueByKey('enablePetals', !!el.checked)
-    showPetalsSettings = $globalStorage.enablePetals
-    hasModels = hasActiveModels()
+  const selectProvider = (event: Event) => {
+    providerId = (event.target as HTMLSelectElement).value as ProviderId
+    apiError = ''
+    apiSuccess = ''
   }
 
-  async function testApiEndpoint (baseUri: string): Promise<boolean> {
+  const saveProvider = async () => {
+    const candidateProviderId = providerId
+    const candidateProvider = getProvider(candidateProviderId)
+    const candidateKey = apiKey.trim()
+    const candidateBase = apiBase.trim()
+    apiError = ''
+    apiSuccess = ''
+
+    if (!candidateKey) {
+      apiError = 'Enter an API key.'
+      return
+    }
+    if (!candidateBase) {
+      apiError = 'Enter an API base URL.'
+      return
+    }
+
+    testing = true
     try {
-      const response = await fetch(`${baseUri}/v1/models`, {
-        headers: { Authorization: `Bearer ${get(apiKeyStorage)}` }
+      const modelCount = await testProviderConnection({
+        provider: candidateProviderId,
+        apiBase: candidateBase,
+        apiKey: candidateKey
       })
-      if (!response.ok) {
-        apiError = `There was an error connecting to this endpoint: ${response.statusText}`
-        return false
-      }
-      apiError = ''
-      return true
+      setProviderConfig(candidateProviderId, candidateBase, candidateKey)
+      resetSupportedModels()
+      hasModels = hasActiveModels()
+      apiSuccess = `Connected to ${candidateProvider.name} (${modelCount} model${modelCount === 1 ? '' : 's'} available).`
     } catch (error) {
-      console.error('Failed to connect:', error)
-      apiError = `There was an error connecting to this endpoint: ${error.message}`
-      return false
+      const message = error instanceof Error ? error.message : String(error)
+      apiError = `Could not connect to ${candidateProvider.name}: ${message}`
+    } finally {
+      testing = false
     }
   }
 </script>
@@ -63,161 +92,91 @@
   <article class="message">
     <div class="message-body">
       <p class="mb-4">
-        <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank">ChatGPT-web</a></strong>
-      is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for
-      <a href="https://platform.openai.com/account/api-keys" target="_blank" rel="noreferrer">an OpenAI API key</a>
-      first. OpenAI bills per token (usage-based), which means it is a lot cheaper than
-      <a href="https://openai.com/blog/chatgpt-plus" target="_blank" rel="noreferrer">ChatGPT Plus</a>, unless you use
-      more than 10 million tokens per month. All messages are stored in your browser's local storage, so everything is
-      <strong>private</strong>. You can also close the browser tab and come back later to continue the conversation.
-    </p>
-    <p>
-      As an alternative to OpenAI, you can enter your own OpenAI-compatabile API endpoint, or use Petals swarm as a free API option for open chat models like Llama 2. 
-    </p>
-    </div>
-  </article>
-  <article class="message" class:is-danger={!hasModels} class:is-warning={!apiKey} class:is-info={apiKey}>
-    <div class="message-body">
-      Set your OpenAI API key below:
-
-      <form
-        class="field has-addons has-addons-right"
-        on:submit|preventDefault={async (event) => {
-          let val = ''
-          if (event.target && event.target[0].value) {
-            val = (event.target[0].value).trim()
-          }
-          setOpenAI({ apiKey: val })
-          hasModels = hasActiveModels()
-        }}
-      >
-        <p class="control is-expanded">
-          <input
-            aria-label="OpenAI API key"
-            type="password"
-            autocomplete="off"
-            class="input"
-            class:is-danger={!hasModels}
-            class:is-warning={!apiKey}
-            class:is-info={apiKey}
-            value={apiKey}
-          />
-        </p>
-        <p class="control">
-          <button class="button is-info" type="submit">Save</button>
-        </p>
-
-
-      </form>
-
-      {#if !apiKey}
-        <p class:is-danger={!hasModels} class:is-warning={!apiKey}>
-          Please enter your <a target="_blank" href="https://platform.openai.com/account/api-keys">OpenAI API key</a> above to use Open AI's ChatGPT API.
-          At least one API must be enabled to use ChatGPT-web.
-        </p>
-      {/if}
+        <strong><a href="https://github.com/Niek/chatgpt-web" target="_blank" rel="noreferrer">ChatGPT-web</a></strong>
+        is a simple one-page interface for OpenAI-compatible chat APIs. Choose a provider and enter its API key below.
+        Chats are stored in your browser's local storage, while prompts are sent directly to the selected provider.
+      </p>
     </div>
   </article>
 
-  <article class="message" class:is-danger={!hasModels || apiError} class:is-warning={!openAiEndpoint} class:is-info={openAiEndpoint && !apiError}>
+  <article class="message" class:is-danger={!!apiError} class:is-warning={!hasModels && !apiError} class:is-info={hasModels && !apiError}>
     <div class="message-body">
-      Set the API BASE URI for alternative OpenAI-compatible endpoints:
-      <form
-        class="field has-addons has-addons-right"
-        on:submit|preventDefault={async (event) => {
-          let val = ''
-          if (event.target && event.target[0].value) {
-            val = (event.target[0].value).trim()
-          }
-          if (await testApiEndpoint(val)) {
-            setGlobalSettingValueByKey('openAiEndpoint', val)
-          }
-        }}
-      >
-        <p class="control is-expanded">
-          <input
-            aria-label="API BASE URI"
-            type="text"
-            class="input"
-            class:is-danger={apiError}
-            placeholder="https://api.openai.com"
-            value={openAiEndpoint}
-          />
-        </p>
-        <p class="control">
-          <button class="button is-info" type="submit">Save</button>
-        </p>
-      </form>
-      {#if apiError}
-        <p class:is-danger={apiError}>{apiError}</p>
-      {/if}
-    </div>
-  </article>
+      <form on:submit|preventDefault={saveProvider}>
+        <div class="field">
+          <label class="label" for="api-provider">Provider</label>
+          <div class="control select is-fullwidth">
+            <select id="api-provider" aria-label="API provider" value={providerId} disabled={testing} on:change={selectProvider}>
+              {#each providers as option}
+                <option value={option.id}>{option.name}</option>
+              {/each}
+            </select>
+          </div>
+        </div>
 
-  <article class="message" class:is-danger={!hasModels} class:is-warning={!showPetalsSettings} class:is-info={showPetalsSettings}>
-    <div class="message-body">
-      <label class="label" for="enablePetals">
-        <input 
-          type="checkbox"
-          class="checkbox" 
-          id="enablePetals"
-          checked={!!$globalStorage.enablePetals} 
-          on:click={setPetalsEnabled}
-        >
-        Use Petals API and Models (Llama 2)
-      </label>
-      {#if showPetalsSettings}
-        <p>Set Petals API Endpoint:</p>
-        <form
-          class="field has-addons has-addons-right"
-          on:submit|preventDefault={(event) => {
-            if (event.target && event.target[0].value) {
-              const v = event.target[0].value.trim()
-              const v2 = v.replace(/^https:/i, 'wss:').replace(/(^wss:\/\/[^/]+)\/*$/i, '$1' + getPetalsWebsocket())
-              setGlobalSettingValueByKey('pedalsEndpoint', v2)
-              event.target[0].value = v2
-            } else {
-              setGlobalSettingValueByKey('pedalsEndpoint', '')
-            }
-          }}
-        >
-          <p class="control is-expanded">
+        <div class="field">
+          <label class="label" for="api-key">API key</label>
+          <div class="control">
             <input
-              aria-label="PetalsAPI Endpoint"
-              type="text"
+              id="api-key"
+              aria-label="API key"
+              type="password"
+              autocomplete="off"
+              disabled={testing}
               class="input"
-              placeholder={getPetalsBase() + getPetalsWebsocket()}
-              value={$globalStorage.pedalsEndpoint || ''}
+              class:is-danger={!!apiError}
+              bind:value={apiKey}
+              placeholder="Enter your API key"
             />
-          </p>
-          <p class="control">
-            <button class="button is-info" type="submit">Save</button>
-          </p>
+          </div>
+        </div>
 
-          
-        </form>
-        
-        {#if !pedalsEndpoint}
-          <p class="help is-warning">
-            Please only use the default public API for testing. It's best to <a target="_blank" href="https://github.com/petals-infra/chat.petals.dev">configure a private endpoint</a> and enter it above for connection to the Petals swarm.
-          </p>
+        {#if providerId === 'custom'}
+          <div class="field">
+            <label class="label" for="api-base">API base URL</label>
+            <div class="control">
+              <input
+                id="api-base"
+                aria-label="API base URL"
+                type="url"
+                disabled={testing}
+                class="input"
+                class:is-danger={!!apiError}
+                bind:value={customApiBase}
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
         {/if}
-        <p class="my-4">
-          <a target="_blank" href="https://petals.dev/">Petals</a> lets you run large language models at home by connecting to a public swarm, BitTorrent-style, without hefty GPU requirements.
-        </p>
-        <p class="mb-4">
-          You are encouraged to <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">set up a Petals server to share your GPU resources</a> with the public swarm. Minimum requirements to contribute Llama 2 completions are a GTX&nbsp;1080&nbsp;8GB, but the larger/faster the better.
-        </p>
-        <p class="mb-4">
-          If you're receiving errors while using Petals, <a target="_blank" href="https://health.petals.dev/">check swarm health</a> and consider <a target="_blank" href="https://github.com/bigscience-workshop/petals#connect-your-gpu-and-increase-petals-capacity">adding your GPU to the swarm</a> to help.
-        </p>
-        <p class="help is-warning">
-          Because Petals uses a public swarm, <b>do not send sensitive information</b> when using Petals.
-        </p>
+
+        <div class="field">
+          <div class="control">
+            <button class="button is-info" type="submit" class:is-loading={testing} disabled={testing}>
+              Test &amp; save
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <p class="help">
+        Using <a href={provider.documentationUrl} target="_blank" rel="noreferrer">{provider.name}'s API</a> at
+        <code>{apiBase}</code>. The key is stored only in this browser.
+      </p>
+      {#if provider.apiKeyUrl}
+        <p class="help">Need a key? <a href={provider.apiKeyUrl} target="_blank" rel="noreferrer">Create one with {provider.name}</a>.</p>
+      {/if}
+      {#if provider.compatibilityNotice}
+        <p class="help is-warning">{provider.compatibilityNotice}</p>
+      {/if}
+      {#if apiError}
+        <p class="help is-danger" role="alert">{apiError}</p>
+      {/if}
+      {#if apiSuccess}
+        <p class="help is-success" role="status">{apiSuccess}</p>
       {/if}
     </div>
   </article>
-  {#if apiKey}
+
+  {#if $apiKeyStorage}
     <article class="message is-info">
       <div class="message-body">
         Select an existing chat on the sidebar, or

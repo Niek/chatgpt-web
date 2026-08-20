@@ -7,7 +7,7 @@
   import Home from './lib/Home.svelte'
   import Chat from './lib/Chat.svelte'
   import NewChat from './lib/NewChat.svelte'
-  import { chatsStorage, setGlobalSettingValueByKey } from './lib/Storage.svelte'
+  import { chatsStorage } from './lib/Storage.svelte'
   import { Modals, closeModal } from 'svelte-modals/legacy'
   import { dispatchModalEsc, checkModalEsc } from './lib/Util.svelte'
   import { set as setOpenAI } from './lib/providers/openai/util.svelte'
@@ -19,10 +19,6 @@
   const urlParams: URLSearchParams = new URLSearchParams(router.querystring || '')
   if (urlParams.has('key')) {
     setOpenAI({ apiKey: urlParams.get('key') as string })
-  }
-  if (urlParams.has('petals')) {
-    console.log('enablePetals')
-    setGlobalSettingValueByKey('enablePetals', true)
   }
 
   // The definition of the routes with some conditions
@@ -60,9 +56,7 @@
   <Sidebar />
 </div>
 <div class="main-content-column" id="content">
-  {#key $routeLocation}
-    <Router {routes} onConditionsFailed={() => replace('/')}/>
-  {/key}
+  <Router {routes} onConditionsFailed={() => replace('/')}/>
 </div>
 
 <Modals>

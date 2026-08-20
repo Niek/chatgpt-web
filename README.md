@@ -9,14 +9,14 @@
 
 ![Screenshot of ChatGPT-web](.github/screenshot.png)
 
-ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use it, you need to register for [an OpenAI API key](https://platform.openai.com/account/api-keys) first. All messages are stored in your browser's local storage, so everything is **private**. You can also close the browser tab and come back later to continue the conversation.
+ChatGPT-web is a simple one-page web interface for OpenAI-compatible chat APIs. Select a provider, enter its API key, and the app discovers its available models. Chats are stored in your browser's local storage; prompts are sent directly to the selected provider.
 
 ## Features
 
 * **Open source**: ChatGPT-web is open source ([GPL-3.0](/LICENSE)), so you can host it yourself and make changes as you want.
 * **Private**: All chats and messages are stored in your browser's local storage, so everything is private.
 * **Customizable**: You can customize the prompt, the temperature, and other model settings. Multiple models (including GPT-4) are supported.
-* **Cheaper**: ChatGPT-web uses the commercial OpenAI API, so it's much cheaper than a ChatGPT Plus subscription.
+* **Bring your own provider**: Use a supported API directly and pay only for that provider's usage.
 * **Fast**: ChatGPT-web is a single-page web app, so it's [fast and responsive](https://pagespeed.web.dev/analysis/https-niek-github-io-chatgpt-web/8xv5uwrnes).
 * **Mobile-friendly**: ChatGPT-web is mobile-friendly, so you can use it on your phone.
 * **Voice input**: ChatGPT-web supports voice input, so you can talk to ChatGPT. It will also talk back to you.
@@ -24,8 +24,23 @@ ChatGPT-web is a simple one-page web interface to the OpenAI ChatGPT API. To use
 * **Export**: ChatGPT-web can export chats as a Markdown file, so you can share them with others.
 * **Code**: ChatGPT-web recognizes and highlights code blocks and allows you to copy them with one click.
 * **Desktop app**: ChatGPT-web can be bundled as a desktop app, so you can use it outside of the browser.
-* **Image generation**: ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
+* **Image generation**: With OpenAI (or a compatible custom endpoint), ChatGPT-web can generate images using the DALL·E model by using the prompt "show me an image of ...".
 * **Streaming**: ChatGPT-web can stream the response from the API, so you can see the response as it's being generated.
+
+## Supported providers
+
+The setup screen has presets for:
+
+* [OpenAI](https://platform.openai.com/docs/api-reference)
+* [Anthropic](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk)
+* [xAI](https://docs.x.ai/docs/api-reference)
+* [Google Gemini](https://ai.google.dev/gemini-api/docs/openai)
+* [APIpie](https://apipie.ai/)
+* [OpenRouter](https://openrouter.ai/docs/quickstart)
+* [OrcaRouter](https://docs.orcarouter.ai/)
+* Any custom OpenAI-compatible API
+
+Anthropic's compatibility layer is intended primarily for testing and comparison. Some OpenAI request fields are ignored or translated; see [Anthropic's compatibility documentation](https://platform.claude.com/docs/en/cli-sdks-libraries/libraries/openai-sdk) for the current limitations.
 
 ## Development and Building
 
@@ -80,7 +95,9 @@ For instances where immediate API responses are preferred, consider utilizing th
 
 * **Configuration**:
   * Open the `.env` file located at the project's root.
+  * Assign the key `VITE_PROVIDER=custom`.
   * Assign the key `VITE_API_BASE=http://localhost:5174` to redirect requests to the mocked API.
+  * Assign any non-empty value to `VITE_API_KEY`.
   * Execute `docker compose up -d mocked_api` to start the mocked API service.
 
 * **Customizing Responses**:

@@ -5,12 +5,12 @@
   } from '../../ApiUtil.svelte'
   import { countTokens } from '../../Models.svelte'
   import { countMessageTokens } from '../../Stats.svelte'
-  import { getApiBase, globalStorage } from '../../Storage.svelte'
+  import { getApiBase, getProviderId } from '../../Storage.svelte'
   import type { Chat, Message, Model, ModelDetail } from '../../Types.svelte'
   import { chatRequest, imageRequest } from './request.svelte'
   import { checkModel, getSupportedModels } from './util.svelte'
   import { encode } from 'gpt-tokenizer'
-  import { get } from 'svelte/store'
+  import { joinApiUrl } from './providers'
 
   const hiddenSettings = {
     startSequence: true,
@@ -48,8 +48,7 @@
     check: checkModel,
     getTokens: (value) => encode(value),
     getEndpoint: (model) =>
-      get(globalStorage).openAICompletionEndpoint ||
-      getApiBase() + getEndpointCompletions(),
+      joinApiUrl(getApiBase(), getEndpointCompletions(getProviderId())),
     hideSetting: (chatId, setting) => !!hiddenSettings[setting.key],
     countMessageTokens: (message: Message, model: Model, chat: Chat) => {
       return countTokens(
@@ -149,7 +148,7 @@
     request: imageRequest,
     check: checkModel,
     getTokens: (value) => [0],
-    getEndpoint: (model) => getApiBase() + getEndpointGenerations(),
+    getEndpoint: (model) => joinApiUrl(getApiBase(), getEndpointGenerations(getProviderId())),
     hideSetting: (chatId, setting) => false
   } as ModelDetail
 

@@ -3,8 +3,9 @@
     import { ChatCompletionResponse } from '../../ChatCompletionResponse.svelte'
     import { ChatRequest } from '../../ChatRequest.svelte'
     import { getEndpoint, getModelDetail } from '../../Models.svelte'
-    import { getApiKey } from '../../Storage.svelte'
+    import { getApiKey, getProviderId } from '../../Storage.svelte'
     import type { ChatCompletionOpts, Request } from '../../Types.svelte'
+    import { getProviderHeaders } from './providers'
 
 export const chatRequest = async (
   request: Request,
@@ -23,10 +24,7 @@ export const chatRequest = async (
       signal.addEventListener('abort', abortListener)
       const fetchOptions = {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getApiKey()}`,
-          'Content-Type': 'application/json'
-        },
+        headers: getProviderHeaders(getProviderId(), getApiKey()),
         body: JSON.stringify(request),
         signal
       }
@@ -140,10 +138,7 @@ export const imageRequest = async (
   // Create request
   const fetchOptions = {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${getApiKey()}`,
-          'Content-Type': 'application/json'
-        },
+        headers: getProviderHeaders(getProviderId(), getApiKey()),
         body: JSON.stringify(request),
         signal
   }
