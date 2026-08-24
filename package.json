@@ -39,7 +39,7 @@
     "globals": "^17.11.0",
     "gpt-tokenizer": "^4.0.0",
     "postcss": "^8.5.26",
-    "sass": "^1.103.0",
+    "sass": "^1.103.1",
     "stacking-order": "^2.0.0",
     "svelte": "^5.56.9",
     "svelte-check": "^4.7.6",
