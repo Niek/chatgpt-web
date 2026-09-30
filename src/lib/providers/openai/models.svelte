@@ -103,6 +103,10 @@
   }
 
   export const chatModels: Record<string, ModelDetail> = {
+    'gpt-6.1-sol': pricedChatModel(2, 0.1, 10, 1050000),
+    'gpt-6-sol': pricedChatModel(2, 0.2, 10, 1050000),
+    'gpt-6-astra': pricedChatModel(10, 1, 50, 1050000),
+    'gpt-6-luna': pricedChatModel(0.1, 0.01, 0.5, 1050000),
     'gpt-5.6-sol': pricedChatModel(5, 0.5, 30, 1050000),
     'gpt-5.6-terra': pricedChatModel(2.5, 0.25, 15, 1050000),
     'gpt-5.6-luna': pricedChatModel(1, 0.1, 6, 1050000),
