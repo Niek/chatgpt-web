@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'mistral' | 'apipie' | 'openrouter' | 'orcarouter' | 'custom'
+export type ProviderId = 'openai' | 'anthropic' | 'xai' | 'gemini' | 'mistral' | 'apipie' | 'openrouter' | 'orcarouter' | 'livepair' | 'custom'
 
 export type ImageProvider = {
   endpoint: string
@@ -121,6 +121,23 @@ export const providers: Provider[] = [
     documentationUrl: 'https://docs.orcarouter.ai/'
   },
   {
+    id: 'livepair',
+    name: 'LivePair',
+    apiBase: 'https://livepairai.com/v1/agent',
+    endpoints: {
+      completions: '/chat/completions',
+      models: '/models',
+      embeddings: '/embeddings'
+    },
+    image: {
+      endpoint: '/images/generations',
+      suggestedModel: 'seedream-5.0'
+    },
+    documentationUrl: 'https://livepairai.com/docs/openai-compatible',
+    apiKeyUrl: 'https://livepairai.com/settings',
+    compatibilityNotice: 'LivePair aggregates open-weight models behind an OpenAI-compatible surface. Text chat and text-to-image are supported; embeddings and other endpoints are not mapped.'
+  },
+  {
     id: 'custom',
     name: 'Custom OpenAI-compatible',
     apiBase: '',
@@ -165,6 +182,7 @@ export const inferProviderId = (apiBase: string): ProviderId => {
   if (normalized.includes('apipie.ai')) return 'apipie'
   if (normalized.includes('openrouter.ai')) return 'openrouter'
   if (normalized.includes('api.orcarouter.ai')) return 'orcarouter'
+  if (normalized.includes('livepairai.com')) return 'livepair'
   if (!normalized || normalized.includes('api.openai.com')) return 'openai'
   return 'custom'
 }
