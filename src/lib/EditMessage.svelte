@@ -56,7 +56,7 @@
       const tagIndex = content.indexOf('<', index)
       if (tagIndex < 0) break
 
-      if (content.startsWith('<!--', tagIndex)) {
+      if (content.startsWith('<' + '!--', tagIndex)) {
         const commentEnd = content.indexOf('-->', tagIndex + 4)
         if (commentEnd < 0) {
           return { index: stack[0]?.index ?? tagIndex, svg: stack.some(tag => tag.name === 'svg') }
