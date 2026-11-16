@@ -46,9 +46,8 @@ export const chatRequest = async (
 
             const data = JSON.parse(ev.data)
             window.setTimeout(() => {
-              // A previous chunk may have finished the response while this one waited.
-              // Updating the request again would block the next send.
-              if (chatResponse.hasFinished()) return
+              // A previous chunk may have finished, failed, or been aborted while this one waited.
+              if (signal.aborted || chatResponse.hasError() || chatResponse.hasFinished()) return
 
               // Remove updating indicator
               chatRequest.updating = 1 // hide indicator, but still signal we're updating
