@@ -14,6 +14,14 @@
     "tauri": "tauri",
     "lint": "eslint . --fix"
   },
+  "overrides": {
+    "@sveltejs/vite-plugin-svelte": {
+      "deepmerge": "npm:@stackline/deepmerge@1.1.2"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.8"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@fortawesome/free-brands-svg-icons": "^7.3.1",
