@@ -41,17 +41,20 @@ export const chatRequest = async (
           ...fetchOptions,
           openWhenHidden: true,
           onmessage (ev) {
-          // Remove updating indicator
-            chatRequest.updating = 1 // hide indicator, but still signal we're updating
-            chatRequest.updatingMessage = ''
-            if (!chatResponse.hasFinished()) {
-              if (ev.data === '[DONE]') {
-              // ?? anything to do when "[DONE]"?
-              } else {
-                const data = JSON.parse(ev.data)
-                window.setTimeout(() => { chatResponse.updateFromAsyncResponse(data) }, 1)
-              }
-            }
+            // The response is finished by finish_reason or onclose.
+            if (ev.data === '[DONE]') return
+
+            const data = JSON.parse(ev.data)
+            window.setTimeout(() => {
+              // A previous chunk may have finished the response while this one waited.
+              // Updating the request again would block the next send.
+              if (chatResponse.hasFinished()) return
+
+              // Remove updating indicator
+              chatRequest.updating = 1 // hide indicator, but still signal we're updating
+              chatRequest.updatingMessage = ''
+              chatResponse.updateFromAsyncResponse(data)
+            }, 1)
           },
           onclose () {
             chatResponse.updateFromClose()
